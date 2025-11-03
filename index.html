@@ -7,7 +7,78 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-modal">
+            <h1>🐱 Velkommen til MiauMiau! 🐱</h1>
+            <div id="login-form" class="login-form">
+                <h2>Logg inn</h2>
+                <input type="text" id="login-username" placeholder="Brukernavn" autocomplete="username" onkeypress="if(event.key === 'Enter') handleLogin()">
+                <input type="password" id="login-password" placeholder="Passord" autocomplete="current-password" onkeypress="if(event.key === 'Enter') handleLogin()">
+                <button class="action-btn" onclick="handleLogin()">Logg inn</button>
+                <p class="login-switch">Har du ikke en bruker? <a href="#" onclick="showSignup()">Opprett ny bruker</a></p>
+            </div>
+            <div id="signup-form" class="login-form" style="display: none;">
+                <h2>Opprett ny bruker</h2>
+                <input type="text" id="signup-username" placeholder="Brukernavn (minst 3 tegn)" autocomplete="username" onkeypress="if(event.key === 'Enter') handleSignup()">
+                <input type="password" id="signup-password" placeholder="Passord (minst 4 tegn)" autocomplete="new-password" onkeypress="if(event.key === 'Enter') handleSignup()">
+                <input type="password" id="signup-password-confirm" placeholder="Bekreft passord" autocomplete="new-password" onkeypress="if(event.key === 'Enter') handleSignup()">
+                <button class="action-btn" onclick="handleSignup()">Opprett bruker</button>
+                <p class="login-switch">Har du allerede en bruker? <a href="#" onclick="showLogin()">Logg inn</a></p>
+            </div>
+            <div id="login-error" class="login-error"></div>
+        </div>
+    </div>
+
+    <!-- Welcome Guide Overlay -->
+    <div id="welcome-overlay" class="welcome-overlay" style="display: none;">
+        <div class="welcome-modal">
+            <h1>🐱 Velkommen til MiauMiau! 🐱</h1>
+            <div class="welcome-content">
+                <div class="welcome-section">
+                    <h2>📖 Hvordan spille:</h2>
+                    <p><strong>1. Ta vare på katten:</strong><br>
+                    • Mat katten når den er sulten 🍖<br>
+                    • Lek med katten for å gjøre den glad 🎾<br>
+                    • Kose katten for mer lykke ❤️<br>
+                    • La den sove når den er sliten 😴<br>
+                    • Vask katten for å gjøre den glad 🧼</p>
+                    
+                    <p><strong>2. Få mynter 💰:</strong><br>
+                    • Spill minispill (Musjakt eller Matfanging) 🎯<br>
+                    • Fullfør daglige utfordringer 📅<br>
+                    • Gå opp i nivåer ⭐<br>
+                    • Bruk items fra butikken!</p>
+                    
+                    <p><strong>3. Kjøp items i butikken 🛒:</strong><br>
+                    • Leksaker for å leke med katten 🎾<br>
+                    • Soveting (pute, teppe) for katten 💤<br>
+                    • Kosmetikk (halsbånd, sløyfe, etc.) ✨</p>
+                    
+                    <p><strong>4. Utforsk:</strong><br>
+                    • Se dine bedrifter 🏆<br>
+                    • Samle katter i albumet 📸<br>
+                    • Sjekk statistikk 📊</p>
+                </div>
+                <div class="welcome-tips">
+                    <h3>💡 Tips:</h3>
+                    <ul>
+                        <li>Hold kattens lykke, sult og energi høye!</li>
+                        <li>Spill minispill for å tjene mynter raskt</li>
+                        <li>Du kan "kjøpe deg fri" fra ventetid med mynter</li>
+                        <li>Høyere nivå = mer poeng og belønninger!</li>
+                    </ul>
+                </div>
+            </div>
+            <button class="action-btn welcome-start-btn" onclick="closeWelcome()">Start spillet! 🎮</button>
+        </div>
+    </div>
+
     <nav class="navbar">
+        <div class="user-info">
+            <span id="current-user-display"></span>
+            <button id="logout-btn" class="logout-btn" onclick="handleLogout()" style="display: none;">Logg ut</button>
+        </div>
         <div class="nav-tabs">
             <button class="tab-btn active" data-tab="home">Hjem</button>
             <button class="tab-btn" data-tab="game">Kattespill</button>

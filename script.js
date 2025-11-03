@@ -30,6 +30,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
+// Current logged in user
+let currentUser = null;
+
 // Game state - extended with all new features
 let gameState = {
     happiness: 50,
@@ -69,9 +72,11 @@ let gameState = {
 
 const catEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱'];
 
-// Load game from localStorage
+// Load game from localStorage for current user
 function loadGame() {
-    const saved = localStorage.getItem('miaumiauGame');
+    if (!currentUser) return;
+    
+    const saved = localStorage.getItem(`miaumiauGame_${currentUser}`);
     if (saved) {
         const parsed = JSON.parse(saved);
         Object.assign(gameState, parsed);
@@ -83,10 +88,183 @@ function loadGame() {
     updateAllDisplays();
 }
 
-// Save game to localStorage
+// Save game to localStorage for current user
 function saveGame() {
+    if (!currentUser) return;
+    
     gameState.lastSave = Date.now();
-    localStorage.setItem('miaumiauGame', JSON.stringify(gameState));
+    localStorage.setItem(`miaumiauGame_${currentUser}`, JSON.stringify(gameState));
+}
+
+// ==================== USER MANAGEMENT ====================
+function getUsers() {
+    const usersJson = localStorage.getItem('miaumiauUsers');
+    return usersJson ? JSON.parse(usersJson) : {};
+}
+
+function saveUsers(users) {
+    localStorage.setItem('miaumiauUsers', JSON.stringify(users));
+}
+
+function showLogin() {
+    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('login-error').textContent = '';
+}
+
+function showSignup() {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('signup-form').style.display = 'block';
+    document.getElementById('login-error').textContent = '';
+}
+
+function handleLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    
+    if (!username || !password) {
+        document.getElementById('login-error').textContent = 'Vennligst fyll inn både brukernavn og passord!';
+        return;
+    }
+    
+    const users = getUsers();
+    
+    if (!users[username]) {
+        document.getElementById('login-error').textContent = 'Brukernavn finnes ikke!';
+        return;
+    }
+    
+    if (users[username].password !== password) {
+        document.getElementById('login-error').textContent = 'Feil passord!';
+        return;
+    }
+    
+    // Login successful
+    currentUser = username;
+    localStorage.setItem('miaumiauCurrentUser', username);
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('current-user-display').textContent = `Innlogget som: ${username} 🐱`;
+    document.getElementById('logout-btn').style.display = 'inline-block';
+    
+    // Load user's game data
+    loadGame();
+    playClickSound();
+}
+
+function handleSignup() {
+    const username = document.getElementById('signup-username').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const passwordConfirm = document.getElementById('signup-password-confirm').value;
+    
+    if (!username || username.length < 3) {
+        document.getElementById('login-error').textContent = 'Brukernavn må være minst 3 tegn!';
+        return;
+    }
+    
+    if (!password || password.length < 4) {
+        document.getElementById('login-error').textContent = 'Passord må være minst 4 tegn!';
+        return;
+    }
+    
+    if (password !== passwordConfirm) {
+        document.getElementById('login-error').textContent = 'Passordene matcher ikke!';
+        return;
+    }
+    
+    const users = getUsers();
+    
+    if (users[username]) {
+        document.getElementById('login-error').textContent = 'Brukernavn er allerede i bruk!';
+        return;
+    }
+    
+    // Create new user
+    users[username] = {
+        password: password,
+        createdAt: Date.now()
+    };
+    saveUsers(users);
+    
+    // Login as new user
+    currentUser = username;
+    localStorage.setItem('miaumiauCurrentUser', username);
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('current-user-display').textContent = `Innlogget som: ${username} 🐱`;
+    document.getElementById('logout-btn').style.display = 'inline-block';
+    
+    // Reset game state for new user
+    gameState = {
+        happiness: 50,
+        hunger: 50,
+        energy: 50,
+        score: 0,
+        level: 1,
+        coins: 0,
+        ownedItems: [],
+        achievements: {},
+        stats: {
+            timesFed: 0,
+            timesPlayed: 0,
+            timesPetted: 0,
+            timesSlept: 0,
+            timesCleaned: 0,
+            pizzaGiven: 0,
+            bottleGiven: 0,
+            handPetted: 0,
+            catClicked: 0,
+            totalPlayTime: 0,
+            minigameScore: 0,
+            itemsUsed: {}
+        },
+        cats: [
+            { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸' },
+            { name: 'Katt 2', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😺' },
+            { name: 'Katt 3', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😻' }
+        ],
+        currentCat: 0,
+        dailyChallenge: null,
+        challengeProgress: 0,
+        challengeCompleted: false,
+        lastSave: Date.now(),
+        actionCooldowns: {}
+    };
+    saveGame();
+    updateAllDisplays();
+    playSuccessSound();
+    showMessage(`Velkommen, ${username}! 🎉 Spillet ditt er klart!`);
+}
+
+function handleLogout() {
+    if (confirm('Er du sikker på at du vil logge ut? Fremgangen din er lagret!')) {
+        saveGame(); // Save before logout
+        currentUser = null;
+        localStorage.removeItem('miaumiauCurrentUser');
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('current-user-display').textContent = '';
+        document.getElementById('logout-btn').style.display = 'none';
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-password').value = '';
+        showLogin();
+        playClickSound();
+    }
+}
+
+// Check if user is logged in on page load
+function checkLogin() {
+    const savedUser = localStorage.getItem('miaumiauCurrentUser');
+    if (savedUser) {
+        const users = getUsers();
+        if (users[savedUser]) {
+            currentUser = savedUser;
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('current-user-display').textContent = `Innlogget som: ${currentUser} 🐱`;
+            document.getElementById('logout-btn').style.display = 'inline-block';
+            loadGame();
+            return true;
+        }
+    }
+    document.getElementById('login-overlay').style.display = 'flex';
+    return false;
 }
 
 // Auto-save every 30 seconds
@@ -126,27 +304,54 @@ function updateStats() {
     document.getElementById('score').textContent = gameState.score;
     document.getElementById('level').textContent = gameState.level;
     
-    // Check level up
+    // Check level up - Much harder progression
     const oldLevel = gameState.level;
-    const newLevel = Math.floor(gameState.score / 100) + 1;
+    // Level progression: 1=0, 2=500, 3=1500, 4=3000, 5=5000, etc.
+    // Formula: level = floor(score/500) + 1, but with exponential growth
+    let newLevel = 1;
+    if (gameState.score >= 0 && gameState.score < 500) newLevel = 1;
+    else if (gameState.score < 1500) newLevel = 2;
+    else if (gameState.score < 3000) newLevel = 3;
+    else if (gameState.score < 5000) newLevel = 4;
+    else if (gameState.score < 7500) newLevel = 5;
+    else if (gameState.score < 11000) newLevel = 6;
+    else if (gameState.score < 16000) newLevel = 7;
+    else if (gameState.score < 22000) newLevel = 8;
+    else if (gameState.score < 30000) newLevel = 9;
+    else if (gameState.score < 40000) newLevel = 10;
+    else if (gameState.score < 55000) newLevel = 11;
+    else if (gameState.score < 75000) newLevel = 12;
+    else if (gameState.score < 100000) newLevel = 13;
+    else if (gameState.score < 135000) newLevel = 14;
+    else if (gameState.score < 180000) newLevel = 15;
+    else if (gameState.score < 240000) newLevel = 16;
+    else if (gameState.score < 320000) newLevel = 17;
+    else if (gameState.score < 430000) newLevel = 18;
+    else if (gameState.score < 580000) newLevel = 19;
+    else if (gameState.score < 780000) newLevel = 20;
+    else {
+        // After level 20, continue with exponential growth
+        newLevel = Math.floor(20 + Math.sqrt((gameState.score - 780000) / 10000));
+    }
     
-    // Cap maximum level to prevent infinite loops
-    const maxLevel = 20;
+    // Cap maximum level much higher, or remove cap entirely
+    const maxLevel = 999; // Very high cap, effectively unlimited
     gameState.level = Math.min(newLevel, maxLevel);
     
-    if (gameState.level > oldLevel && gameState.level <= maxLevel) {
+    if (gameState.level > oldLevel) {
         levelUpReward(gameState.level, oldLevel);
     }
     
     // Update bow color based on level
     updateBowForLevel(gameState.level);
     
-    // Check if game is finished (level 20 reached)
-    if (gameState.level >= maxLevel && oldLevel < maxLevel) {
-        setTimeout(() => {
-            showGameFinishedScreen();
-        }, 2000); // Show after 2 seconds to let level up message show first
-    }
+    // Remove game finished screen - game continues indefinitely
+    // Or make it much harder to reach (level 50+)
+    // if (gameState.level >= 50 && oldLevel < 50) {
+    //     setTimeout(() => {
+    //         showGameFinishedScreen();
+    //     }, 2000);
+    // }
     
     // Update cat emoji based on mood
     const catEmoji = document.getElementById('cat-emoji');
@@ -636,9 +841,20 @@ const shopItems = [
     { id: 'mouse', name: 'Kattemus 🐭', price: 75, emoji: '🐭', effect: 'happiness+8', useType: 'play', useLabel: 'Leke med mus' },
     { id: 'tree', name: 'Kloretre 🌳', price: 100, emoji: '🌳', effect: 'energy+10', useType: 'play', useLabel: 'Bruk kloretre' },
     { id: 'toy', name: 'Leksak 🧸', price: 60, emoji: '🧸', effect: 'happiness+6', useType: 'play', useLabel: 'Leke med leksak' },
+    { id: 'feather', name: 'Fjærspill 🪶', price: 85, emoji: '🪶', effect: 'happiness+9', useType: 'play', useLabel: 'Leke med fjær' },
+    { id: 'laser', name: 'Laserpeker 🔴', price: 120, emoji: '🔴', effect: 'happiness+12', useType: 'play', useLabel: 'Leke med laser' },
+    { id: 'tunnel', name: 'Kattetunnel 🕳️', price: 150, emoji: '🕳️', effect: 'happiness+15', useType: 'play', useLabel: 'Lek i tunnel' },
+    { id: 'pillow', name: 'Myk pute 💤', price: 70, emoji: '💤', effect: 'energy+15', useType: 'sleep', useLabel: 'Sove på pute' },
+    { id: 'blanket', name: 'Varmt teppe 🛏️', price: 90, emoji: '🛏️', effect: 'energy+20', useType: 'sleep', useLabel: 'Sove under teppe' },
     { id: 'collar1', name: 'Rødt halsbånd 🔴', price: 80, emoji: '🔴', effect: 'style', useType: 'cosmetic', useLabel: null },
     { id: 'collar2', name: 'Blått halsbånd 🔵', price: 80, emoji: '🔵', effect: 'style', useType: 'cosmetic', useLabel: null },
-    { id: 'bell', name: 'Bjelle 🔔', price: 90, emoji: '🔔', effect: 'happiness+7', useType: 'cosmetic', useLabel: null }
+    { id: 'collar3', name: 'Grønt halsbånd 🟢', price: 80, emoji: '🟢', effect: 'style', useType: 'cosmetic', useLabel: null },
+    { id: 'collar4', name: 'Gull halsbånd ⭐', price: 150, emoji: '⭐', effect: 'style', useType: 'cosmetic', useLabel: null },
+    { id: 'bell', name: 'Bjelle 🔔', price: 90, emoji: '🔔', effect: 'happiness+7', useType: 'cosmetic', useLabel: null },
+    { id: 'bow1', name: 'Rosa sløyfe 🎀', price: 100, emoji: '🎀', effect: 'style', useType: 'cosmetic', useLabel: null },
+    { id: 'bow2', name: 'Blå sløyfe 💙', price: 100, emoji: '💙', effect: 'style', useType: 'cosmetic', useLabel: null },
+    { id: 'hat', name: 'Kattelue 🎩', price: 130, emoji: '🎩', effect: 'style', useType: 'cosmetic', useLabel: null },
+    { id: 'glasses', name: 'Sunglasses 😎', price: 140, emoji: '😎', effect: 'style', useType: 'cosmetic', useLabel: null }
 ];
 
 function renderShop() {
@@ -756,8 +972,10 @@ function renderAchievements() {
 
 // ==================== DAILY CHALLENGES ====================
 function generateDailyChallenge() {
+    if (!currentUser) return;
+    
     const today = new Date().toDateString();
-    const savedChallenge = localStorage.getItem('dailyChallenge');
+    const savedChallenge = localStorage.getItem(`dailyChallenge_${currentUser}`);
     
     if (savedChallenge) {
         const challenge = JSON.parse(savedChallenge);
@@ -779,7 +997,7 @@ function generateDailyChallenge() {
     challenge.date = today;
     challenge.progress = 0;
     gameState.dailyChallenge = challenge;
-    localStorage.setItem('dailyChallenge', JSON.stringify(challenge));
+    localStorage.setItem(`dailyChallenge_${currentUser}`, JSON.stringify(challenge));
 }
 
 function updateDailyChallenge() {
@@ -795,6 +1013,9 @@ function updateDailyChallenge() {
         gameState.challengeCompleted = true;
         playChallengeSound();
         showMessage(`🎉 Daglig utfordring fullført! +${challenge.reward} mynter! 🎉`);
+        if (currentUser) {
+            localStorage.setItem(`dailyChallenge_${currentUser}`, JSON.stringify(challenge));
+        }
         saveGame();
     }
     
@@ -868,8 +1089,10 @@ let foodCatchInterval = null;
 let foodCatchTime = 30;
 let foodCatchScore = 0;
 let foodPosition = 50;
+let foodCatchTouchStartX = null;
 
 let foodCatchKeyListener = null;
+let foodCatchTouchListener = null;
 
 function startFoodCatch() {
     document.getElementById('food-catch-area').style.display = 'block';
@@ -879,27 +1102,51 @@ function startFoodCatch() {
     document.getElementById('food-score').textContent = '0';
     document.getElementById('food-time').textContent = '30';
     
-    // Remove old key listener if exists
+    const container = document.getElementById('catch-container');
+    
+    // Remove old listeners if exist
     if (foodCatchKeyListener) {
         document.removeEventListener('keydown', foodCatchKeyListener);
     }
-    
-    const container = document.getElementById('catch-container');
+    if (foodCatchTouchListener && container) {
+        const gameArea = container.querySelector('.catch-game-area');
+        if (gameArea) {
+            gameArea.removeEventListener('touchstart', foodCatchTouchListener.touchstart);
+            gameArea.removeEventListener('touchmove', foodCatchTouchListener.touchmove);
+        }
+    }
     container.innerHTML = `
-        <div class="catch-instructions">🎮 Bruk ← → piltastene for å flytte katten!</div>
-        <div class="catch-cat" style="left: 50%;">😸</div>
-        <div class="catch-food" style="display: none;"></div>
+        <div class="catch-instructions">🎮 Bruk ← → piltastene, swipe eller knappene for å flytte katten!</div>
+        <div class="catch-controls">
+            <button class="catch-move-btn" id="catch-left-btn">←</button>
+            <div class="catch-game-area">
+                <div class="catch-cat" style="left: 50%;">😸</div>
+                <div class="catch-food" style="display: none;"></div>
+            </div>
+            <button class="catch-move-btn" id="catch-right-btn">→</button>
+        </div>
     `;
     
-    const timer = setInterval(() => {
+    let gameTimer = null;
+    gameTimer = setInterval(() => {
         foodCatchTime--;
         document.getElementById('food-time').textContent = foodCatchTime;
         if (foodCatchTime <= 0) {
-            clearInterval(timer);
+            clearInterval(gameTimer);
             if (foodCatchInterval) clearInterval(foodCatchInterval);
+            if (intervals.left) clearInterval(intervals.left);
+            if (intervals.right) clearInterval(intervals.right);
             if (foodCatchKeyListener) {
                 document.removeEventListener('keydown', foodCatchKeyListener);
                 foodCatchKeyListener = null;
+            }
+            if (foodCatchTouchListener) {
+                const gameArea = container.querySelector('.catch-game-area');
+                if (gameArea) {
+                    gameArea.removeEventListener('touchstart', foodCatchTouchListener.touchstart);
+                    gameArea.removeEventListener('touchmove', foodCatchTouchListener.touchmove);
+                }
+                foodCatchTouchListener = null;
             }
             gameState.coins += Math.floor(foodCatchScore / 10);
             gameState.stats.minigameScore += foodCatchScore;
@@ -912,20 +1159,146 @@ function startFoodCatch() {
         }
     }, 1000);
     
-    // Add key listener for arrow keys
-    foodCatchKeyListener = (e) => {
-        if (e.key === 'ArrowLeft' && foodPosition > 0) {
-            foodPosition -= 5;
+    // Movement function
+    const moveCat = (direction) => {
+        if (direction === 'left' && foodPosition > 0) {
+            foodPosition = Math.max(0, foodPosition - 5);
         }
-        if (e.key === 'ArrowRight' && foodPosition < 95) {
-            foodPosition += 5;
+        if (direction === 'right' && foodPosition < 95) {
+            foodPosition = Math.min(95, foodPosition + 5);
         }
         const cat = document.querySelector('.catch-cat');
         if (cat) {
             cat.style.left = foodPosition + '%';
         }
     };
+    
+    // Add key listener for arrow keys
+    foodCatchKeyListener = (e) => {
+        if (e.key === 'ArrowLeft') moveCat('left');
+        if (e.key === 'ArrowRight') moveCat('right');
+    };
     document.addEventListener('keydown', foodCatchKeyListener);
+    
+    // Add touch listeners for iPad/mobile
+    const gameArea = container.querySelector('.catch-game-area');
+    foodCatchTouchListener = {
+        touchstart: (e) => {
+            e.preventDefault();
+            foodCatchTouchStartX = e.touches[0].clientX;
+        },
+        touchmove: (e) => {
+            e.preventDefault();
+            if (foodCatchTouchStartX === null) return;
+            const touchX = e.touches[0].clientX;
+            const diff = foodCatchTouchStartX - touchX;
+            
+            if (Math.abs(diff) > 10) { // Minimum swipe distance
+                if (diff > 0) {
+                    moveCat('left');
+                } else {
+                    moveCat('right');
+                }
+                foodCatchTouchStartX = touchX; // Update for continuous movement
+            }
+        }
+    };
+    
+    if (gameArea) {
+        gameArea.addEventListener('touchstart', foodCatchTouchListener.touchstart, { passive: false });
+        gameArea.addEventListener('touchmove', foodCatchTouchListener.touchmove, { passive: false });
+    }
+    
+    // Add button listeners for touch devices with continuous movement
+    const leftBtn = document.getElementById('catch-left-btn');
+    const rightBtn = document.getElementById('catch-right-btn');
+    
+    // Store references for cleanup
+    const intervals = { left: null, right: null };
+    
+    const startMoving = (direction) => {
+        if (direction === 'left') {
+            if (intervals.left) clearInterval(intervals.left);
+            moveCat('left');
+            intervals.left = setInterval(() => moveCat('left'), 50); // Move every 50ms
+        } else {
+            if (intervals.right) clearInterval(intervals.right);
+            moveCat('right');
+            intervals.right = setInterval(() => moveCat('right'), 50);
+        }
+    };
+    
+    const stopMoving = (direction) => {
+        if (direction === 'left' && intervals.left) {
+            clearInterval(intervals.left);
+            intervals.left = null;
+        }
+        if (direction === 'right' && intervals.right) {
+            clearInterval(intervals.right);
+            intervals.right = null;
+        }
+    };
+    
+    if (leftBtn) {
+        // Touch events
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startMoving('left');
+        }, { passive: false });
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopMoving('left');
+        }, { passive: false });
+        leftBtn.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            stopMoving('left');
+        }, { passive: false });
+        
+        // Mouse events
+        leftBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startMoving('left');
+        });
+        leftBtn.addEventListener('mouseup', () => stopMoving('left'));
+        leftBtn.addEventListener('mouseleave', () => stopMoving('left'));
+        
+        // Click fallback
+        leftBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            moveCat('left');
+        });
+    }
+    
+    if (rightBtn) {
+        // Touch events
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startMoving('right');
+        }, { passive: false });
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopMoving('right');
+        }, { passive: false });
+        rightBtn.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            stopMoving('right');
+        }, { passive: false });
+        
+        // Mouse events
+        rightBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startMoving('right');
+        });
+        rightBtn.addEventListener('mouseup', () => stopMoving('right'));
+        rightBtn.addEventListener('mouseleave', () => stopMoving('right'));
+        
+        // Click fallback
+        rightBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            moveCat('right');
+        });
+    }
+    
     
     let foodY = -10; // Start above screen
     let foodX = Math.random() * 80 + 10; // Random X position
@@ -1108,7 +1481,7 @@ function renderOwnedItemsInGame() {
     
     const usableItems = gameState.ownedItems
         .map(id => shopItems.find(item => item.id === id))
-        .filter(item => item && item.useType === 'play');
+        .filter(item => item && (item.useType === 'play' || item.useType === 'sleep'));
     
     if (usableItems.length === 0) {
         container.innerHTML = '';
@@ -1136,7 +1509,7 @@ function useItem(itemId) {
         return;
     }
     
-    if (item.useType !== 'play') {
+    if (item.useType === 'cosmetic') {
         showMessage(`${item.name} er kun kosmetisk! Det ser bra ut på katten! ✨`);
         return;
     }
@@ -1144,12 +1517,21 @@ function useItem(itemId) {
     // Check cooldown for item usage
     const actionId = `item-${itemId}`;
     if (isActionOnCooldown(actionId, 3)) {
-        showMessage('Katten leker allerede med dette! Vent litt... ⏳');
+        if (item.useType === 'play') {
+            showMessage('Katten leker allerede med dette! Vent litt... ⏳');
+        } else if (item.useType === 'sleep') {
+            showMessage('Katten sover allerede på dette! Vent litt... ⏳');
+        }
         return;
     }
     
-    if (gameState.energy < 20) {
+    if (item.useType === 'play' && gameState.energy < 20) {
         showMessage('Jeg er for sliten... La meg hvile først! 😴');
+        return;
+    }
+    
+    if (item.useType === 'sleep' && gameState.energy > 80) {
+        showMessage('Katten er ikke sliten nok til å sove nå! Den vil heller leke! 🎾');
         return;
     }
     
@@ -1194,18 +1576,79 @@ function useItem(itemId) {
             scoreGain = 13;
             message = 'Katten elsker leksaken! 🧸😸';
             break;
-        default:
-            happinessGain = 15;
+        case 'feather': // Fjærspill
+            happinessGain = 24;
             energyChange = -10;
-            scoreGain = 10;
-            message = `Katten leker med ${item.name}! 😸`;
+            scoreGain = 14;
+            message = 'Katten hopper etter fjæren! 🪶😸';
+            break;
+        case 'laser': // Laserpeker
+            happinessGain = 28;
+            energyChange = -12;
+            scoreGain = 16;
+            message = 'Katten jager laserpunktet! 🔴😸';
+            break;
+        case 'tunnel': // Kattetunnel
+            happinessGain = 30;
+            energyChange = -15;
+            scoreGain = 18;
+            message = 'Katten løper gjennom tunnelen! 🕳️😸';
+            break;
+        case 'pillow': // Pute - søvn
+            happinessGain = 10;
+            energyChange = 25;
+            scoreGain = 8;
+            message = 'Katten sover så godt på puten! 💤😸';
+            updateActionCounters('sleep');
+            playSleepSound();
+            showMessage(message);
+            createParticles(document.getElementById('game-cat'));
+            updateStats();
+            renderOwnedItemsInGame();
+            updateAllDisplays();
+            saveGame();
+            return;
+        case 'blanket': // Teppe - søvn
+            happinessGain = 12;
+            energyChange = 30;
+            scoreGain = 9;
+            message = 'Katten sover godt under teppet! 🛏️😸';
+            updateActionCounters('sleep');
+            playSleepSound();
+            showMessage(message);
+            createParticles(document.getElementById('game-cat'));
+            updateStats();
+            renderOwnedItemsInGame();
+            updateAllDisplays();
+            saveGame();
+            return;
+        default:
+            if (item.useType === 'play') {
+                happinessGain = 15;
+                energyChange = -10;
+                scoreGain = 10;
+                message = `Katten leker med ${item.name}! 😸`;
+            } else {
+                happinessGain = 10;
+                energyChange = 20;
+                scoreGain = 8;
+                message = `Katten bruker ${item.name}! 😸`;
+            }
     }
     
-    gameState.happiness = Math.min(100, gameState.happiness + happinessGain);
-    gameState.energy = Math.max(0, gameState.energy + energyChange);
-    gameState.score += Math.floor(scoreGain * bonus);
-    updateActionCounters('play');
-    playPlaySound();
+    if (item.useType === 'play') {
+        gameState.happiness = Math.min(100, gameState.happiness + happinessGain);
+        gameState.energy = Math.max(0, gameState.energy + energyChange);
+        gameState.score += Math.floor(scoreGain * bonus);
+        updateActionCounters('play');
+        playPlaySound();
+    } else {
+        gameState.happiness = Math.min(100, gameState.happiness + happinessGain);
+        gameState.energy = Math.min(100, gameState.energy + energyChange);
+        gameState.score += Math.floor(scoreGain * bonus);
+        updateActionCounters('sleep');
+        playSleepSound();
+    }
     showMessage(message);
     createParticles(document.getElementById('game-cat'));
     updateStats();
@@ -1551,14 +1994,35 @@ function updateMusicButton() {
 }
 
 // Initialize
-initAudio();
-initBackgroundMusic();
-loadGame();
-playTimeStart = Date.now(); // Start tracking play time from now
-updateStats();
-checkSeasonalEvents();
-generateDailyChallenge();
-updateDailyChallenge();
+// Check login first
+const isLoggedIn = checkLogin();
+
+// Check if welcome screen should be shown (only if logged in)
+if (isLoggedIn) {
+    const hasSeenWelcome = localStorage.getItem(`hasSeenWelcome_${currentUser}`);
+    if (!hasSeenWelcome) {
+        document.getElementById('welcome-overlay').style.display = 'flex';
+    }
+    
+    initAudio();
+    initBackgroundMusic();
+    loadGame();
+    playTimeStart = Date.now(); // Start tracking play time from now
+    updateStats();
+    checkSeasonalEvents();
+}
+
+// Welcome screen function
+function closeWelcome() {
+    document.getElementById('welcome-overlay').style.display = 'none';
+    if (currentUser) {
+        localStorage.setItem(`hasSeenWelcome_${currentUser}`, 'true');
+    }
+}
+if (isLoggedIn) {
+    generateDailyChallenge();
+    updateDailyChallenge();
+}
 
 // Show game finished screen
 function showGameFinishedScreen() {
