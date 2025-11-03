@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiauMiau - Katteparadis!</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-tab="home">Hjem</button>
+            <button class="tab-btn" data-tab="game">Kattespill</button>
+            <button class="tab-btn" data-tab="shop">Butikk 🛒</button>
+            <button class="tab-btn" data-tab="achievements">Bedrifter 🏆</button>
+            <button class="tab-btn" data-tab="album">Kattealbum 📸</button>
+            <button class="tab-btn" data-tab="minigames">Minispill 🎯</button>
+            <button class="tab-btn" data-tab="stats">Statistikk 📊</button>
+        </div>
+    </nav>
+
+    <div class="content">
+        <!-- Home Tab -->
+        <div id="home-tab" class="tab-content active">
+            <div class="cat-container">
+                <h1>Velkommen til katteparadis! 🐱</h1>
+                
+                <!-- Floating cats around -->
+                <div class="floating-cat cat-1">🐱</div>
+                <div class="floating-cat cat-2">😸</div>
+                <div class="floating-cat cat-3">😻</div>
+                <div class="floating-cat cat-4">🙀</div>
+                <div class="floating-cat cat-5">😺</div>
+                <div class="floating-cat cat-6">😾</div>
+                <div class="floating-cat cat-7">🐈</div>
+                <div class="floating-cat cat-8">🐈‍⬛</div>
+                <div class="floating-cat cat-9">😼</div>
+                <div class="floating-cat cat-10">😽</div>
+                <div class="floating-cat cat-11">😹</div>
+                <div class="floating-cat cat-12">🐾</div>
+                
+                <!-- Center cat with rainbow -->
+                <div class="center-cat">
+                    <div class="rainbow-container">
+                        <div class="rainbow rainbow-1"></div>
+                        <div class="rainbow rainbow-2"></div>
+                        <div class="rainbow rainbow-3"></div>
+                        <div class="rainbow rainbow-4"></div>
+                        <div class="rainbow rainbow-5"></div>
+                    </div>
+                    <div class="cat-face">😸</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Tab -->
+        <div id="game-tab" class="tab-content">
+            <div class="game-container">
+                <h1>Kattespill 🎮</h1>
+                
+                <div class="game-cat-area">
+                    <div id="bed" class="bed">🛏️</div>
+                    <div id="food-item" class="food-item"></div>
+                    <div id="game-cat" class="game-cat">
+                        <span class="cat-bow">🎀</span>
+                        <span id="cat-emoji">😸</span>
+                    </div>
+                    <div id="cat-status" class="cat-status">
+                        <div class="stat">
+                            <span>Happiness: </span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="happiness-bar" style="width: 50%"></div>
+                            </div>
+                            <span class="stat-value" id="happiness">50</span>%
+                        </div>
+                        <div class="stat">
+                            <span>Hunger: </span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="hunger-bar" style="width: 50%"></div>
+                            </div>
+                            <span class="stat-value" id="hunger">50</span>%
+                        </div>
+                        <div class="stat">
+                            <span>Energy: </span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="energy-bar" style="width: 50%"></div>
+                            </div>
+                            <span class="stat-value" id="energy">50</span>%
+                        </div>
+                    </div>
+                    
+                    <div class="score-section">
+                        <div class="score-display">
+                            <span>Poeng: </span>
+                            <span id="score">0</span>
+                        </div>
+                        <div class="level-display">
+                            <span>Nivå: </span>
+                            <span id="level">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-actions">
+                    <button class="action-btn" id="feed-btn">🍖 Mate</button>
+                    <button class="action-btn" id="play-btn">🎾 Leke</button>
+                    <button class="action-btn" id="pet-btn">❤️ Kose</button>
+                    <button class="action-btn" id="sleep-btn">😴 La sove</button>
+                    <button class="action-btn" id="clean-btn">🛁 Vask</button>
+                    <button class="action-btn" id="pizza-btn">🍕 Pizza</button>
+                    <button class="action-btn" id="bottle-btn">🍼 Tåteflaske</button>
+                    <button class="action-btn" id="hand-btn">👋 Kosehånd</button>
+                </div>
+
+                <div id="game-message" class="game-message"></div>
+                <div id="daily-challenge" class="daily-challenge"></div>
+                <div id="owned-items-section" class="owned-items-section"></div>
+            </div>
+        </div>
+
+        <!-- Shop Tab -->
+        <div id="shop-tab" class="tab-content">
+            <div class="shop-container">
+                <h1>Katteshop 🛒</h1>
+                <div class="coins-display">💰 Mynter: <span id="coins">0</span></div>
+                <div class="shop-items" id="shop-items"></div>
+            </div>
+        </div>
+
+        <!-- Achievements Tab -->
+        <div id="achievements-tab" class="tab-content">
+            <div class="achievements-container">
+                <h1>Bedrifter 🏆</h1>
+                <div class="achievements-grid" id="achievements-grid"></div>
+            </div>
+        </div>
+
+        <!-- Album Tab -->
+        <div id="album-tab" class="tab-content">
+            <div class="album-container">
+                <h1>Kattealbum 📸</h1>
+                <div class="cats-selector">
+                    <button class="cat-select-btn active" data-cat="0">Katt 1</button>
+                    <button class="cat-select-btn" data-cat="1">Katt 2</button>
+                    <button class="cat-select-btn" data-cat="2">Katt 3</button>
+                </div>
+                <div class="album-cat-display" id="album-cat-display"></div>
+            </div>
+        </div>
+
+        <!-- Minigames Tab -->
+        <div id="minigames-tab" class="tab-content">
+            <div class="minigames-container">
+                <h1>Minispill 🎯</h1>
+                <div class="minigames-grid">
+                    <div class="minigame-card" id="mouse-hunt-game">
+                        <h2>Musjakt 🐭</h2>
+                        <p>Klikk på musene som dukker opp!</p>
+                        <button class="action-btn" onclick="startMouseHunt()">Start spill</button>
+                        <div class="minigame-area" id="mouse-hunt-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="mouse-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="mouse-time">30</span>s</div>
+                        </div>
+                    </div>
+                    <div class="minigame-card" id="food-catch-game">
+                        <h2>Matfanging 🍖</h2>
+                        <p>Fang maten som faller ned fra himmelen!<br>
+                        <strong>Kontroller:</strong> Bruk ← og → piltastene for å flytte katten<br>
+                        <strong>Mål:</strong> Få katten under maten før den faller i bakken</p>
+                        <button class="action-btn" onclick="startFoodCatch()">Start spill</button>
+                        <div class="minigame-area" id="food-catch-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="food-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="food-time">30</span>s</div>
+                            <div class="catch-game-container" id="catch-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Tab -->
+        <div id="stats-tab" class="tab-content">
+            <div class="stats-container">
+                <h1>Statistikk 📊</h1>
+                <div class="stats-grid" id="stats-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Finished Screen -->
+    <div id="game-finished-screen" class="game-finished-screen">
+        <h2>🎉 Gratulerer! Du har rundet spillet! 🎉</h2>
+        <img src="cat_finished.jpg" alt="Søt kattunge som har rundet spillet" class="finished-cat-image">
+        <p>Takk for at du tok så godt vare på katten din! Du er en ekte kattemester! 🏆</p>
+        <button id="restart-game-btn" class="action-btn restart-btn">Start på nytt! 🐱</button>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="background-music" preload="auto"></audio>
+
+    <!-- Music Control Panel -->
+    <div id="music-control" class="music-control">
+        <div class="music-info">
+            <div id="current-song" class="current-song">🎵 Spilleliste klar</div>
+        </div>
+        <div class="music-controls-row">
+            <button id="music-prev-btn" class="music-nav-btn" title="Forrige sang">⏮️</button>
+            <button id="music-toggle-btn" class="music-toggle-btn" title="Slå musikk på/av">🎵</button>
+            <button id="music-next-btn" class="music-nav-btn" title="Neste sang">⏭️</button>
+        </div>
+        <div class="music-volume-control">
+            <span>🔊</span>
+            <input type="range" id="music-volume" min="0" max="100" value="20" title="Volumnivå">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

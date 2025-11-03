@@ -1,0 +1,25 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.log
+
+# Audio source files (we only need .mp3 in root)
+Audio/
+*.flac
+*.wav
+*.m4a
+*.ogg
+
+# Keep MP3 files in root directory (needed for the game)
+!*.mp3
+
