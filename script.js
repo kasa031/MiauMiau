@@ -331,30 +331,79 @@ function setActionCooldown(actionId) {
     gameState.actionCooldowns[actionId] = Date.now();
 }
 
-// Update button cooldown visual
-function updateButtonCooldown(buttonId, cooldownSeconds) {
+// Update button cooldown visual with skip option
+function updateButtonCooldown(buttonId, cooldownSeconds, actionId) {
     const btn = document.getElementById(buttonId);
     if (!btn) return;
+    
+    const originalText = btn.textContent;
+    const skipCost = Math.max(5, Math.floor(cooldownSeconds / 2)); // Skip koster 5-10 mynter basert på cooldown
     
     btn.disabled = true;
     btn.style.opacity = '0.6';
     btn.style.cursor = 'not-allowed';
     
-    let timeLeft = cooldownSeconds;
-    const originalText = btn.textContent;
+    // Create skip button
+    const skipBtn = document.createElement('button');
+    skipBtn.className = 'skip-cooldown-btn';
+    skipBtn.textContent = `💰 Skip (${skipCost} mynter)`;
+    skipBtn.title = 'Kjøp deg fri fra ventetid!';
+    skipBtn.style.cssText = 'font-size: 12px; padding: 5px 10px; margin-left: 5px; background: linear-gradient(45deg, #ffd700, #ffed4e); border: none; border-radius: 10px; cursor: pointer; color: #333; font-weight: bold;';
+    skipBtn.onclick = (e) => {
+        e.stopPropagation();
+        skipCooldown(actionId, buttonId, skipCost, originalText);
+        skipBtn.remove();
+    };
     
-    const countdown = setInterval(() => {
-        timeLeft--;
-        btn.textContent = `${originalText} (${timeLeft}s)`;
-        
-        if (timeLeft <= 0) {
-            clearInterval(countdown);
+    let timeLeft = cooldownSeconds;
+    let countdownInterval;
+    
+    const updateDisplay = () => {
+        if (timeLeft > 0) {
+            btn.textContent = `${originalText} (${timeLeft}s)`;
+            timeLeft--;
+        } else {
+            clearInterval(countdownInterval);
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.style.cursor = 'pointer';
             btn.textContent = originalText;
+            if (skipBtn.parentNode) {
+                skipBtn.remove();
+            }
         }
-    }, 1000);
+    };
+    
+    // Insert skip button after the main button
+    if (btn.parentNode) {
+        btn.parentNode.insertBefore(skipBtn, btn.nextSibling);
+    }
+    
+    countdownInterval = setInterval(updateDisplay, 1000);
+    updateDisplay();
+}
+
+function skipCooldown(actionId, buttonId, cost, originalText) {
+    if (gameState.coins < cost) {
+        showMessage(`Du har ikke nok mynter! Trenger ${cost} mynter. 💰`);
+        return;
+    }
+    
+    gameState.coins -= cost;
+    gameState.actionCooldowns[actionId] = 0; // Reset cooldown
+    
+    const btn = document.getElementById(buttonId);
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.textContent = originalText;
+    }
+    
+    playBuySound();
+    showMessage(`💰 Kjøpt deg fri! -${cost} mynter`);
+    updateAllDisplays();
+    saveGame();
 }
 
 // Game actions
@@ -370,7 +419,7 @@ document.getElementById('feed-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('feed');
-    updateButtonCooldown('feed-btn', 2);
+    updateButtonCooldown('feed-btn', 2, 'feed');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.hunger = Math.max(0, gameState.hunger - 20);
@@ -397,7 +446,7 @@ document.getElementById('play-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('play');
-    updateButtonCooldown('play-btn', 3);
+    updateButtonCooldown('play-btn', 3, 'play');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.energy = Math.max(0, gameState.energy - 15);
@@ -417,7 +466,7 @@ document.getElementById('pet-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('pet');
-    updateButtonCooldown('pet-btn', 1.5);
+    updateButtonCooldown('pet-btn', 1.5, 'pet');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.happiness = Math.min(100, gameState.happiness + 20);
@@ -442,7 +491,7 @@ document.getElementById('sleep-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('sleep');
-    updateButtonCooldown('sleep-btn', 5);
+    updateButtonCooldown('sleep-btn', 5, 'sleep');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.energy = Math.min(100, gameState.energy + 30);
@@ -467,7 +516,7 @@ document.getElementById('clean-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('clean');
-    updateButtonCooldown('clean-btn', 4);
+    updateButtonCooldown('clean-btn', 4, 'clean');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.happiness = Math.min(100, gameState.happiness + 10);
@@ -492,7 +541,7 @@ document.getElementById('pizza-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('pizza');
-    updateButtonCooldown('pizza-btn', 3);
+    updateButtonCooldown('pizza-btn', 3, 'pizza');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.hunger = Math.max(0, gameState.hunger - 25);
@@ -521,7 +570,7 @@ document.getElementById('bottle-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('bottle');
-    updateButtonCooldown('bottle-btn', 2.5);
+    updateButtonCooldown('bottle-btn', 2.5, 'bottle');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.hunger = Math.max(0, gameState.hunger - 15);
@@ -545,7 +594,7 @@ document.getElementById('hand-btn').addEventListener('click', () => {
     }
     
     setActionCooldown('hand');
-    updateButtonCooldown('hand-btn', 2);
+    updateButtonCooldown('hand-btn', 2, 'hand');
     
     const bonus = getLevelBonusMultiplier(gameState.level);
     gameState.happiness = Math.min(100, gameState.happiness + 25);
@@ -750,7 +799,10 @@ function updateDailyChallenge() {
     }
     
     container.innerHTML = gameState.challengeCompleted ? 
-        `<div class="challenge-complete">✓ Utfordring fullført! Kom tilbake i morgen!</div>` :
+        `<div class="challenge-complete">
+            ✓ Utfordring fullført! 🎉<br>
+            <small style="color: #666;">Flott jobbet! Hvorfor ikke leke med dine items, spille et minispill, eller utforske kattealbumet? Det er alltid noe morsomt å gjøre! 🎮</small>
+        </div>` :
         `<div class="challenge-active">
             <strong>📅 Daglig utfordring:</strong> ${challenge.desc}
             <div class="challenge-progress">${challenge.progress}/${challenge.target} ${challenge.icon}</div>
@@ -1102,7 +1154,7 @@ function useItem(itemId) {
     }
     
     setActionCooldown(actionId);
-    updateButtonCooldown(`item-btn-${itemId}`, 3);
+    updateButtonCooldown(`item-btn-${itemId}`, 3, actionId);
     
     // Track usage
     if (!gameState.stats.itemsUsed[itemId]) {

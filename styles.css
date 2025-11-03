@@ -760,6 +760,28 @@ body {
     font-size: 18px;
     color: #32cd32;
     font-weight: bold;
+    line-height: 1.6;
+    padding: 15px;
+}
+
+.challenge-complete small {
+    display: block;
+    margin-top: 8px;
+    font-weight: normal;
+}
+
+.skip-cooldown-btn {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.skip-cooldown-btn:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
 }
 
 /* Owned Items Section Styles */
