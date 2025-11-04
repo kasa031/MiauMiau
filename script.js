@@ -754,9 +754,451 @@ function handleLogout() {
         document.getElementById('login-username').value = '';
         document.getElementById('login-password').value = '';
         updateProfileDisplay();
+        updateGroupDisplay();
         showLogin();
         playClickSound();
     }
+}
+
+// ==================== GROUP SYSTEM ====================
+// Groups are stored in localStorage with format: miaumiauGroups
+// Each group: { id, name, password, owner, members: [username], createdAt }
+
+function getGroups() {
+    const groupsJson = localStorage.getItem('miaumiauGroups');
+    return groupsJson ? JSON.parse(groupsJson) : {};
+}
+
+function saveGroups(groups) {
+    localStorage.setItem('miaumiauGroups', JSON.stringify(groups));
+}
+
+function generateGroupId() {
+    return 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function createGroup() {
+    if (!currentUser) {
+        showMessage('Du må være innlogget for å opprette en gruppe!');
+        return;
+    }
+    
+    const groupName = document.getElementById('new-group-name').value.trim();
+    const groupPassword = document.getElementById('new-group-password').value;
+    
+    if (!groupName || groupName.length < 3) {
+        showMessage('Gruppenavn må være minst 3 tegn!');
+        return;
+    }
+    
+    if (!groupPassword || groupPassword.length < 3) {
+        showMessage('Passord må være minst 3 tegn!');
+        return;
+    }
+    
+    const groups = getGroups();
+    
+    // Check if group name already exists
+    const existingGroup = Object.values(groups).find(g => g.name.toLowerCase() === groupName.toLowerCase());
+    if (existingGroup) {
+        showMessage('Gruppenavnet er allerede i bruk!');
+        return;
+    }
+    
+    // Check if user is already in a group
+    if (gameState.groupId) {
+        if (confirm('Du er allerede med i en gruppe. Vil du forlate den og opprette en ny?')) {
+            leaveGroup();
+        } else {
+            return;
+        }
+    }
+    
+    // Create new group
+    const groupId = generateGroupId();
+    const newGroup = {
+        id: groupId,
+        name: groupName,
+        password: groupPassword,
+        owner: currentUser,
+        members: [currentUser],
+        createdAt: Date.now()
+    };
+    
+    groups[groupId] = newGroup;
+    saveGroups(groups);
+    
+    // Add user to group
+    gameState.groupId = groupId;
+    gameState.groupRole = 'owner';
+    if (!gameState.stats.groupCreated) gameState.stats.groupCreated = 0;
+    gameState.stats.groupCreated = 1;
+    checkAchievements();
+    saveGame();
+    
+    // Clear form
+    document.getElementById('new-group-name').value = '';
+    document.getElementById('new-group-password').value = '';
+    
+    updateGroupDisplay();
+    showMessage(`🎉 Gruppa "${groupName}" er opprettet! Du kan nå dele passordet med venner! 🎉`);
+    playSuccessSound();
+}
+
+function joinGroup() {
+    if (!currentUser) {
+        showMessage('Du må være innlogget for å bli med i en gruppe!');
+        return;
+    }
+    
+    const groupName = document.getElementById('join-group-name').value.trim();
+    const groupPassword = document.getElementById('join-group-password').value;
+    
+    if (!groupName || !groupPassword) {
+        showMessage('Vennligst fyll inn både gruppenavn og passord!');
+        return;
+    }
+    
+    // Check if user is already in a group
+    if (gameState.groupId) {
+        showMessage('Du er allerede med i en gruppe! Forlat den først for å bli med i en annen.');
+        return;
+    }
+    
+    const groups = getGroups();
+    const group = Object.values(groups).find(g => g.name.toLowerCase() === groupName.toLowerCase());
+    
+    if (!group) {
+        showMessage('Gruppen finnes ikke! Sjekk at gruppenavnet er riktig.');
+        playErrorSound();
+        return;
+    }
+    
+    if (group.password !== groupPassword) {
+        showMessage('Feil passord! Prøv igjen.');
+        playErrorSound();
+        return;
+    }
+    
+    // Check if user is already a member
+    if (group.members.includes(currentUser)) {
+        gameState.groupId = group.id;
+        gameState.groupRole = group.owner === currentUser ? 'owner' : 'member';
+        saveGame();
+        updateGroupDisplay();
+        showMessage('Du er allerede medlem av denne gruppen!');
+        return;
+    }
+    
+    // Add user to group
+    group.members.push(currentUser);
+    groups[group.id] = group;
+    saveGroups(groups);
+    
+    // Update user's group info
+    gameState.groupId = group.id;
+    gameState.groupRole = 'member';
+    if (!gameState.stats.groupJoined) gameState.stats.groupJoined = 0;
+    gameState.stats.groupJoined = 1;
+    checkAchievements();
+    saveGame();
+    
+    // Clear form
+    document.getElementById('join-group-name').value = '';
+    document.getElementById('join-group-password').value = '';
+    
+    updateGroupDisplay();
+    showMessage(`🎉 Du er nå med i gruppen "${group.name}"! 🎉`);
+    playSuccessSound();
+}
+
+function leaveGroup() {
+    if (!currentUser || !gameState.groupId) {
+        showMessage('Du er ikke med i noen gruppe!');
+        return;
+    }
+    
+    if (!confirm('Er du sikker på at du vil forlate gruppen?')) {
+        return;
+    }
+    
+    const groups = getGroups();
+    const group = groups[gameState.groupId];
+    
+    if (group) {
+        // Remove user from members list
+        group.members = group.members.filter(m => m !== currentUser);
+        
+        // If user was owner and there are other members, transfer ownership
+        if (group.owner === currentUser && group.members.length > 0) {
+            group.owner = group.members[0];
+            // Update the new owner's role if they're logged in
+            const newOwnerData = localStorage.getItem(`miaumiauGame_${group.owner}`);
+            if (newOwnerData) {
+                const newOwnerState = JSON.parse(newOwnerData);
+                newOwnerState.groupRole = 'owner';
+                localStorage.setItem(`miaumiauGame_${group.owner}`, JSON.stringify(newOwnerState));
+            }
+        }
+        
+        // If no members left, delete the group
+        if (group.members.length === 0) {
+            delete groups[gameState.groupId];
+        } else {
+            groups[gameState.groupId] = group;
+        }
+        
+        saveGroups(groups);
+    }
+    
+    // Remove user from group
+    gameState.groupId = null;
+    gameState.groupRole = null;
+    saveGame();
+    
+    updateGroupDisplay();
+    showMessage('Du har forlatt gruppen.');
+    playClickSound();
+}
+
+function updateGroupDisplay() {
+    const myGroupSection = document.getElementById('my-group-section');
+    const groupStatsSection = document.getElementById('group-stats-section');
+    
+    if (!currentUser || !gameState.groupId) {
+        myGroupSection.style.display = 'none';
+        groupStatsSection.style.display = 'none';
+        return;
+    }
+    
+    const groups = getGroups();
+    const group = groups[gameState.groupId];
+    
+    if (!group) {
+        // Group doesn't exist anymore
+        gameState.groupId = null;
+        gameState.groupRole = null;
+        saveGame();
+        myGroupSection.style.display = 'none';
+        groupStatsSection.style.display = 'none';
+        return;
+    }
+    
+    // Show group info
+    myGroupSection.style.display = 'block';
+    document.getElementById('current-group-name').textContent = group.name;
+    document.getElementById('current-group-role').textContent = gameState.groupRole === 'owner' ? '👑 Eier' : '👤 Medlem';
+    document.getElementById('current-group-members-count').textContent = `${group.members.length} medlemmer`;
+    
+    // Update group challenge
+    updateGroupChallenge();
+}
+
+function viewGroupStats() {
+    if (!currentUser || !gameState.groupId) {
+        showMessage('Du er ikke med i noen gruppe!');
+        return;
+    }
+    
+    const groups = getGroups();
+    const group = groups[gameState.groupId];
+    
+    if (!group) {
+        showMessage('Gruppen finnes ikke lenger!');
+        return;
+    }
+    
+    const statsSection = document.getElementById('group-stats-section');
+    const statsGrid = document.getElementById('group-stats-grid');
+    
+    statsSection.style.display = 'block';
+    statsGrid.innerHTML = '';
+    
+    // Get stats for all members
+    const membersStats = [];
+    
+    group.members.forEach(member => {
+        const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+        if (memberData) {
+            const memberState = JSON.parse(memberData);
+            const memberProfile = memberState.profile || {};
+            membersStats.push({
+                username: member,
+                stats: memberState.stats || {},
+                score: memberState.score || 0,
+                level: memberState.level || 1,
+                coins: memberState.coins || 0,
+                bio: memberProfile.bio || '',
+                avatar: memberProfile.avatarImage,
+                badge: memberProfile.badge || '🐱'
+            });
+        }
+    });
+    
+    // Sort by score (highest first)
+    membersStats.sort((a, b) => b.score - a.score);
+    
+    // Check if current user is top scorer
+    const isTopScorer = membersStats[0] && membersStats[0].username === currentUser;
+    if (isTopScorer && !gameState.stats.groupTopScore) {
+        gameState.stats.groupTopScore = 1;
+        checkAchievements();
+        saveGame();
+    }
+    
+    // Create cards for each member
+    membersStats.forEach((member, index) => {
+        const card = document.createElement('div');
+        card.className = 'group-member-card';
+        
+        const rank = index + 1;
+        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '⭐';
+        const isCurrentUser = member.username === currentUser;
+        
+        if (isCurrentUser) {
+            card.className = 'group-member-card current-user-card';
+        }
+        
+        card.innerHTML = `
+            <div class="group-member-rank">${rankEmoji}</div>
+            <div class="group-member-header">
+                <div class="group-member-avatar">
+                    ${member.avatar ? `<img src="${member.avatar}" alt="${member.username}">` : member.badge}
+                </div>
+                <div class="group-member-name">
+                    <h4>${member.username}${isCurrentUser ? ' (Du)' : ''}</h4>
+                    ${member.bio ? `<p class="group-member-bio">${member.bio}</p>` : ''}
+                </div>
+            </div>
+            <div class="group-member-stats">
+                <div class="group-stat-item">
+                    <span class="group-stat-label">🏆 Poeng:</span>
+                    <span class="group-stat-value">${member.score.toLocaleString()}</span>
+                </div>
+                <div class="group-stat-item">
+                    <span class="group-stat-label">⭐ Nivå:</span>
+                    <span class="group-stat-value">${member.level}</span>
+                </div>
+                <div class="group-stat-item">
+                    <span class="group-stat-label">💰 Mynter:</span>
+                    <span class="group-stat-value">${member.coins}</span>
+                </div>
+                <div class="group-stat-item">
+                    <span class="group-stat-label">🎯 Minispill-poeng:</span>
+                    <span class="group-stat-value">${member.stats.minigameScore || 0}</span>
+                </div>
+                <div class="group-stat-item">
+                    <span class="group-stat-label">🍖 Matet:</span>
+                    <span class="group-stat-value">${member.stats.timesFed || 0}x</span>
+                </div>
+                <div class="group-stat-item">
+                    <span class="group-stat-label">🎾 Lekt:</span>
+                    <span class="group-stat-value">${member.stats.timesPlayed || 0}x</span>
+                </div>
+            </div>
+        `;
+        
+        statsGrid.appendChild(card);
+    });
+    
+    // Scroll to stats section
+    statsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Weekly group challenge system
+function updateGroupChallenge() {
+    if (!gameState.groupId) return;
+    
+    const challengeSection = document.getElementById('group-challenge-section');
+    const challengeText = document.getElementById('group-challenge-text');
+    const challengeProgressBar = document.getElementById('group-challenge-progress-bar');
+    const challengeProgressText = document.getElementById('group-challenge-progress-text');
+    
+    // Get or create weekly challenge
+    const weekKey = getWeekKey();
+    const savedChallenge = localStorage.getItem(`groupChallenge_${gameState.groupId}_${weekKey}`);
+    
+    let challenge;
+    if (savedChallenge) {
+        challenge = JSON.parse(savedChallenge);
+    } else {
+        // Create new weekly challenge
+        const challenges = [
+            { type: 'score', desc: 'Samle 1000 poeng til sammen', target: 1000, icon: '🏆' },
+            { type: 'minigame', desc: 'Spill minispill 20 ganger til sammen', target: 20, icon: '🎯' },
+            { type: 'feed', desc: 'Mat katter 50 ganger til sammen', target: 50, icon: '🍖' },
+            { type: 'play', desc: 'Lek med katter 30 ganger til sammen', target: 30, icon: '🎾' },
+            { type: 'level', desc: 'Gå opp 5 nivåer til sammen', target: 5, icon: '⭐' }
+        ];
+        
+        challenge = challenges[Math.floor(Math.random() * challenges.length)];
+        challenge.progress = 0;
+        challenge.weekKey = weekKey;
+        challenge.completed = false;
+        localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenge));
+    }
+    
+    // Calculate total progress from all members
+    const groups = getGroups();
+    const group = groups[gameState.groupId];
+    if (!group) return;
+    
+    let totalProgress = 0;
+    group.members.forEach(member => {
+        const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+        if (memberData) {
+            const memberState = JSON.parse(memberData);
+            if (challenge.type === 'score') {
+                totalProgress += memberState.score || 0;
+            } else if (challenge.type === 'minigame') {
+                const minigameCount = (memberState.stats?.minigameScore || 0) > 0 ? 1 : 0;
+                totalProgress += minigameCount;
+            } else if (challenge.type === 'feed') {
+                totalProgress += memberState.stats?.timesFed || 0;
+            } else if (challenge.type === 'play') {
+                totalProgress += memberState.stats?.timesPlayed || 0;
+            } else if (challenge.type === 'level') {
+                totalProgress += memberState.level || 1;
+            }
+        }
+    });
+    
+    challenge.progress = totalProgress;
+    const progressPercent = Math.min(100, (challenge.progress / challenge.target) * 100);
+    
+    challengeSection.style.display = 'block';
+    challengeText.textContent = `${challenge.icon} ${challenge.desc}`;
+    challengeProgressBar.style.width = progressPercent + '%';
+    challengeProgressText.textContent = `${Math.floor(challenge.progress)}/${challenge.target}`;
+    
+    // Save updated progress
+    localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenge));
+    
+    // Check if completed
+    if (challenge.progress >= challenge.target && !challenge.completed) {
+        challenge.completed = true;
+        localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenge));
+        // Reward all members
+        group.members.forEach(member => {
+            const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+            if (memberData) {
+                const memberState = JSON.parse(memberData);
+                memberState.coins = (memberState.coins || 0) + 50;
+                memberState.score = (memberState.score || 0) + 100;
+                localStorage.setItem(`miaumiauGame_${member}`, JSON.stringify(memberState));
+            }
+        });
+        showMessage('🎉 Gruppens ukentlige utfordring fullført! Alle medlemmer fikk +50 mynter og +100 poeng! 🎉');
+        playSuccessSound();
+    }
+}
+
+function getWeekKey() {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
+    const weekNumber = Math.floor(days / 7);
+    return `${now.getFullYear()}_W${weekNumber}`;
 }
 
 // Check if user is logged in on page load
@@ -2749,6 +3191,9 @@ function showNextMathQuestion(container) {
                 btn.classList.add('correct');
                 mathScore += 10;
                 mathQuestionsAnswered++;
+                if (!gameState.stats.mathSolved) gameState.stats.mathSolved = 0;
+                gameState.stats.mathSolved += 1;
+                checkAchievements();
                 feedback.textContent = '🎉 Riktig! Bra jobbet! 🎉';
                 feedback.style.color = '#00b894';
                 playSuccessSound();
