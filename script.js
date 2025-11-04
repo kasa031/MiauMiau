@@ -760,8 +760,8 @@ function checkLogin() {
         if (users[savedUser]) {
             currentUser = savedUser;
             document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('current-user-display').textContent = `Innlogget som: ${currentUser} 🐱`;
-            document.getElementById('logout-btn').style.display = 'inline-block';
+            updateProfileDisplay();
+            document.getElementById('logout-btn').style.display = 'block';
             loadGame();
             // Load saved background
             const savedBg = localStorage.getItem(`miaumiauBackground_${currentUser}`);
