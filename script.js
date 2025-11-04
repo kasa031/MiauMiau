@@ -770,6 +770,7 @@ function checkLogin() {
             updateProfileDisplay();
             document.getElementById('logout-btn').style.display = 'block';
             loadGame();
+            updateGroupDisplay();
             // Load saved background
             const savedBg = localStorage.getItem(`miaumiauBackground_${currentUser}`);
             if (savedBg) {
