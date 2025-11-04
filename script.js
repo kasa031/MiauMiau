@@ -1464,7 +1464,17 @@ const achievements = [
     { id: 'items5', name: 'Samler', desc: 'Eie 5 items', icon: '🛍️', target: 5, stat: 'ownedItems', type: 'items' },
     { id: 'items10', name: 'Storsamler', desc: 'Eie 10 items', icon: '🎁', target: 10, stat: 'ownedItems', type: 'items' },
     { id: 'clean50', name: 'Renlig', desc: 'Vask katten 50 ganger', icon: '🧼', target: 50, stat: 'timesCleaned' },
-    { id: 'sleep50', name: 'Søvnmester', desc: 'La katten sove 50 ganger', icon: '😴', target: 50, stat: 'timesSlept' }
+    { id: 'sleep50', name: 'Søvnmester', desc: 'La katten sove 50 ganger', icon: '😴', target: 50, stat: 'timesSlept' },
+    // Group achievements
+    { id: 'groupJoin', name: 'Gruppemedlem', desc: 'Bli med i en gruppe', icon: '👥', target: 1, stat: 'groupJoined', type: 'group' },
+    { id: 'groupCreate', name: 'Gruppeleader', desc: 'Opprett en gruppe', icon: '👑', target: 1, stat: 'groupCreated', type: 'group' },
+    { id: 'groupTop', name: 'Gruppens beste', desc: 'Vær nummer 1 i gruppestatistikk', icon: '🥇', target: 1, stat: 'groupTopScore', type: 'group' },
+    // School achievements
+    { id: 'math10', name: 'Matematikk-ekspert', desc: 'Løs 10 regnestykker i katteskolen', icon: '🔢', target: 10, stat: 'mathSolved', type: 'school' },
+    { id: 'artCreated', name: 'Kunstner', desc: 'Lag en tegning i katteskolen', icon: '🎨', target: 1, stat: 'artCreated', type: 'school' },
+    { id: 'cookingPerfect', name: 'Kokk', desc: 'Lag perfekt mat til katten 5 ganger', icon: '🍽️', target: 5, stat: 'cookingPerfect', type: 'school' },
+    // Trick achievements
+    { id: 'trickAll', name: 'Triksekspert', desc: 'Lær katten alle 4 triks', icon: '🎩', target: 4, stat: 'tricksLearned', type: 'tricks' }
 ];
 
 function checkAchievements() {
@@ -1482,6 +1492,24 @@ function checkAchievements() {
             progress = gameState.coins;
         } else if (achievement.type === 'items') {
             progress = gameState.ownedItems.length;
+        } else if (achievement.type === 'group') {
+            if (achievement.id === 'groupJoin') {
+                progress = gameState.groupId ? 1 : 0;
+            } else if (achievement.id === 'groupCreate') {
+                progress = gameState.groupRole === 'owner' ? 1 : 0;
+            } else if (achievement.id === 'groupTop') {
+                progress = gameState.stats.groupTopScore || 0;
+            }
+        } else if (achievement.type === 'school') {
+            if (achievement.id === 'math10') {
+                progress = gameState.stats.mathSolved || 0;
+            } else if (achievement.id === 'artCreated') {
+                progress = gameState.stats.artCreated || 0;
+            } else if (achievement.id === 'cookingPerfect') {
+                progress = gameState.stats.cookingPerfect || 0;
+            }
+        } else if (achievement.type === 'tricks') {
+            progress = gameState.catTricks ? gameState.catTricks.length : 0;
         } else {
             progress = gameState.stats[achievement.stat] || 0;
         }
@@ -1701,6 +1729,7 @@ function teachCatTrick(trick) {
         gameState.catTricks.push(trick);
         gameState.score += 50;
         gameState.coins += 25;
+        checkAchievements(); // Check if all tricks learned
         playSuccessSound();
         showMessage(`🎉 Fantastisk! Katten lærte trikset "${trickNames[trick]}"! +50 poeng og +25 mynter! ${trickEmojis[trick]}`);
         
@@ -2878,6 +2907,8 @@ function cookMeal() {
         resultDiv.style.color = '#00b894';
         gameState.happiness = Math.min(100, gameState.happiness + 15);
         gameState.hunger = Math.max(0, gameState.hunger - 25);
+        gameState.stats.cookingPerfect = (gameState.stats.cookingPerfect || 0) + 1;
+        checkAchievements();
         playSuccessSound();
     } else if (goodIngredients >= 2) {
         result = `😸 Bra! Katten liker maten! Den er mett og fornøyd! +${points = 30} poeng og +${coins = 15} mynter!`;
@@ -3063,6 +3094,8 @@ function saveArtDrawing() {
     localStorage.setItem(`artDrawing_${currentUser}`, imageData);
     gameState.score += 20;
     gameState.coins += 10;
+    gameState.stats.artCreated = 1;
+    checkAchievements();
     playSuccessSound();
     showMessage('🎨 Tegningen er lagret! +20 poeng og +10 mynter!');
     updateAllDisplays();

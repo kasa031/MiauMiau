@@ -394,6 +394,16 @@
                             <span id="current-group-role" class="group-role"></span>
                         </div>
                         <p id="current-group-members-count" class="group-members-count"></p>
+                        <div id="group-challenge-section" class="group-challenge-box" style="display: none;">
+                            <h4>🎯 Gruppens ukentlige utfordring:</h4>
+                            <p id="group-challenge-text"></p>
+                            <div class="group-challenge-progress">
+                                <div class="progress-bar-mini" style="background: #e0e0e0;">
+                                    <div id="group-challenge-progress-bar" class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                                <span id="group-challenge-progress-text">0/0</span>
+                            </div>
+                        </div>
                         <button class="action-btn" onclick="viewGroupStats()">📊 Se gruppestatistikk</button>
                         <button class="action-btn" onclick="leaveGroup()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-top: 10px;">Forlat gruppe</button>
                     </div>
