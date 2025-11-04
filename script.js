@@ -605,8 +605,10 @@ function handleSignup() {
     currentUser = username;
     localStorage.setItem('miaumiauCurrentUser', username);
     document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('current-user-display').textContent = `Innlogget som: ${username} 🐱`;
-    document.getElementById('logout-btn').style.display = 'inline-block';
+    
+    // Update profile display in settings
+    updateProfileDisplay();
+    document.getElementById('logout-btn').style.display = 'block';
     
     // Reset game state for new user
     gameState = {
