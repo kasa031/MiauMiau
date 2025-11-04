@@ -75,10 +75,6 @@
     </div>
 
     <nav class="navbar">
-        <div class="user-info">
-            <span id="current-user-display"></span>
-            <button id="logout-btn" class="logout-btn" onclick="handleLogout()" style="display: none;">Logg ut</button>
-        </div>
         <div class="nav-tabs">
             <button class="tab-btn active" data-tab="home">Hjem</button>
             <button class="tab-btn" data-tab="game">Kattespill</button>
@@ -387,6 +383,54 @@
         <div id="settings-tab" class="tab-content">
             <div class="settings-container">
                 <h1 id="settings-title">Innstillinger ⚙️</h1>
+                
+                <!-- Profile Section -->
+                <div class="settings-section">
+                    <h2>👤 Profil</h2>
+                    <div class="profile-info">
+                        <div class="profile-display">
+                            <div class="profile-avatar-container">
+                                <img id="profile-avatar" src="" alt="Profilbilde" class="profile-avatar" style="display: none;">
+                                <div id="profile-badge" class="profile-badge" style="display: block;">🐱</div>
+                            </div>
+                            <div class="profile-name">
+                                <p id="current-user-display-settings">Bruker: Ikke innlogget</p>
+                            </div>
+                        </div>
+                        <div class="profile-edit">
+                            <label class="settings-label">Bio:</label>
+                            <textarea id="profile-bio" class="profile-bio" placeholder="Skriv litt om deg selv..."></textarea>
+                            
+                            <label class="settings-label">Profilbilde:</label>
+                            <div class="profile-image-options">
+                                <button class="action-btn" onclick="document.getElementById('profile-image-upload').click()">📷 Last opp bilde</button>
+                                <input type="file" id="profile-image-upload" accept="image/*" style="display: none;" onchange="handleProfileImageUpload(event)">
+                                
+                                <label class="settings-label" style="margin-top: 15px;">Eller velg badge:</label>
+                                <div class="badge-selector">
+                                    <div class="badge-option" onclick="selectBadge('🐱')">🐱</div>
+                                    <div class="badge-option" onclick="selectBadge('😸')">😸</div>
+                                    <div class="badge-option" onclick="selectBadge('😺')">😺</div>
+                                    <div class="badge-option" onclick="selectBadge('😻')">😻</div>
+                                    <div class="badge-option" onclick="selectBadge('😽')">😽</div>
+                                    <div class="badge-option" onclick="selectBadge('🙀')">🙀</div>
+                                    <div class="badge-option" onclick="selectBadge('😼')">😼</div>
+                                    <div class="badge-option" onclick="selectBadge('😾')">😾</div>
+                                    <div class="badge-option" onclick="selectBadge('🐈')">🐈</div>
+                                    <div class="badge-option" onclick="selectBadge('🐈‍⬛')">🐈‍⬛</div>
+                                    <div class="badge-option" onclick="selectBadge('🐾')">🐾</div>
+                                    <div class="badge-option" onclick="selectBadge('👑')">👑</div>
+                                    <div class="badge-option" onclick="selectBadge('⭐')">⭐</div>
+                                    <div class="badge-option" onclick="selectBadge('🎀')">🎀</div>
+                                    <div class="badge-option" onclick="selectBadge('💖')">💖</div>
+                                </div>
+                            </div>
+                            <button class="action-btn" onclick="saveProfile()" style="margin-top: 20px;">💾 Lagre profil</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Language Section -->
                 <div class="settings-section">
                     <h2>🌐 Språk / Language</h2>
                     <div class="language-selector">
@@ -394,6 +438,12 @@
                         <button class="action-btn" id="lang-en-btn" onclick="setLanguage('en')">🇬🇧 English</button>
                     </div>
                     <p class="settings-info" id="settings-info">Velg språk for spillet. All tekst vil endres til valgt språk.</p>
+                </div>
+                
+                <!-- Logout Section -->
+                <div class="settings-section">
+                    <h2>🚪 Konto</h2>
+                    <button id="logout-btn" class="action-btn logout-btn-settings" onclick="handleLogout()" style="display: none; background: linear-gradient(135deg, #e74c3c, #c0392b);">Logg ut</button>
                 </div>
             </div>
         </div>

@@ -33,6 +33,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             });
         } else if (tabName === 'settings') {
             updateLanguageButtons();
+            updateProfileDisplay();
         }
     });
 });
@@ -460,7 +461,12 @@ let gameState = {
     actionCooldowns: {}, // Track when actions can be used again
     lastDailyReward: null, // Track last daily reward claim
     catTricks: [], // Track learned cat tricks
-    language: 'no' // Language preference: 'no' or 'en'
+    language: 'no', // Language preference: 'no' or 'en'
+    profile: {
+        bio: '',
+        avatarImage: null, // Base64 image data
+        badge: '🐱' // Default badge
+    }
 };
 
 const catEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱'];
@@ -547,14 +553,17 @@ function handleLogin() {
     currentUser = username;
     localStorage.setItem('miaumiauCurrentUser', username);
     document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('current-user-display').textContent = `Innlogget som: ${username} 🐱`;
-    document.getElementById('logout-btn').style.display = 'inline-block';
+    
+    // Update profile display in settings
+    updateProfileDisplay();
+    document.getElementById('logout-btn').style.display = 'block';
     
     // Load user's game data
     loadGame();
     // Update all texts after loading game (to apply language)
     updateAllTexts();
     updateLanguageButtons();
+    updateProfileDisplay();
     playClickSound();
 }
 
@@ -647,16 +656,95 @@ function handleSignup() {
     showMessage(`Velkommen, ${username}! 🎉 Spillet ditt er klart!`);
 }
 
+// ==================== PROFILE FUNCTIONS ====================
+function updateProfileDisplay() {
+    if (!currentUser) {
+        document.getElementById('current-user-display-settings').textContent = 'Bruker: Ikke innlogget';
+        document.getElementById('logout-btn').style.display = 'none';
+        return;
+    }
+    
+    document.getElementById('current-user-display-settings').textContent = `Bruker: ${currentUser}`;
+    document.getElementById('logout-btn').style.display = 'block';
+    
+    // Load profile data
+    if (gameState.profile) {
+        if (gameState.profile.bio) {
+            document.getElementById('profile-bio').value = gameState.profile.bio;
+        }
+        
+        if (gameState.profile.avatarImage) {
+            document.getElementById('profile-avatar').src = gameState.profile.avatarImage;
+            document.getElementById('profile-avatar').style.display = 'block';
+            document.getElementById('profile-badge').style.display = 'none';
+        } else if (gameState.profile.badge) {
+            document.getElementById('profile-badge').textContent = gameState.profile.badge;
+            document.getElementById('profile-badge').style.display = 'block';
+            document.getElementById('profile-avatar').style.display = 'none';
+        }
+    }
+}
+
+function handleProfileImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        showMessage('Bildet er for stort! Maksimal størrelse er 5MB.');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        gameState.profile.avatarImage = e.target.result;
+        gameState.profile.badge = null; // Clear badge when using image
+        document.getElementById('profile-avatar').src = e.target.result;
+        document.getElementById('profile-avatar').style.display = 'block';
+        document.getElementById('profile-badge').style.display = 'none';
+        saveProfile();
+        showMessage('Profilbilde lastet opp! 💾');
+    };
+    reader.readAsDataURL(file);
+}
+
+function selectBadge(badge) {
+    gameState.profile.badge = badge;
+    gameState.profile.avatarImage = null; // Clear image when using badge
+    document.getElementById('profile-badge').textContent = badge;
+    document.getElementById('profile-badge').style.display = 'block';
+    document.getElementById('profile-avatar').style.display = 'none';
+    
+    // Visual feedback
+    document.querySelectorAll('.badge-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    event.target.classList.add('selected');
+    
+    saveProfile();
+    showMessage('Badge valgt! 🎀');
+}
+
+function saveProfile() {
+    if (!currentUser) {
+        showMessage('Du må være innlogget for å lagre profil!');
+        return;
+    }
+    
+    gameState.profile.bio = document.getElementById('profile-bio').value;
+    saveGame();
+    showMessage('Profil lagret! ✅');
+}
+
 function handleLogout() {
     if (confirm('Er du sikker på at du vil logge ut? Fremgangen din er lagret!')) {
         saveGame(); // Save before logout
         currentUser = null;
         localStorage.removeItem('miaumiauCurrentUser');
         document.getElementById('login-overlay').style.display = 'flex';
-        document.getElementById('current-user-display').textContent = '';
         document.getElementById('logout-btn').style.display = 'none';
         document.getElementById('login-username').value = '';
         document.getElementById('login-password').value = '';
+        updateProfileDisplay();
         showLogin();
         playClickSound();
     }
