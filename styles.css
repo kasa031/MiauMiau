@@ -860,13 +860,43 @@ body {
 /* ==================== NEW FEATURES STYLES ==================== */
 
 /* Shop Styles */
-.shop-container, .achievements-container, .album-container, .minigames-container, .stats-container, .school-container {
+.shop-container, .achievements-container, .album-container, .minigames-container, .stats-container, .school-container, .settings-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 30px;
     padding: 40px;
     margin: 20px auto;
     max-width: 1000px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Settings Styles */
+.settings-section {
+    margin: 30px 0;
+    padding: 25px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+    border-radius: 15px;
+}
+
+.settings-section h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 800;
+}
+
+.language-selector {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.settings-info {
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+    margin-top: 15px;
+    font-style: italic;
 }
 
 /* School Styles */

@@ -31,12 +31,393 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             document.querySelectorAll('.subject-area').forEach(area => {
                 area.style.display = 'none';
             });
+        } else if (tabName === 'settings') {
+            updateLanguageButtons();
         }
     });
 });
 
 // Current logged in user
 let currentUser = null;
+
+// Language system
+let currentLanguage = 'no'; // 'no' for Norwegian, 'en' for English
+
+// Translations
+const translations = {
+    no: {
+        // Navigation
+        home: 'Hjem',
+        game: 'Kattespill',
+        shop: 'Butikk 🛒',
+        achievements: 'Bedrifter 🏆',
+        album: 'Kattealbum 📸',
+        minigames: 'Minispill 🎯',
+        school: 'Katteskole 🎓',
+        stats: 'Statistikk 📊',
+        settings: 'Innstillinger ⚙️',
+        
+        // Login
+        welcome: 'Velkommen til MiauMiau!',
+        login: 'Logg inn',
+        signup: 'Opprett ny bruker',
+        username: 'Brukernavn',
+        password: 'Passord',
+        confirmPassword: 'Bekreft passord',
+        logout: 'Logg ut',
+        loginError: 'Feil brukernavn eller passord!',
+        signupError: 'Brukernavn må være minst 3 tegn, passord minst 4 tegn!',
+        passwordMismatch: 'Passordene matcher ikke!',
+        userExists: 'Brukernavn er allerede i bruk!',
+        welcomeNewUser: 'Velkommen, {username}! 🎉 Spillet ditt er klart!',
+        
+        // Home
+        welcomeTitle: 'Velkommen til katteparadis! 🐱',
+        homeDescription: 'MiauMiau er et morsomt og lærerikt spill hvor du tar vare på din egen katt! Spill minispill, lær om katter i katteskolen, samle achievements og mynter, og utforsk alt katteparadiset har å by på. Alt er laget spesielt for barn, med enkle og tydelige tekster, morsomme aktiviteter og mye å oppdage!',
+        
+        // Game
+        gameTitle: 'Kattespill 🎮',
+        feed: '🍖 Mat',
+        play: '🎾 Leke',
+        pet: '❤️ Kose',
+        sleep: '😴 Søvn',
+        clean: '🛁 Vask',
+        pizza: '🍕 Pizza',
+        bottle: '🍼 Tåteflaske',
+        hand: '👋 Kosehånd',
+        
+        // Stats
+        happiness: 'Lykke',
+        hunger: 'Sult',
+        energy: 'Energi',
+        score: 'Poeng',
+        level: 'Nivå',
+        coins: 'Mynter',
+        
+        // Shop
+        shopTitle: 'Katteshop 🛒',
+        buy: 'Kjøp',
+        owned: 'Eid',
+        
+        // Achievements
+        achievementsTitle: 'Bedrifter 🏆',
+        
+        // Album
+        albumTitle: 'Kattealbum 📸',
+        locked: 'Låst',
+        
+        // Minigames
+        minigamesTitle: 'Minispill 🎯',
+        startGame: 'Start spill',
+        score: 'Poeng',
+        timeLeft: 'Tid igjen',
+        playAgain: 'Spill igjen',
+        
+        // School
+        schoolTitle: 'Katteskole 🎓',
+        mathTitle: '🔢 Kattergening',
+        mathDesc: 'Lær regning med katter! Pluss, minus, gange og dele opp til 10.',
+        mathStart: 'Start lekse',
+        hygieneTitle: '🧼 Kattehygiene',
+        hygieneDesc: 'Lær om hvordan katter holder seg rene!',
+        hygieneRead: 'Les mer',
+        foodTitle: '🍽️ Kattemat',
+        foodDesc: 'Lag mat til katten! Hva liker katter å spise?',
+        foodCook: 'Lag mat',
+        artTitle: '🎨 Katteestetikk',
+        artDesc: 'Tegn og fargelegg katter! Kreativ lekse!',
+        artStart: 'Start tegning',
+        
+        // Stats
+        statsTitle: 'Statistikk 📊',
+        
+        // Messages (common)
+        success: 'Suksess!',
+        error: 'Feil!',
+        loading: 'Laster...',
+    },
+    en: {
+        // Navigation
+        home: 'Home',
+        game: 'Cat Game',
+        shop: 'Shop 🛒',
+        achievements: 'Achievements 🏆',
+        album: 'Cat Album 📸',
+        minigames: 'Minigames 🎯',
+        school: 'Cat School 🎓',
+        stats: 'Statistics 📊',
+        settings: 'Settings ⚙️',
+        
+        // Login
+        welcome: 'Welcome to MiauMiau!',
+        login: 'Log in',
+        signup: 'Create new user',
+        username: 'Username',
+        password: 'Password',
+        confirmPassword: 'Confirm password',
+        logout: 'Log out',
+        loginError: 'Wrong username or password!',
+        signupError: 'Username must be at least 3 characters, password at least 4!',
+        passwordMismatch: 'Passwords do not match!',
+        userExists: 'Username already exists!',
+        welcomeNewUser: 'Welcome, {username}! 🎉 Your game is ready!',
+        
+        // Home
+        welcomeTitle: 'Welcome to cat paradise! 🐱',
+        homeDescription: 'MiauMiau is a fun and educational game where you take care of your own cat! Play minigames, learn about cats in cat school, collect achievements and coins, and explore everything cat paradise has to offer. Everything is made especially for children, with simple and clear texts, fun activities and lots to discover!',
+        
+        // Game
+        gameTitle: 'Cat Game 🎮',
+        feed: '🍖 Feed',
+        play: '🎾 Play',
+        pet: '❤️ Pet',
+        sleep: '😴 Sleep',
+        clean: '🛁 Clean',
+        pizza: '🍕 Pizza',
+        bottle: '🍼 Bottle',
+        hand: '👋 Pet Hand',
+        
+        // Stats
+        happiness: 'Happiness',
+        hunger: 'Hunger',
+        energy: 'Energy',
+        score: 'Score',
+        level: 'Level',
+        coins: 'Coins',
+        
+        // Shop
+        shopTitle: 'Cat Shop 🛒',
+        buy: 'Buy',
+        owned: 'Owned',
+        
+        // Achievements
+        achievementsTitle: 'Achievements 🏆',
+        
+        // Album
+        albumTitle: 'Cat Album 📸',
+        locked: 'Locked',
+        
+        // Minigames
+        minigamesTitle: 'Minigames 🎯',
+        startGame: 'Start game',
+        score: 'Score',
+        timeLeft: 'Time left',
+        playAgain: 'Play again',
+        
+        // School
+        schoolTitle: 'Cat School 🎓',
+        mathTitle: '🔢 Cat Math',
+        mathDesc: 'Learn math with cats! Plus, minus, multiply and divide up to 10.',
+        mathStart: 'Start lesson',
+        hygieneTitle: '🧼 Cat Hygiene',
+        hygieneDesc: 'Learn about how cats keep themselves clean!',
+        hygieneRead: 'Read more',
+        foodTitle: '🍽️ Cat Food',
+        foodDesc: 'Make food for the cat! What do cats like to eat?',
+        foodCook: 'Cook',
+        artTitle: '🎨 Cat Aesthetics',
+        artDesc: 'Draw and color cats! Creative lesson!',
+        artStart: 'Start drawing',
+        
+        // Stats
+        statsTitle: 'Statistics 📊',
+        
+        // Messages (common)
+        success: 'Success!',
+        error: 'Error!',
+        loading: 'Loading...',
+    }
+};
+
+// Get translation function
+function t(key, params = {}) {
+    let text = translations[currentLanguage][key] || key;
+    // Replace parameters like {username}
+    Object.keys(params).forEach(param => {
+        text = text.replace(`{${param}}`, params[param]);
+    });
+    return text;
+}
+
+// Set language function
+function setLanguage(lang) {
+    if (lang !== 'no' && lang !== 'en') return;
+    currentLanguage = lang;
+    if (currentUser) {
+        gameState.language = lang;
+        saveGame();
+    }
+    localStorage.setItem('miaumiau_language', lang);
+    updateAllTexts();
+    updateLanguageButtons();
+    showMessage(lang === 'no' ? 'Språk endret til norsk! 🇳🇴' : 'Language changed to English! 🇬🇧');
+}
+
+// Update language button states
+function updateLanguageButtons() {
+    const noBtn = document.getElementById('lang-no-btn');
+    const enBtn = document.getElementById('lang-en-btn');
+    if (noBtn && enBtn) {
+        if (currentLanguage === 'no') {
+            noBtn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+            enBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        } else {
+            noBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            enBtn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+        }
+    }
+}
+
+// Update game buttons
+function updateGameButtons() {
+    const feedBtn = document.getElementById('feed-btn');
+    const playBtn = document.getElementById('play-btn');
+    const petBtn = document.getElementById('pet-btn');
+    const sleepBtn = document.getElementById('sleep-btn');
+    const cleanBtn = document.getElementById('clean-btn');
+    const pizzaBtn = document.getElementById('pizza-btn');
+    const bottleBtn = document.getElementById('bottle-btn');
+    const handBtn = document.getElementById('hand-btn');
+    
+    if (feedBtn) feedBtn.textContent = t('feed');
+    if (playBtn) playBtn.textContent = t('play');
+    if (petBtn) petBtn.textContent = t('pet');
+    if (sleepBtn) sleepBtn.textContent = t('sleep');
+    if (cleanBtn) cleanBtn.textContent = t('clean');
+    if (pizzaBtn) pizzaBtn.textContent = t('pizza');
+    if (bottleBtn) bottleBtn.textContent = t('bottle');
+    if (handBtn) handBtn.textContent = t('hand');
+}
+
+// Update shop display
+function updateShopDisplay() {
+    const shopH1 = document.querySelector('#shop-tab h1');
+    if (shopH1) shopH1.textContent = t('shopTitle');
+    renderShop(); // Re-render shop with new language
+}
+
+// Update achievements display
+function updateAchievementsDisplay() {
+    const achievementsH1 = document.querySelector('#achievements-tab h1');
+    if (achievementsH1) achievementsH1.textContent = t('achievementsTitle');
+    renderAchievements(); // Re-render achievements with new language
+}
+
+// Update album display
+function updateAlbumDisplay() {
+    const albumH1 = document.querySelector('#album-tab h1');
+    if (albumH1) albumH1.textContent = t('albumTitle');
+    renderAlbum(); // Re-render album with new language
+}
+
+// Update stats display
+function updateStatsDisplay() {
+    const statsH1 = document.querySelector('#stats-tab h1');
+    if (statsH1) statsH1.textContent = t('statsTitle');
+    renderStats(); // Re-render stats with new language
+}
+
+// Update school display
+function updateSchoolDisplay() {
+    const schoolH1 = document.querySelector('#school-tab h1');
+    if (schoolH1) schoolH1.textContent = t('schoolTitle');
+    
+    // Update subject cards
+    const mathSubject = document.querySelector('#math-subject h2');
+    const mathDesc = document.querySelector('#math-subject p');
+    const mathBtn = document.querySelector('#math-subject button');
+    if (mathSubject) mathSubject.textContent = t('mathTitle');
+    if (mathDesc) mathDesc.textContent = t('mathDesc');
+    if (mathBtn) mathBtn.textContent = t('mathStart');
+    
+    const hygieneSubject = document.querySelector('#hygiene-subject h2');
+    const hygieneDesc = document.querySelector('#hygiene-subject p');
+    const hygieneBtn = document.querySelector('#hygiene-subject button');
+    if (hygieneSubject) hygieneSubject.textContent = t('hygieneTitle');
+    if (hygieneDesc) hygieneDesc.textContent = t('hygieneDesc');
+    if (hygieneBtn) hygieneBtn.textContent = t('hygieneRead');
+    
+    const foodSubject = document.querySelector('#food-subject h2');
+    const foodDesc = document.querySelector('#food-subject p');
+    const foodBtn = document.querySelector('#food-subject button');
+    if (foodSubject) foodSubject.textContent = t('foodTitle');
+    if (foodDesc) foodDesc.textContent = t('foodDesc');
+    if (foodBtn) foodBtn.textContent = t('foodCook');
+    
+    const artSubject = document.querySelector('#art-subject h2');
+    const artDesc = document.querySelector('#art-subject p');
+    const artBtn = document.querySelector('#art-subject button');
+    if (artSubject) artSubject.textContent = t('artTitle');
+    if (artDesc) artDesc.textContent = t('artDesc');
+    if (artBtn) artBtn.textContent = t('artStart');
+}
+
+// Update minigames display
+function updateMinigamesDisplay() {
+    const minigamesH1 = document.querySelector('#minigames-tab h1');
+    if (minigamesH1) minigamesH1.textContent = t('minigamesTitle');
+    
+    // Update minigame buttons
+    const startButtons = document.querySelectorAll('#minigames-tab .action-btn');
+    startButtons.forEach(btn => {
+        if (btn.textContent.includes('Start')) {
+            btn.textContent = t('startGame');
+        }
+    });
+}
+
+// Update all texts on page
+function updateAllTexts() {
+    // Update navigation
+    const homeTab = document.querySelector('[data-tab="home"]');
+    const gameTab = document.querySelector('[data-tab="game"]');
+    const shopTab = document.querySelector('[data-tab="shop"]');
+    const achievementsTab = document.querySelector('[data-tab="achievements"]');
+    const albumTab = document.querySelector('[data-tab="album"]');
+    const minigamesTab = document.querySelector('[data-tab="minigames"]');
+    const schoolTab = document.querySelector('[data-tab="school"]');
+    const statsTab = document.querySelector('[data-tab="stats"]');
+    const settingsTab = document.querySelector('[data-tab="settings"]');
+    
+    if (homeTab) homeTab.textContent = t('home');
+    if (gameTab) gameTab.textContent = t('game');
+    if (shopTab) shopTab.textContent = t('shop');
+    if (achievementsTab) achievementsTab.textContent = t('achievements');
+    if (albumTab) albumTab.textContent = t('album');
+    if (minigamesTab) minigamesTab.textContent = t('minigames');
+    if (schoolTab) schoolTab.textContent = t('school');
+    if (statsTab) statsTab.textContent = t('stats');
+    if (settingsTab) settingsTab.textContent = t('settings');
+    
+    // Update titles
+    const homeH1 = document.querySelector('#home-tab h1');
+    if (homeH1) homeH1.textContent = t('welcomeTitle');
+    
+    const homeDesc = document.querySelector('.home-description p');
+    if (homeDesc) homeDesc.textContent = t('homeDescription');
+    
+    const gameH1 = document.querySelector('#game-tab h1');
+    if (gameH1) gameH1.textContent = t('gameTitle');
+    
+    const settingsH1 = document.querySelector('#settings-title');
+    if (settingsH1) settingsH1.textContent = t('settings');
+    
+    const settingsInfo = document.querySelector('#settings-info');
+    if (settingsInfo) {
+        settingsInfo.textContent = currentLanguage === 'no' 
+            ? 'Velg språk for spillet. All tekst vil endres til valgt språk.'
+            : 'Choose language for the game. All text will change to the selected language.';
+    }
+    
+    // Update buttons
+    updateGameButtons();
+    updateShopDisplay();
+    updateAchievementsDisplay();
+    updateAlbumDisplay();
+    updateStatsDisplay();
+    updateSchoolDisplay();
+    updateMinigamesDisplay();
+}
 
 // Game state - extended with all new features
 let gameState = {
@@ -78,7 +459,8 @@ let gameState = {
     lastSave: Date.now(),
     actionCooldowns: {}, // Track when actions can be used again
     lastDailyReward: null, // Track last daily reward claim
-    catTricks: [] // Track learned cat tricks
+    catTricks: [], // Track learned cat tricks
+    language: 'no' // Language preference: 'no' or 'en'
 };
 
 const catEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱'];
@@ -91,6 +473,17 @@ function loadGame() {
     if (saved) {
         const parsed = JSON.parse(saved);
         Object.assign(gameState, parsed);
+        // Load language preference
+        if (gameState.language) {
+            currentLanguage = gameState.language;
+        } else {
+            // Try to load from localStorage
+            const savedLang = localStorage.getItem('miaumiau_language');
+            if (savedLang) {
+                currentLanguage = savedLang;
+                gameState.language = savedLang;
+            }
+        }
         // Calculate play time
         if (gameState.lastSave) {
             gameState.stats.totalPlayTime += (Date.now() - gameState.lastSave);
@@ -159,6 +552,9 @@ function handleLogin() {
     
     // Load user's game data
     loadGame();
+    // Update all texts after loading game (to apply language)
+    updateAllTexts();
+    updateLanguageButtons();
     playClickSound();
 }
 

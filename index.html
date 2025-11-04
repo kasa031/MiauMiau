@@ -88,6 +88,7 @@
             <button class="tab-btn" data-tab="minigames">Minispill 🎯</button>
             <button class="tab-btn" data-tab="school">Katteskole 🎓</button>
             <button class="tab-btn" data-tab="stats">Statistikk 📊</button>
+            <button class="tab-btn" data-tab="settings">Innstillinger ⚙️</button>
         </div>
     </nav>
 
@@ -379,6 +380,21 @@
             <div class="stats-container">
                 <h1>Statistikk 📊</h1>
                 <div class="stats-grid" id="stats-grid"></div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="settings-container">
+                <h1 id="settings-title">Innstillinger ⚙️</h1>
+                <div class="settings-section">
+                    <h2>🌐 Språk / Language</h2>
+                    <div class="language-selector">
+                        <button class="action-btn" id="lang-no-btn" onclick="setLanguage('no')">🇳🇴 Norsk</button>
+                        <button class="action-btn" id="lang-en-btn" onclick="setLanguage('en')">🇬🇧 English</button>
+                    </div>
+                    <p class="settings-info" id="settings-info">Velg språk for spillet. All tekst vil endres til valgt språk.</p>
+                </div>
             </div>
         </div>
     </div>
