@@ -94,9 +94,16 @@
     <div class="content">
         <!-- Home Tab -->
         <div id="home-tab" class="tab-content active">
-            <div class="cat-container">
+            <div class="home-header">
                 <h1>Velkommen til katteparadis! 🐱</h1>
-                
+                <div class="home-description">
+                    <p>MiauMiau er et morsomt og lærerikt spill hvor du tar vare på din egen katt! 
+                    Spill minispill, lær om katter i katteskolen, samle achievements og mynter, 
+                    og utforsk alt katteparadiset har å by på. Alt er laget spesielt for barn, 
+                    med enkle og tydelige tekster, morsomme aktiviteter og mye å oppdage!</p>
+                </div>
+            </div>
+            <div class="cat-container">
                 <!-- Floating cats around -->
                 <div class="floating-cat cat-1">🐱</div>
                 <div class="floating-cat cat-2">😸</div>
@@ -389,6 +396,7 @@
 
     <!-- Music Control Panel -->
     <div id="music-control" class="music-control">
+        <button id="music-close-btn" class="music-close-btn" title="Lukk musikkspiller">✕</button>
         <div class="music-info">
             <div id="current-song" class="current-song">🎵 Spilleliste klar</div>
         </div>
@@ -402,6 +410,9 @@
             <input type="range" id="music-volume" min="0" max="100" value="20" title="Volumnivå">
         </div>
     </div>
+
+    <!-- Music Mini Button (when closed) -->
+    <button id="music-mini-btn" class="music-mini-btn" title="Åpne musikkspiller" style="display: none;">🎵</button>
 
     <script src="script.js"></script>
 </body>

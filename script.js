@@ -3204,6 +3204,18 @@ function initBackgroundMusic() {
     if (prevBtn) prevBtn.addEventListener('click', playPreviousTrack);
     if (nextBtn) nextBtn.addEventListener('click', playNextTrack);
     
+    // Close button
+    const closeBtn = document.getElementById('music-close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeMusicControl);
+    }
+    
+    // Mini button to reopen
+    const miniBtn = document.getElementById('music-mini-btn');
+    if (miniBtn) {
+        miniBtn.addEventListener('click', openMusicControl);
+    }
+    
     // Load first track
     loadTrack(currentTrackIndex);
     
@@ -3299,6 +3311,29 @@ function toggleMusic() {
         }
     }
     updateMusicButton();
+}
+
+function closeMusicControl() {
+    const musicControl = document.getElementById('music-control');
+    const miniBtn = document.getElementById('music-mini-btn');
+    if (musicControl) {
+        musicControl.classList.add('hidden');
+    }
+    if (miniBtn) {
+        miniBtn.style.display = 'flex';
+    }
+    // Music continues playing - don't pause it
+}
+
+function openMusicControl() {
+    const musicControl = document.getElementById('music-control');
+    const miniBtn = document.getElementById('music-mini-btn');
+    if (musicControl) {
+        musicControl.classList.remove('hidden');
+    }
+    if (miniBtn) {
+        miniBtn.style.display = 'none';
+    }
 }
 
 function updateMusicButton() {
