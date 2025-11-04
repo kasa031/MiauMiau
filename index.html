@@ -86,6 +86,7 @@
             <button class="tab-btn" data-tab="achievements">Bedrifter 🏆</button>
             <button class="tab-btn" data-tab="album">Kattealbum 📸</button>
             <button class="tab-btn" data-tab="minigames">Minispill 🎯</button>
+            <button class="tab-btn" data-tab="school">Katteskole 🎓</button>
             <button class="tab-btn" data-tab="stats">Statistikk 📊</button>
         </div>
     </nav>
@@ -119,7 +120,16 @@
                         <div class="rainbow rainbow-4"></div>
                         <div class="rainbow rainbow-5"></div>
                     </div>
-                    <div class="cat-face">😸</div>
+                    <div class="cat-face" id="home-cat-face">😸</div>
+                </div>
+                <!-- Interactive cat images -->
+                <div class="interactive-cat-images">
+                    <img src="Bilder/babycat.jpg" alt="Babykatt" class="interactive-cat-img" id="cat-img-1" onclick="showCatImageInfo('babycat.jpg', 'Babykatt')">
+                    <img src="Bilder/brindle.jpg" alt="Brindle katt" class="interactive-cat-img" id="cat-img-2" onclick="showCatImageInfo('brindle.jpg', 'Brindle katt')">
+                    <img src="Bilder/redcat.jpg" alt="Rød katt" class="interactive-cat-img" id="cat-img-3" onclick="showCatImageInfo('redcat.jpg', 'Rød katt')">
+                    <img src="Bilder/Cat Pink GIF.gif" alt="Rosa katt" class="interactive-cat-img gif-img" id="cat-img-4" onclick="showCatImageInfo('Cat Pink GIF.gif', 'Rosa katt')">
+                    <img src="Bilder/Bored Cat GIF.gif" alt="Kjedelig katt" class="interactive-cat-img gif-img" id="cat-img-5" onclick="showCatImageInfo('Bored Cat GIF.gif', 'Kjedelig katt')">
+                    <img src="Bilder/Cat Battle GIF.gif" alt="Kattkamp" class="interactive-cat-img gif-img" id="cat-img-6" onclick="showCatImageInfo('Cat Battle GIF.gif', 'Kattkamp')">
                 </div>
             </div>
         </div>
@@ -134,6 +144,7 @@
                     <div id="food-item" class="food-item"></div>
                     <div id="game-cat" class="game-cat">
                         <span class="cat-bow">🎀</span>
+                        <img id="game-cat-gif" src="" alt="Katt" style="display: none; max-width: 200px; max-height: 200px; border-radius: 15px;">
                         <span id="cat-emoji">😸</span>
                     </div>
                     <div id="cat-status" class="cat-status">
@@ -185,7 +196,17 @@
 
                 <div id="game-message" class="game-message"></div>
                 <div id="daily-challenge" class="daily-challenge"></div>
+                <div id="daily-reward-section" class="daily-reward-section"></div>
                 <div id="owned-items-section" class="owned-items-section"></div>
+                <div class="cat-tricks-section">
+                    <h3 style="margin: 20px 0 10px; color: #333; font-size: 22px;">🎩 Kattetriks:</h3>
+                    <div class="cat-tricks-buttons">
+                        <button class="action-btn" onclick="teachCatTrick('sit')">Sitt 🪑</button>
+                        <button class="action-btn" onclick="teachCatTrick('jump')">Hopp 🦘</button>
+                        <button class="action-btn" onclick="teachCatTrick('spin')">Snurr 🌪️</button>
+                        <button class="action-btn" onclick="teachCatTrick('dance')">Dans 💃</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -214,6 +235,10 @@
                     <button class="cat-select-btn active" data-cat="0">Katt 1</button>
                     <button class="cat-select-btn" data-cat="1">Katt 2</button>
                     <button class="cat-select-btn" data-cat="2">Katt 3</button>
+                    <button class="cat-select-btn" data-cat="3">Babykatt</button>
+                    <button class="cat-select-btn" data-cat="4">Brindle</button>
+                    <button class="cat-select-btn" data-cat="5">Rød katt</button>
+                    <button class="cat-select-btn" data-cat="6">Rosa katt</button>
                 </div>
                 <div class="album-cat-display" id="album-cat-display"></div>
             </div>
@@ -244,6 +269,99 @@
                             <div class="time-left">Tid igjen: <span id="food-time">30</span>s</div>
                             <div class="catch-game-container" id="catch-container"></div>
                         </div>
+                    </div>
+                    <div class="minigame-card" id="cat-battle-game">
+                        <h2>Kattkamp ⚔️</h2>
+                        <p>Hjelp katten din å kjempe! Klikk på angrepsknappen i rett tid!</p>
+                        <button class="action-btn" onclick="startCatBattle()">Start spill</button>
+                        <div class="minigame-area" id="cat-battle-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="battle-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="battle-time">30</span>s</div>
+                            <div class="battle-container" id="battle-container"></div>
+                        </div>
+                    </div>
+                    <div class="minigame-card" id="cat-scratch-game">
+                        <h2>Katt-kloring 🐾</h2>
+                        <p>Klatr på kloretreet! Trykk på knappene når de lyser opp!</p>
+                        <button class="action-btn" onclick="startCatScratch()">Start spill</button>
+                        <div class="minigame-area" id="cat-scratch-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="scratch-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="scratch-time">30</span>s</div>
+                            <div class="scratch-container" id="scratch-container"></div>
+                        </div>
+                    </div>
+                    <div class="minigame-card" id="cat-hunt-game">
+                        <h2>Kattjakt 🐦</h2>
+                        <p>Fang fugler og fisk! Beveg katten med piltastene eller touch!</p>
+                        <button class="action-btn" onclick="startCatHunt()">Start spill</button>
+                        <div class="minigame-area" id="cat-hunt-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="hunt-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="hunt-time">30</span>s</div>
+                            <div class="hunt-game-container" id="hunt-container"></div>
+                        </div>
+                    </div>
+                    <div class="minigame-card" id="nyan-cat-game">
+                        <h2>Nyan Cat 🐱🌈</h2>
+                        <p>Spesial spill! Se hvor langt du kan komme med Nyan Cat!</p>
+                        <button class="action-btn" onclick="startNyanCat()">Start spill</button>
+                        <div class="minigame-area" id="nyan-cat-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="nyan-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="nyan-time">60</span>s</div>
+                            <div class="nyan-container" id="nyan-container"></div>
+                        </div>
+                    </div>
+                    <div class="minigame-card" id="bored-cat-game">
+                        <h2>Kjedelig Katt 😴</h2>
+                        <p>Lei katten med aktiviteter! Klikk på tingene som dukker opp!</p>
+                        <button class="action-btn" onclick="startBoredCat()">Start spill</button>
+                        <div class="minigame-area" id="bored-cat-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="bored-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="bored-time">30</span>s</div>
+                            <div class="bored-container" id="bored-container"></div>
+                        </div>
+                    </div>
+                    <div class="minigame-card" id="reading-game">
+                        <h2>Lesespill 📚</h2>
+                        <p>Match ord med bildet! Klikk på det riktige ordet!</p>
+                        <button class="action-btn" onclick="startReadingGame()">Start spill</button>
+                        <div class="minigame-area" id="reading-game-area" style="display:none;">
+                            <div class="score-mini">Poeng: <span id="reading-score">0</span></div>
+                            <div class="time-left">Tid igjen: <span id="reading-time">60</span>s</div>
+                            <div class="reading-container" id="reading-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- School Tab -->
+        <div id="school-tab" class="tab-content">
+            <div class="school-container">
+                <h1>Katteskole 🎓</h1>
+                <div class="school-subjects">
+                    <div class="subject-card" id="math-subject">
+                        <h2>🔢 Kattergening</h2>
+                        <p>Lær regning med katter! Pluss, minus, gange og dele opp til 10.</p>
+                        <button class="action-btn" onclick="startMathGame()">Start lekse</button>
+                        <div class="subject-area" id="math-area" style="display:none;"></div>
+                    </div>
+                    <div class="subject-card" id="hygiene-subject">
+                        <h2>🧼 Kattehygiene</h2>
+                        <p>Lær om hvordan katter holder seg rene!</p>
+                        <button class="action-btn" onclick="showHygieneInfo()">Les mer</button>
+                        <div class="subject-area" id="hygiene-area" style="display:none;"></div>
+                    </div>
+                    <div class="subject-card" id="food-subject">
+                        <h2>🍽️ Kattemat</h2>
+                        <p>Lag mat til katten! Hva liker katter å spise?</p>
+                        <button class="action-btn" onclick="startCookingGame()">Lag mat</button>
+                        <div class="subject-area" id="cooking-area" style="display:none;"></div>
+                    </div>
+                    <div class="subject-card" id="art-subject">
+                        <h2>🎨 Katteestetikk</h2>
+                        <p>Tegn og fargelegg katter! Kreativ lekse!</p>
+                        <button class="action-btn" onclick="startArtGame()">Start tegning</button>
+                        <div class="subject-area" id="art-area" style="display:none;"></div>
                     </div>
                 </div>
             </div>

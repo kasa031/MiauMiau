@@ -26,6 +26,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             renderAlbum();
         } else if (tabName === 'game') {
             renderOwnedItemsInGame();
+        } else if (tabName === 'school') {
+            // Hide all subject areas when opening school tab
+            document.querySelectorAll('.subject-area').forEach(area => {
+                area.style.display = 'none';
+            });
         }
     });
 });
@@ -58,16 +63,22 @@ let gameState = {
         itemsUsed: {} // Track usage of each item
     },
     cats: [
-        { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸' },
-        { name: 'Katt 2', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😺' },
-        { name: 'Katt 3', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😻' }
+        { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸', image: null },
+        { name: 'Katt 2', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😺', image: null },
+        { name: 'Katt 3', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😻', image: null },
+        { name: 'Babykatt', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '🐱', image: 'Bilder/babycat.jpg', unlockLevel: 10 },
+        { name: 'Brindle', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '🐈', image: 'Bilder/brindle.jpg', unlockLevel: 15 },
+        { name: 'Rød katt', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '🐈‍⬛', image: 'Bilder/redcat.jpg', unlockLevel: 20 },
+        { name: 'Rosa katt', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '💖', image: 'Bilder/Cat Pink GIF.gif', unlockLevel: 25, isGif: true }
     ],
     currentCat: 0,
     dailyChallenge: null,
     challengeProgress: 0,
     challengeCompleted: false,
     lastSave: Date.now(),
-    actionCooldowns: {} // Track when actions can be used again
+    actionCooldowns: {}, // Track when actions can be used again
+    lastDailyReward: null, // Track last daily reward claim
+    catTricks: [] // Track learned cat tricks
 };
 
 const catEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱'];
@@ -217,16 +228,22 @@ function handleSignup() {
             itemsUsed: {}
         },
         cats: [
-            { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸' },
-            { name: 'Katt 2', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😺' },
-            { name: 'Katt 3', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😻' }
+            { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸', image: null },
+            { name: 'Katt 2', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😺', image: null },
+            { name: 'Katt 3', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '😻', image: null },
+            { name: 'Babykatt', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '🐱', image: 'Bilder/babycat.jpg', unlockLevel: 10 },
+            { name: 'Brindle', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '🐈', image: 'Bilder/brindle.jpg', unlockLevel: 15 },
+            { name: 'Rød katt', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '🐈‍⬛', image: 'Bilder/redcat.jpg', unlockLevel: 20 },
+            { name: 'Rosa katt', unlocked: false, happiness: 50, hunger: 50, energy: 50, emoji: '💖', image: 'Bilder/Cat Pink GIF.gif', unlockLevel: 25, isGif: true }
         ],
         currentCat: 0,
         dailyChallenge: null,
         challengeProgress: 0,
         challengeCompleted: false,
         lastSave: Date.now(),
-        actionCooldowns: {}
+        actionCooldowns: {},
+        lastDailyReward: null,
+        catTricks: []
     };
     saveGame();
     updateAllDisplays();
@@ -260,6 +277,11 @@ function checkLogin() {
             document.getElementById('current-user-display').textContent = `Innlogget som: ${currentUser} 🐱`;
             document.getElementById('logout-btn').style.display = 'inline-block';
             loadGame();
+            // Load saved background
+            const savedBg = localStorage.getItem(`miaumiauBackground_${currentUser}`);
+            if (savedBg) {
+                applyBackground(savedBg);
+            }
             return true;
         }
     }
@@ -637,6 +659,7 @@ document.getElementById('feed-btn').addEventListener('click', () => {
     showFood('meat', 2000);
     createParticles(document.getElementById('feed-btn'));
     updateStats();
+    updateCatGifDisplay();
 });
 
 document.getElementById('play-btn').addEventListener('click', () => {
@@ -662,6 +685,7 @@ document.getElementById('play-btn').addEventListener('click', () => {
     showMessage('Så morsomt! La oss leke mer! 🎾😸');
     createParticles(document.getElementById('play-btn'));
     updateStats();
+    updateCatGifDisplay();
 });
 
 document.getElementById('pet-btn').addEventListener('click', () => {
@@ -682,6 +706,7 @@ document.getElementById('pet-btn').addEventListener('click', () => {
     showMessage('Purr purr purr... ❤️😸');
     createParticles(document.getElementById('pet-btn'));
     updateStats();
+    updateCatGifDisplay();
 });
 
 document.getElementById('sleep-btn').addEventListener('click', () => {
@@ -854,7 +879,11 @@ const shopItems = [
     { id: 'bow1', name: 'Rosa sløyfe 🎀', price: 100, emoji: '🎀', effect: 'style', useType: 'cosmetic', useLabel: null },
     { id: 'bow2', name: 'Blå sløyfe 💙', price: 100, emoji: '💙', effect: 'style', useType: 'cosmetic', useLabel: null },
     { id: 'hat', name: 'Kattelue 🎩', price: 130, emoji: '🎩', effect: 'style', useType: 'cosmetic', useLabel: null },
-    { id: 'glasses', name: 'Sunglasses 😎', price: 140, emoji: '😎', effect: 'style', useType: 'cosmetic', useLabel: null }
+    { id: 'glasses', name: 'Sunglasses 😎', price: 140, emoji: '😎', effect: 'style', useType: 'cosmetic', useLabel: null },
+    { id: 'bg-pink', name: 'Rosa bakgrunn 🌸', price: 200, emoji: '🌸', effect: 'background', useType: 'cosmetic', useLabel: null },
+    { id: 'bg-blue', name: 'Blå bakgrunn 💙', price: 200, emoji: '💙', effect: 'background', useType: 'cosmetic', useLabel: null },
+    { id: 'bg-rainbow', name: 'Regnbue bakgrunn 🌈', price: 300, emoji: '🌈', effect: 'background', useType: 'cosmetic', useLabel: null },
+    { id: 'bg-space', name: 'Rom bakgrunn 🚀', price: 350, emoji: '🚀', effect: 'background', useType: 'cosmetic', useLabel: null }
 ];
 
 function renderShop() {
@@ -886,6 +915,8 @@ function buyItem(itemId) {
             gameState.happiness = Math.min(100, gameState.happiness + parseInt(item.effect.split('+')[1]));
         } else if (item.effect.startsWith('energy')) {
             gameState.energy = Math.min(100, gameState.energy + parseInt(item.effect.split('+')[1]));
+        } else if (item.effect === 'background') {
+            applyBackground(itemId);
         }
         playBuySound();
         showMessage(`Du kjøpte ${item.name}! 🎉`);
@@ -898,17 +929,48 @@ function buyItem(itemId) {
     }
 }
 
+function applyBackground(bgId) {
+    if (!gameState.ownedItems.includes(bgId)) return;
+    
+    const bgMap = {
+        'bg-pink': 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+        'bg-blue': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'bg-rainbow': 'linear-gradient(135deg, #ff0000 0%, #ff7f00 16%, #ffff00 33%, #00ff00 50%, #0000ff 66%, #4b0082 83%, #9400d3 100%)',
+        'bg-space': 'linear-gradient(135deg, #000000 0%, #1a1a2e 50%, #16213e 100%)'
+    };
+    
+    if (bgMap[bgId]) {
+        document.body.style.background = bgMap[bgId];
+        document.body.style.backgroundSize = '100% 100%';
+        document.body.style.animation = 'none';
+        localStorage.setItem(`miaumiauBackground_${currentUser}`, bgId);
+    }
+}
+
 // ==================== ACHIEVEMENTS SYSTEM ====================
 const achievements = [
     { id: 'fed100', name: 'Kattemester', desc: 'Mat katten 100 ganger', icon: '🍖', target: 100, stat: 'timesFed' },
     { id: 'fed50', name: 'Kattetaker', desc: 'Mat katten 50 ganger', icon: '🍖', target: 50, stat: 'timesFed' },
     { id: 'fed10', name: 'Kattvenn', desc: 'Mat katten 10 ganger', icon: '🍖', target: 10, stat: 'timesFed' },
     { id: 'pet50', name: 'Koseekspert', desc: 'Kose katten 50 ganger', icon: '❤️', target: 50, stat: 'timesPetted' },
+    { id: 'pet100', name: 'Koseguru', desc: 'Kose katten 100 ganger', icon: '💕', target: 100, stat: 'timesPetted' },
     { id: 'play30', name: 'Lekekamerat', desc: 'Lek med katten 30 ganger', icon: '🎾', target: 30, stat: 'timesPlayed' },
+    { id: 'play100', name: 'Lekemester', desc: 'Lek med katten 100 ganger', icon: '🎮', target: 100, stat: 'timesPlayed' },
     { id: 'pizza10', name: 'Pizzaelsker', desc: 'Gi pizza 10 ganger', icon: '🍕', target: 10, stat: 'pizzaGiven' },
     { id: 'level10', name: 'Nivåmester', desc: 'Nå nivå 10', icon: '⭐', target: 10, stat: 'level', type: 'level' },
     { id: 'level20', name: 'Legende', desc: 'Nå nivå 20', icon: '🏆', target: 20, stat: 'level', type: 'level' },
-    { id: 'score1000', name: 'Poengkonge', desc: 'Samle 1000 poeng', icon: '💰', target: 1000, stat: 'score', type: 'score' }
+    { id: 'level30', name: 'Superstjerne', desc: 'Nå nivå 30', icon: '🌟', target: 30, stat: 'level', type: 'level' },
+    { id: 'score1000', name: 'Poengkonge', desc: 'Samle 1000 poeng', icon: '💰', target: 1000, stat: 'score', type: 'score' },
+    { id: 'score5000', name: 'Poengmester', desc: 'Samle 5000 poeng', icon: '💎', target: 5000, stat: 'score', type: 'score' },
+    { id: 'score10000', name: 'Poenglegende', desc: 'Samle 10000 poeng', icon: '👑', target: 10000, stat: 'score', type: 'score' },
+    { id: 'minigame100', name: 'Minispillmester', desc: 'Få 100 poeng i minispill', icon: '🎯', target: 100, stat: 'minigameScore', type: 'minigame' },
+    { id: 'minigame500', name: 'Minispillguru', desc: 'Få 500 poeng i minispill', icon: '🎪', target: 500, stat: 'minigameScore', type: 'minigame' },
+    { id: 'coins100', name: 'Rik', desc: 'Samle 100 mynter', icon: '💵', target: 100, stat: 'coins', type: 'coins' },
+    { id: 'coins500', name: 'Veldig rik', desc: 'Samle 500 mynter', icon: '💴', target: 500, stat: 'coins', type: 'coins' },
+    { id: 'items5', name: 'Samler', desc: 'Eie 5 items', icon: '🛍️', target: 5, stat: 'ownedItems', type: 'items' },
+    { id: 'items10', name: 'Storsamler', desc: 'Eie 10 items', icon: '🎁', target: 10, stat: 'ownedItems', type: 'items' },
+    { id: 'clean50', name: 'Renlig', desc: 'Vask katten 50 ganger', icon: '🧼', target: 50, stat: 'timesCleaned' },
+    { id: 'sleep50', name: 'Søvnmester', desc: 'La katten sove 50 ganger', icon: '😴', target: 50, stat: 'timesSlept' }
 ];
 
 function checkAchievements() {
@@ -920,15 +982,22 @@ function checkAchievements() {
             progress = gameState.level;
         } else if (achievement.type === 'score') {
             progress = gameState.score;
+        } else if (achievement.type === 'minigame') {
+            progress = gameState.stats.minigameScore || 0;
+        } else if (achievement.type === 'coins') {
+            progress = gameState.coins;
+        } else if (achievement.type === 'items') {
+            progress = gameState.ownedItems.length;
         } else {
             progress = gameState.stats[achievement.stat] || 0;
         }
         
         if (progress >= achievement.target) {
             gameState.achievements[achievement.id] = true;
-            gameState.coins += 50; // Reward coins
+            const reward = achievement.target >= 100 ? 100 : 50; // More coins for harder achievements
+            gameState.coins += reward;
             playSuccessSound();
-            showMessage(`🏆 Bedrift oppnådd: ${achievement.name}! +50 mynter! 🏆`);
+            showMessage(`🏆 Bedrift oppnådd: ${achievement.name}! +${reward} mynter! 🏆`);
             saveGame();
         }
     });
@@ -970,6 +1039,17 @@ function renderAchievements() {
     });
 }
 
+// ==================== HELPER FUNCTIONS ====================
+function updateDailyChallengeProgress(type) {
+    if (gameState.dailyChallenge && gameState.dailyChallenge.type === type) {
+        gameState.dailyChallenge.progress = Math.min(
+            gameState.dailyChallenge.target, 
+            gameState.dailyChallenge.progress + 1
+        );
+        updateDailyChallenge();
+    }
+}
+
 // ==================== DAILY CHALLENGES ====================
 function generateDailyChallenge() {
     if (!currentUser) return;
@@ -990,7 +1070,9 @@ function generateDailyChallenge() {
         { type: 'play', target: 3, reward: 40, desc: 'Lek med katten 3 ganger', icon: '🎾' },
         { type: 'pet', target: 10, reward: 60, desc: 'Kose katten 10 ganger', icon: '❤️' },
         { type: 'sleep', target: 2, reward: 30, desc: 'La katten sove 2 ganger', icon: '😴' },
-        { type: 'pizza', target: 2, reward: 70, desc: 'Gi pizza 2 ganger', icon: '🍕' }
+        { type: 'pizza', target: 2, reward: 70, desc: 'Gi pizza 2 ganger', icon: '🍕' },
+        { type: 'clean', target: 3, reward: 45, desc: 'Vask katten 3 ganger', icon: '🛁' },
+        { type: 'minigame', target: 1, reward: 80, desc: 'Spill et minispill', icon: '🎯' }
     ];
     
     const challenge = challenges[Math.floor(Math.random() * challenges.length)];
@@ -1028,6 +1110,150 @@ function updateDailyChallenge() {
             <strong>📅 Daglig utfordring:</strong> ${challenge.desc}
             <div class="challenge-progress">${challenge.progress}/${challenge.target} ${challenge.icon}</div>
         </div>`;
+    
+    // Update daily reward
+    updateDailyReward();
+}
+
+// ==================== DAILY REWARD ====================
+function updateDailyReward() {
+    const container = document.getElementById('daily-reward-section');
+    if (!container) return;
+    
+    const today = new Date().toDateString();
+    const lastReward = gameState.lastDailyReward;
+    
+    if (lastReward === today) {
+        container.innerHTML = `
+            <div class="daily-reward-claimed">
+                ✅ Daglig belønning hentet i dag! Kom tilbake i morgen! 🎁
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="daily-reward-available">
+            <strong>🎁 Daglig belønning!</strong><br>
+            <button class="action-btn" onclick="claimDailyReward()" style="margin-top: 10px;">
+                Hent belønning! 🎉
+            </button>
+        </div>
+    `;
+}
+
+function claimDailyReward() {
+    const today = new Date().toDateString();
+    if (gameState.lastDailyReward === today) {
+        showMessage('Du har allerede hentet belønningen i dag! Kom tilbake i morgen! 🎁');
+        return;
+    }
+    
+    const rewards = [50, 75, 100, 125, 150];
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    
+    gameState.coins += reward;
+    gameState.lastDailyReward = today;
+    gameState.score += reward;
+    
+    playSuccessSound();
+    showMessage(`🎁 Daglig belønning! Du fikk ${reward} mynter! 🎉`);
+    updateDailyReward();
+    updateAllDisplays();
+    saveGame();
+}
+
+// ==================== CAT TRICKS ====================
+function teachCatTrick(trick) {
+    if (gameState.energy < 30) {
+        showMessage('Katten er for sliten for å lære triks nå! La den hvile først! 😴');
+        return;
+    }
+    
+    if (gameState.happiness < 50) {
+        showMessage('Katten er ikke glad nok! Kos og mat den først! ❤️');
+        return;
+    }
+    
+    if (isActionOnCooldown(`trick-${trick}`, 5)) {
+        showMessage('Katten øver allerede! Vent litt! ⏳');
+        return;
+    }
+    
+    setActionCooldown(`trick-${trick}`);
+    
+    // Chance to learn trick based on level
+    const learnChance = Math.min(0.9, 0.3 + (gameState.level * 0.02));
+    const learned = Math.random() < learnChance;
+    
+    gameState.energy = Math.max(0, gameState.energy - 20);
+    gameState.happiness = Math.min(100, gameState.happiness + 5);
+    
+    const trickNames = {
+        'sit': 'Sitt',
+        'jump': 'Hopp',
+        'spin': 'Snurr',
+        'dance': 'Dans'
+    };
+    
+    const trickEmojis = {
+        'sit': '🪑',
+        'jump': '🦘',
+        'spin': '🌪️',
+        'dance': '💃'
+    };
+    
+    if (learned && !gameState.catTricks.includes(trick)) {
+        gameState.catTricks.push(trick);
+        gameState.score += 50;
+        gameState.coins += 25;
+        playSuccessSound();
+        showMessage(`🎉 Fantastisk! Katten lærte trikset "${trickNames[trick]}"! +50 poeng og +25 mynter! ${trickEmojis[trick]}`);
+        
+        // Show trick animation
+        performCatTrick(trick);
+    } else if (learned) {
+        playPurrSound();
+        showMessage(`Katten kan allerede "${trickNames[trick]}"! Den gjør det perfekt! ${trickEmojis[trick]}`);
+        performCatTrick(trick);
+    } else {
+        playErrorSound();
+        showMessage(`Katten prøvde, men klarte det ikke denne gangen. Prøv igjen! 💪`);
+    }
+    
+    updateAllDisplays();
+    saveGame();
+}
+
+function performCatTrick(trick) {
+    const catEmoji = document.getElementById('cat-emoji');
+    const catGif = document.getElementById('game-cat-gif');
+    
+    if (!catEmoji && !catGif) return;
+    
+    const tricks = {
+        'sit': { emoji: '🪑', animation: 'sitDown 0.5s ease' },
+        'jump': { emoji: '🦘', animation: 'jumpUp 0.6s ease' },
+        'spin': { emoji: '🌪️', animation: 'spinAround 1s ease' },
+        'dance': { emoji: '💃', animation: 'danceMove 1.5s ease infinite' }
+    };
+    
+    const trickData = tricks[trick];
+    if (!trickData) return;
+    
+    // Create temporary animation
+    const originalStyle = catEmoji ? catEmoji.style.cssText : '';
+    if (catEmoji) {
+        catEmoji.style.animation = trickData.animation;
+        catEmoji.textContent = trickData.emoji;
+        
+        setTimeout(() => {
+            catEmoji.style.cssText = originalStyle;
+            updateCatGifDisplay();
+        }, 1500);
+    }
+    
+    createParticles(catEmoji || catGif);
 }
 
 // ==================== MINIGAMES ====================
@@ -1059,6 +1285,7 @@ function startMouseHunt() {
             gameState.coins += Math.floor(mouseHuntScore / 10);
             gameState.stats.minigameScore += mouseHuntScore;
             gameState.score += mouseHuntScore; // Add to total score
+            updateDailyChallengeProgress('minigame');
             showMessage(`Tid er ute! Du fikk ${mouseHuntScore} poeng! +${Math.floor(mouseHuntScore/10)} mynter!`);
             mouseArea.innerHTML = `<button class="action-btn" onclick="startMouseHunt()">Spill igjen</button>`;
             updateStats(); // Update all stats including level
@@ -1151,6 +1378,7 @@ function startFoodCatch() {
             gameState.coins += Math.floor(foodCatchScore / 10);
             gameState.stats.minigameScore += foodCatchScore;
             gameState.score += foodCatchScore; // Add to total score
+            updateDailyChallengeProgress('minigame');
             showMessage(`Tid er ute! Du fikk ${foodCatchScore} poeng! +${Math.floor(foodCatchScore/10)} mynter!`);
             container.innerHTML = `<button class="action-btn" onclick="startFoodCatch()">Spill igjen</button>`;
             updateStats(); // Update all stats including level
@@ -1352,6 +1580,1050 @@ function startFoodCatch() {
     }, 50);
 }
 
+// ==================== CAT BATTLE MINIGAME ====================
+let catBattleInterval = null;
+let catBattleTime = 30;
+let catBattleScore = 0;
+let battleAttackReady = false;
+
+function startCatBattle() {
+    document.getElementById('cat-battle-area').style.display = 'block';
+    catBattleScore = 0;
+    catBattleTime = 30;
+    battleAttackReady = false;
+    document.getElementById('battle-score').textContent = '0';
+    document.getElementById('battle-time').textContent = '30';
+    
+    const container = document.getElementById('battle-container');
+    container.innerHTML = `
+        <img src="Bilder/Cat Battle GIF.gif" alt="Kattkamp" class="battle-cat-gif" style="position: absolute; left: 20%;">
+        <img src="Bilder/Cat Battle GIF.gif" alt="Fiende" class="battle-enemy-gif" style="position: absolute; right: 20%; transform: scaleX(-1);">
+        <button class="battle-attack-btn" id="battle-attack-btn">Angrep!</button>
+    `;
+    
+    const attackBtn = document.getElementById('battle-attack-btn');
+    
+    const timer = setInterval(() => {
+        catBattleTime--;
+        document.getElementById('battle-time').textContent = catBattleTime;
+        if (catBattleTime <= 0) {
+            clearInterval(timer);
+            if (catBattleInterval) clearInterval(catBattleInterval);
+            gameState.coins += Math.floor(catBattleScore / 10);
+            gameState.stats.minigameScore += catBattleScore;
+            gameState.score += catBattleScore;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${catBattleScore} poeng! +${Math.floor(catBattleScore/10)} mynter!`);
+            container.innerHTML = `<button class="action-btn" onclick="startCatBattle()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+    
+    // Make attack button ready at random intervals
+    catBattleInterval = setInterval(() => {
+        if (!battleAttackReady) {
+            battleAttackReady = true;
+            attackBtn.classList.add('ready');
+            attackBtn.textContent = 'ANGREP NÅ!';
+            
+            // Auto-disable after 1 second if not clicked
+            setTimeout(() => {
+                if (battleAttackReady) {
+                    battleAttackReady = false;
+                    attackBtn.classList.remove('ready');
+                    attackBtn.textContent = 'Vent...';
+                }
+            }, 1000);
+        }
+    }, 2000 + Math.random() * 2000);
+    
+    attackBtn.onclick = () => {
+        if (battleAttackReady) {
+            catBattleScore += 20;
+            document.getElementById('battle-score').textContent = catBattleScore;
+            battleAttackReady = false;
+            attackBtn.classList.remove('ready');
+            attackBtn.textContent = 'Angrep!';
+            playClickSound();
+            createParticles(attackBtn);
+            
+            // Enemy bounces back
+            const enemy = document.querySelector('.battle-enemy');
+            enemy.style.animation = 'none';
+            setTimeout(() => {
+                enemy.style.animation = 'battleBounce 0.5s ease infinite';
+            }, 10);
+        } else {
+            showMessage('Ikke nå! Vent til knappen lyser! ⚠️');
+        }
+    };
+}
+
+// ==================== CAT SCRATCH MINIGAME ====================
+let catScratchInterval = null;
+let catScratchTime = 30;
+let catScratchScore = 0;
+let scratchButtons = [];
+
+function startCatScratch() {
+    document.getElementById('cat-scratch-area').style.display = 'block';
+    catScratchScore = 0;
+    catScratchTime = 30;
+    document.getElementById('scratch-score').textContent = '0';
+    document.getElementById('scratch-time').textContent = '30';
+    
+    const container = document.getElementById('scratch-container');
+    container.innerHTML = '<div class="scratch-tree" id="scratch-tree"></div>';
+    
+    const tree = document.getElementById('scratch-tree');
+    scratchButtons = [];
+    
+    // Create 4 scratch buttons
+    for (let i = 0; i < 4; i++) {
+        const btn = document.createElement('div');
+        btn.className = 'scratch-button';
+        btn.textContent = '🐾';
+        btn.dataset.index = i;
+        btn.onclick = () => {
+            if (btn.classList.contains('active')) {
+                catScratchScore += 15;
+                document.getElementById('scratch-score').textContent = catScratchScore;
+                btn.classList.remove('active');
+                playClickSound();
+                createParticles(btn);
+            }
+        };
+        tree.appendChild(btn);
+        scratchButtons.push(btn);
+    }
+    
+    const timer = setInterval(() => {
+        catScratchTime--;
+        document.getElementById('scratch-time').textContent = catScratchTime;
+        if (catScratchTime <= 0) {
+            clearInterval(timer);
+            if (catScratchInterval) clearInterval(catScratchInterval);
+            gameState.coins += Math.floor(catScratchScore / 10);
+            gameState.stats.minigameScore += catScratchScore;
+            gameState.score += catScratchScore;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${catScratchScore} poeng! +${Math.floor(catScratchScore/10)} mynter!`);
+            container.innerHTML = `<button class="action-btn" onclick="startCatScratch()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+    
+    // Activate random buttons
+    catScratchInterval = setInterval(() => {
+        // Deactivate all
+        scratchButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Activate 1-2 random buttons
+        const numActive = Math.floor(Math.random() * 2) + 1;
+        for (let i = 0; i < numActive; i++) {
+            const randomBtn = scratchButtons[Math.floor(Math.random() * scratchButtons.length)];
+            randomBtn.classList.add('active');
+            
+            // Auto-deactivate after 2 seconds
+            setTimeout(() => {
+                randomBtn.classList.remove('active');
+            }, 2000);
+        }
+    }, 2500);
+}
+
+// ==================== CAT HUNT MINIGAME ====================
+let catHuntInterval = null;
+let catHuntTime = 30;
+let catHuntScore = 0;
+let huntCatPosition = 50;
+let huntTargets = [];
+
+function startCatHunt() {
+    document.getElementById('cat-hunt-area').style.display = 'block';
+    catHuntScore = 0;
+    catHuntTime = 30;
+    huntCatPosition = 50;
+    huntTargets = [];
+    document.getElementById('hunt-score').textContent = '0';
+    document.getElementById('hunt-time').textContent = '30';
+    
+    const container = document.getElementById('hunt-container');
+    container.innerHTML = `
+        <div class="hunt-cat" style="left: 50%;">😸</div>
+        <div class="catch-controls" style="position: absolute; bottom: 10px; width: 100%;">
+            <button class="catch-move-btn" id="hunt-left-btn">←</button>
+            <button class="catch-move-btn" id="hunt-right-btn">→</button>
+        </div>
+    `;
+    
+    const timer = setInterval(() => {
+        catHuntTime--;
+        document.getElementById('hunt-time').textContent = catHuntTime;
+        if (catHuntTime <= 0) {
+            clearInterval(timer);
+            if (catHuntInterval) clearInterval(catHuntInterval);
+            huntTargets.forEach(target => target.remove());
+            huntTargets = [];
+            gameState.coins += Math.floor(catHuntScore / 10);
+            gameState.stats.minigameScore += catHuntScore;
+            gameState.score += catHuntScore;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${catHuntScore} poeng! +${Math.floor(catHuntScore/10)} mynter!`);
+            container.innerHTML = `<button class="action-btn" onclick="startCatHunt()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+    
+    // Movement
+    const moveCat = (direction) => {
+        if (direction === 'left' && huntCatPosition > 0) {
+            huntCatPosition = Math.max(0, huntCatPosition - 5);
+        }
+        if (direction === 'right' && huntCatPosition < 95) {
+            huntCatPosition = Math.min(95, huntCatPosition + 5);
+        }
+        const cat = document.querySelector('.hunt-cat');
+        if (cat) {
+            cat.style.left = huntCatPosition + '%';
+        }
+    };
+    
+    // Button listeners
+    const leftBtn = document.getElementById('hunt-left-btn');
+    const rightBtn = document.getElementById('hunt-right-btn');
+    const huntIntervals = { left: null, right: null };
+    
+    const startMoving = (direction) => {
+        if (direction === 'left') {
+            if (huntIntervals.left) clearInterval(huntIntervals.left);
+            moveCat('left');
+            huntIntervals.left = setInterval(() => moveCat('left'), 50);
+        } else {
+            if (huntIntervals.right) clearInterval(huntIntervals.right);
+            moveCat('right');
+            huntIntervals.right = setInterval(() => moveCat('right'), 50);
+        }
+    };
+    
+    const stopMoving = (direction) => {
+        if (direction === 'left' && huntIntervals.left) {
+            clearInterval(huntIntervals.left);
+            huntIntervals.left = null;
+        }
+        if (direction === 'right' && huntIntervals.right) {
+            clearInterval(huntIntervals.right);
+            huntIntervals.right = null;
+        }
+    };
+    
+    if (leftBtn) {
+        leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('left'); }, { passive: false });
+        leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopMoving('left'); }, { passive: false });
+        leftBtn.addEventListener('mousedown', () => startMoving('left'));
+        leftBtn.addEventListener('mouseup', () => stopMoving('left'));
+    }
+    
+    if (rightBtn) {
+        rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('right'); }, { passive: false });
+        rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopMoving('right'); }, { passive: false });
+        rightBtn.addEventListener('mousedown', () => startMoving('right'));
+        rightBtn.addEventListener('mouseup', () => stopMoving('right'));
+    }
+    
+    // Spawn targets (birds and fish)
+    catHuntInterval = setInterval(() => {
+        const target = document.createElement('div');
+        target.className = 'hunt-target';
+        target.textContent = Math.random() > 0.5 ? '🐦' : '🐟';
+        target.style.left = Math.random() * 80 + 10 + '%';
+        target.style.top = '-5%';
+        let targetY = -5;
+        
+        const targetInterval = setInterval(() => {
+            targetY += 2;
+            target.style.top = targetY + '%';
+            
+            const cat = document.querySelector('.hunt-cat');
+            if (cat && targetY > 80) {
+                const catLeft = parseFloat(cat.style.left) || 50;
+                const targetLeft = parseFloat(target.style.left);
+                
+                if (Math.abs(catLeft - targetLeft) < 10) {
+                    catHuntScore += 20;
+                    document.getElementById('hunt-score').textContent = catHuntScore;
+                    target.remove();
+                    clearInterval(targetInterval);
+                    playEatSound();
+                    createParticles(cat);
+                    return;
+                }
+            }
+            
+            if (targetY > 100) {
+                target.remove();
+                clearInterval(targetInterval);
+            }
+        }, 50);
+        
+        container.appendChild(target);
+        huntTargets.push(target);
+    }, 1500);
+}
+
+// ==================== NYAN CAT MINIGAME ====================
+let nyanCatInterval = null;
+let nyanCatTime = 60;
+let nyanCatScore = 0;
+
+function startNyanCat() {
+    document.getElementById('nyan-cat-area').style.display = 'block';
+    nyanCatScore = 0;
+    nyanCatTime = 60;
+    document.getElementById('nyan-score').textContent = '0';
+    document.getElementById('nyan-time').textContent = '60';
+    
+    const container = document.getElementById('nyan-container');
+    container.innerHTML = `
+        <img src="Bilder/Nyan Cat GIF.gif" alt="Nyan Cat" class="nyan-cat-gif">
+        <div class="nyan-rainbow"></div>
+    `;
+    
+    const timer = setInterval(() => {
+        nyanCatTime--;
+        document.getElementById('nyan-time').textContent = nyanCatTime;
+        if (nyanCatTime <= 0) {
+            clearInterval(timer);
+            if (nyanCatInterval) clearInterval(nyanCatInterval);
+            gameState.coins += Math.floor(nyanCatScore / 5);
+            gameState.stats.minigameScore += nyanCatScore;
+            gameState.score += nyanCatScore;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${nyanCatScore} poeng! +${Math.floor(nyanCatScore/5)} mynter!`);
+            container.innerHTML = `<button class="action-btn" onclick="startNyanCat()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+    
+    // Create stars
+    nyanCatInterval = setInterval(() => {
+        const star = document.createElement('div');
+        star.className = 'nyan-star';
+        star.textContent = '⭐';
+        star.style.top = Math.random() * 80 + 10 + '%';
+        star.style.left = '100%';
+        star.style.animationDuration = (2 + Math.random() * 2) + 's';
+        container.appendChild(star);
+        
+        // Click stars for points
+        star.onclick = () => {
+            nyanCatScore += 10;
+            document.getElementById('nyan-score').textContent = nyanCatScore;
+            star.remove();
+            playClickSound();
+            createParticles(star);
+        };
+        
+        setTimeout(() => star.remove(), 5000);
+    }, 500);
+}
+
+// ==================== BORED CAT MINIGAME ====================
+let boredCatInterval = null;
+let boredCatTime = 30;
+let boredCatScore = 0;
+
+function startBoredCat() {
+    document.getElementById('bored-cat-area').style.display = 'block';
+    boredCatScore = 0;
+    boredCatTime = 30;
+    document.getElementById('bored-score').textContent = '0';
+    document.getElementById('bored-time').textContent = '30';
+    
+    const container = document.getElementById('bored-container');
+    container.innerHTML = `
+        <img src="Bilder/Bored Cat GIF.gif" alt="Kjedelig katt" class="bored-cat-gif">
+    `;
+    
+    const timer = setInterval(() => {
+        boredCatTime--;
+        document.getElementById('bored-time').textContent = boredCatTime;
+        if (boredCatTime <= 0) {
+            clearInterval(timer);
+            if (boredCatInterval) clearInterval(boredCatInterval);
+            gameState.coins += Math.floor(boredCatScore / 10);
+            gameState.stats.minigameScore += boredCatScore;
+            gameState.score += boredCatScore;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${boredCatScore} poeng! +${Math.floor(boredCatScore/10)} mynter!`);
+            container.innerHTML = `<button class="action-btn" onclick="startBoredCat()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+    
+    // Spawn activities around the bored cat
+    const activities = ['🎾', '🧶', '🐭', '🎈', '🏐', '🎯', '🎨', '🎪'];
+    
+    boredCatInterval = setInterval(() => {
+        const activity = document.createElement('div');
+        activity.className = 'bored-activity';
+        activity.textContent = activities[Math.floor(Math.random() * activities.length)];
+        activity.style.left = Math.random() * 80 + 10 + '%';
+        activity.style.top = Math.random() * 60 + 20 + '%';
+        
+        activity.onclick = function() {
+            boredCatScore += 15;
+            document.getElementById('bored-score').textContent = boredCatScore;
+            this.remove();
+            playPlaySound();
+            createParticles(this);
+        };
+        
+        container.appendChild(activity);
+        
+        // Remove after 3 seconds if not clicked
+        setTimeout(() => {
+            if (activity.parentNode) {
+                activity.remove();
+            }
+        }, 3000);
+    }, 1500);
+}
+
+// ==================== READING GAME ====================
+let readingGameInterval = null;
+let readingGameTime = 60;
+let readingGameScore = 0;
+let currentReadingQuestion = null;
+
+const readingWords = [
+    // Enkle ord (4 bokstaver)
+    { emoji: '🐱', word: 'KATT', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'easy' },
+    { emoji: '🐶', word: 'HUND', wrongs: ['BIL', 'BALL', 'TRE'], difficulty: 'easy' },
+    { emoji: '🍎', word: 'EPLE', wrongs: ['BIL', 'BOK', 'BALL'], difficulty: 'easy' },
+    { emoji: '🏠', word: 'HUS', wrongs: ['BIL', 'BOK', 'BALL'], difficulty: 'easy' },
+    { emoji: '🚗', word: 'BIL', wrongs: ['HUS', 'BOK', 'BALL'], difficulty: 'easy' },
+    { emoji: '📚', word: 'BOK', wrongs: ['BIL', 'HUS', 'BALL'], difficulty: 'easy' },
+    { emoji: '⚽', word: 'BALL', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'easy' },
+    { emoji: '🌳', word: 'TRE', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'easy' },
+    { emoji: '🛏️', word: 'SENG', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'easy' },
+    { emoji: '🧸', word: 'BAMSE', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'medium' },
+    { emoji: '🎨', word: 'FARGE', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'medium' },
+    { emoji: '🍕', word: 'PIZZA', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'medium' },
+    { emoji: '🍼', word: 'FLASKE', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'medium' },
+    { emoji: '🎈', word: 'BALLONG', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'hard' },
+    { emoji: '🎾', word: 'BALL', wrongs: ['BIL', 'HUS', 'BOK'], difficulty: 'easy' },
+    // Flere ord
+    { emoji: '🌙', word: 'MÅNE', wrongs: ['SOL', 'STJERNE', 'SKY'], difficulty: 'easy' },
+    { emoji: '☀️', word: 'SOL', wrongs: ['MÅNE', 'STJERNE', 'SKY'], difficulty: 'easy' },
+    { emoji: '⭐', word: 'STJERNE', wrongs: ['SOL', 'MÅNE', 'SKY'], difficulty: 'medium' },
+    { emoji: '🌊', word: 'HAV', wrongs: ['SOL', 'SKY', 'TRE'], difficulty: 'easy' },
+    { emoji: '🌸', word: 'BLOMST', wrongs: ['TRE', 'GRESS', 'BLAD'], difficulty: 'medium' },
+    { emoji: '🎵', word: 'MUSIKK', wrongs: ['SANG', 'LYD', 'LÅT'], difficulty: 'hard' },
+    { emoji: '🎭', word: 'TEATER', wrongs: ['FILM', 'SANG', 'DANS'], difficulty: 'hard' },
+    { emoji: '🏰', word: 'SLOTT', wrongs: ['HUS', 'BOR', 'GÅRD'], difficulty: 'medium' },
+    { emoji: '👑', word: 'KRONE', wrongs: ['HATT', 'SKO', 'HANSKE'], difficulty: 'medium' },
+    { emoji: '🦄', word: 'ENHØRNING', wrongs: ['HEST', 'KATT', 'HUND'], difficulty: 'hard' },
+    { emoji: '🌈', word: 'REGNBUE', wrongs: ['SKY', 'SOL', 'MÅNE'], difficulty: 'hard' },
+    { emoji: '🎪', word: 'SIRKUS', wrongs: ['TEATER', 'FILM', 'KONSERT'], difficulty: 'hard' },
+    { emoji: '🚀', word: 'ROMMRÅKETT', wrongs: ['BIL', 'FLY', 'BÅT'], difficulty: 'hard' },
+    { emoji: '🎁', word: 'PRESANG', wrongs: ['BOK', 'BALL', 'BAMSE'], difficulty: 'medium' },
+    { emoji: '🎄', word: 'JULETRE', wrongs: ['TRE', 'BLOMST', 'GRESS'], difficulty: 'medium' },
+    { emoji: '🍰', word: 'KAKE', wrongs: ['EPLE', 'PIZZA', 'BRØD'], difficulty: 'easy' },
+    { emoji: '🍦', word: 'ISKREM', wrongs: ['KAKE', 'PIZZA', 'EPLE'], difficulty: 'medium' },
+    { emoji: '🎂', word: 'BURSDAGSKAKE', wrongs: ['KAKE', 'ISKREM', 'PIZZA'], difficulty: 'hard' }
+];
+
+function startReadingGame() {
+    document.getElementById('reading-game-area').style.display = 'block';
+    readingGameScore = 0;
+    readingGameTime = 60;
+    document.getElementById('reading-score').textContent = '0';
+    document.getElementById('reading-time').textContent = '60';
+    
+    const container = document.getElementById('reading-container');
+    
+    const timer = setInterval(() => {
+        readingGameTime--;
+        document.getElementById('reading-time').textContent = readingGameTime;
+        if (readingGameTime <= 0) {
+            clearInterval(timer);
+            if (readingGameInterval) clearInterval(readingGameInterval);
+            gameState.coins += Math.floor(readingGameScore / 5);
+            gameState.stats.minigameScore += readingGameScore * 2; // Bonus for lesing
+            gameState.score += readingGameScore * 2;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${readingGameScore} poeng! +${Math.floor(readingGameScore/5)} mynter! Bra jobbet med lesingen! 📚`);
+            container.innerHTML = `<button class="action-btn" onclick="startReadingGame()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+    
+    function showNextQuestion() {
+        if (readingGameTime <= 0) return;
+        
+        const question = readingWords[Math.floor(Math.random() * readingWords.length)];
+        currentReadingQuestion = question;
+        
+        // Create wrong answers array
+        const allWords = [question.word, ...question.wrongs];
+        // Shuffle
+        for (let i = allWords.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
+        }
+        
+        container.innerHTML = `
+            <div class="reading-question">Hva er dette?</div>
+            <div class="reading-image">${question.emoji}</div>
+            <div class="reading-words"></div>
+            <div class="reading-feedback"></div>
+        `;
+        
+        const wordsContainer = container.querySelector('.reading-words');
+        const feedback = container.querySelector('.reading-feedback');
+        
+        allWords.forEach(word => {
+            const btn = document.createElement('button');
+            btn.className = 'reading-word-btn';
+            btn.textContent = word;
+            btn.onclick = () => {
+                if (word === question.word) {
+                    // Correct! Points based on difficulty
+                    let points = 10;
+                    if (question.difficulty === 'medium') points = 15;
+                    if (question.difficulty === 'hard') points = 25;
+                    
+                    btn.classList.add('correct');
+                    readingGameScore += points;
+                    document.getElementById('reading-score').textContent = readingGameScore;
+                    feedback.textContent = `🎉 Riktig! +${points} poeng! Bra jobbet! 🎉`;
+                    feedback.style.color = '#00b894';
+                    playSuccessSound();
+                    createParticles(btn);
+                    
+                    setTimeout(() => {
+                        showNextQuestion();
+                    }, 1500);
+                } else {
+                    // Wrong
+                    btn.classList.add('wrong');
+                    feedback.textContent = '❌ Prøv igjen! Du klarer det! 💪';
+                    feedback.style.color = '#e74c3c';
+                    playErrorSound();
+                    
+                    setTimeout(() => {
+                        btn.classList.remove('wrong');
+                        feedback.textContent = '';
+                    }, 1000);
+                }
+            };
+            wordsContainer.appendChild(btn);
+        });
+    }
+    
+    showNextQuestion();
+}
+
+// ==================== KATTESKOLE ====================
+
+// Math Game (Kattergening)
+let mathScore = 0;
+let mathQuestionsAnswered = 0;
+
+function startMathGame() {
+    document.getElementById('math-area').style.display = 'block';
+    mathScore = 0;
+    mathQuestionsAnswered = 0;
+    
+    const container = document.getElementById('math-area');
+    showNextMathQuestion(container);
+}
+
+function showNextMathQuestion(container) {
+    // Generate random math problem (up to 10)
+    const operations = ['+', '-', '×', '÷'];
+    const operation = operations[Math.floor(Math.random() * operations.length)];
+    let num1, num2, answer;
+    
+    if (operation === '+') {
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * (11 - num1));
+        answer = num1 + num2;
+    } else if (operation === '-') {
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * num1);
+        answer = num1 - num2;
+    } else if (operation === '×') {
+        num1 = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * 10) + 1;
+        answer = num1 * num2;
+        if (answer > 10) {
+            // Make sure answer is <= 10
+            num2 = Math.floor(10 / num1);
+            answer = num1 * num2;
+        }
+    } else { // division
+        answer = Math.floor(Math.random() * 10) + 1;
+        num2 = Math.floor(Math.random() * 10) + 1;
+        num1 = answer * num2;
+        if (num1 > 10) {
+            num2 = 1;
+            answer = num1;
+        }
+    }
+    
+    // Generate wrong answers
+    const wrongAnswers = [];
+    while (wrongAnswers.length < 3) {
+        const wrong = answer + Math.floor(Math.random() * 10) - 5;
+        if (wrong !== answer && wrong >= 0 && wrong <= 10 && !wrongAnswers.includes(wrong)) {
+            wrongAnswers.push(wrong);
+        }
+    }
+    
+    // Shuffle answers
+    const allAnswers = [answer, ...wrongAnswers];
+    for (let i = allAnswers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
+    }
+    
+    // Visual representation with cats
+    const catDisplay = '🐱'.repeat(num1) + (operation === '+' ? ' + ' : operation === '-' ? ' - ' : operation === '×' ? ' × ' : ' ÷ ') + '🐱'.repeat(num2);
+    
+    container.innerHTML = `
+        <div class="math-score">Poeng: ${mathScore} | Riktige: ${mathQuestionsAnswered}</div>
+        <div class="math-cats">${operation === '+' ? '🐱'.repeat(num1) + ' + ' + '🐱'.repeat(num2) : 
+                           operation === '×' ? '🐱'.repeat(num1) + ' × ' + num2 + ' = ?' : 
+                           `${num1} ${operation} ${num2} = ?`}</div>
+        <div class="math-question">${num1} ${operation} ${num2} = ?</div>
+        <div class="math-answers"></div>
+        <div class="math-feedback"></div>
+    `;
+    
+    const answersContainer = container.querySelector('.math-answers');
+    const feedback = container.querySelector('.math-feedback');
+    
+    allAnswers.forEach(ans => {
+        const btn = document.createElement('button');
+        btn.className = 'math-answer-btn';
+        btn.textContent = ans;
+        btn.onclick = () => {
+            if (ans === answer) {
+                btn.classList.add('correct');
+                mathScore += 10;
+                mathQuestionsAnswered++;
+                feedback.textContent = '🎉 Riktig! Bra jobbet! 🎉';
+                feedback.style.color = '#00b894';
+                playSuccessSound();
+                createParticles(btn);
+                
+                setTimeout(() => {
+                    showNextMathQuestion(container);
+                }, 1500);
+            } else {
+                btn.classList.add('wrong');
+                feedback.textContent = '❌ Prøv igjen! Du klarer det! 💪';
+                feedback.style.color = '#e74c3c';
+                playErrorSound();
+                
+                setTimeout(() => {
+                    btn.classList.remove('wrong');
+                    feedback.textContent = '';
+                }, 1000);
+            }
+        };
+        answersContainer.appendChild(btn);
+    });
+}
+
+// Hygiene Info (Kattehygiene)
+function showHygieneInfo() {
+    const container = document.getElementById('hygiene-area');
+    container.style.display = 'block';
+    
+    container.innerHTML = `
+        <div class="hygiene-content">
+            <h2 style="color: #667eea; font-size: 32px; margin-bottom: 20px; text-align: center;">🧼 Kattehygiene - Lær om katters renslighet!</h2>
+            
+            <div class="hygiene-fact">
+                <h3>🐾 Katter pusser seg selv</h3>
+                <p>Katter bruker tungen sin til å pusse pelsen! Tungen har små stive "børster" som kalles papillae. Disse hjelper med å fjerne løs hår, støv og skitt. Katter kan bruke opptil 30% av tiden sin på å pusse seg!</p>
+            </div>
+            
+            <div class="hygiene-fact">
+                <h3>💧 Katter liker ikke vann</h3>
+                <p>Mange katter liker ikke å bade i vann. Dette er fordi kattenes pels ikke tørker fort, og de kan bli kalde. Katter bruker heller tungen sin til å holde seg rene!</p>
+            </div>
+            
+            <div class="hygiene-fact">
+                <h3>🧹 Katter begraver avføringen sin</h3>
+                <p>Katter er veldig rene! De begraver avføringen sin i sand for å skjule lukten. Dette gjør de for å holde seg trygge fra rovdyr i naturen.</p>
+            </div>
+            
+            <div class="hygiene-fact">
+                <h3>👅 Tungen er en børste</h3>
+                <p>Kattens tunge fungerer som en børste! Den har små hår som kalles papillae som peker bakover. Disse hjelper med å fjerne løs hår og holde pelsen ren og glatt.</p>
+            </div>
+            
+            <div class="hygiene-fact">
+                <h3>🐱 Katter vasker ansiktet</h3>
+                <p>Katter vasker ansiktet med potene sine! De fukter poten med spytt og bruker den som en vaskeklutt. De starter alltid med å vaske ansiktet, og så går de videre til resten av kroppen.</p>
+            </div>
+            
+            <div class="hygiene-fact">
+                <h3>⏰ Katter pusser seg ofte</h3>
+                <p>En katt kan bruke flere timer hver dag på å pusse seg! De gjør dette for å holde pelsen ren, fjerne løs hår, og for å holde seg avslappet. Pussing gjør også at katter lukter godt!</p>
+            </div>
+            
+            <button class="action-btn" onclick="document.getElementById('hygiene-area').style.display='none'" style="margin-top: 20px;">
+                Lukk
+            </button>
+        </div>
+    `;
+}
+
+// Cooking Game (Kattemat)
+let selectedIngredients = [];
+
+function startCookingGame() {
+    const container = document.getElementById('cooking-area');
+    container.style.display = 'block';
+    selectedIngredients = [];
+    
+    const ingredients = [
+        { emoji: '🍖', name: 'Kjøtt', good: true },
+        { emoji: '🐟', name: 'Fisk', good: true },
+        { emoji: '🥛', name: 'Melk', good: true },
+        { emoji: '🧀', name: 'Ost', good: true },
+        { emoji: '🥚', name: 'Egg', good: true },
+        { emoji: '🥕', name: 'Gulrot', good: true },
+        { emoji: '🍎', name: 'Eple', good: false },
+        { emoji: '🍫', name: 'Sjokolade', good: false, danger: true },
+        { emoji: '🧅', name: 'Løk', good: false, danger: true },
+        { emoji: '🌶️', name: 'Chili', good: false, danger: true },
+        { emoji: '🍇', name: 'Druer', good: false, danger: true },
+        { emoji: '☕', name: 'Kaffe', good: false }
+    ];
+    
+    container.innerHTML = `
+        <h2 style="text-align: center; color: #667eea; font-size: 28px; margin-bottom: 20px;">🍽️ Lag mat til katten!</h2>
+        <p style="text-align: center; font-size: 18px; margin-bottom: 20px;">Velg ingredienser og lag en god matrett!</p>
+        <div class="cooking-ingredients"></div>
+        <div class="cooking-bowl" id="cooking-bowl">🥣</div>
+        <button class="cook-btn" onclick="cookMeal()">Lag mat! 🍽️</button>
+        <div class="cooking-result" id="cooking-result"></div>
+    `;
+    
+    const ingredientsContainer = container.querySelector('.cooking-ingredients');
+    
+    ingredients.forEach(ing => {
+        const btn = document.createElement('button');
+        btn.className = 'ingredient-btn';
+        btn.textContent = ing.emoji;
+        btn.title = ing.name;
+        btn.onclick = () => {
+            if (selectedIngredients.includes(ing)) {
+                selectedIngredients = selectedIngredients.filter(i => i !== ing);
+                btn.classList.remove('selected');
+            } else {
+                selectedIngredients.push(ing);
+                btn.classList.add('selected');
+            }
+            updateCookingBowl();
+        };
+        ingredientsContainer.appendChild(btn);
+    });
+}
+
+function updateCookingBowl() {
+    const bowl = document.getElementById('cooking-bowl');
+    if (selectedIngredients.length === 0) {
+        bowl.textContent = '🥣';
+    } else {
+        bowl.textContent = selectedIngredients.map(i => i.emoji).join('');
+    }
+}
+
+function cookMeal() {
+    const resultDiv = document.getElementById('cooking-result');
+    
+    if (selectedIngredients.length === 0) {
+        resultDiv.textContent = '❌ Du må velge minst én ingrediens!';
+        resultDiv.style.color = '#e74c3c';
+        return;
+    }
+    
+    const goodIngredients = selectedIngredients.filter(i => i.good).length;
+    const badIngredients = selectedIngredients.filter(i => !i.good && !i.danger).length;
+    const dangerIngredients = selectedIngredients.filter(i => i.danger).length;
+    
+    let result = '';
+    let points = 0;
+    let coins = 0;
+    
+    if (dangerIngredients > 0) {
+        result = `⚠️ Oi! Noen av ingrediensene er farlige for katter! Katten spiser ikke dette. Prøv igjen! 🐱`;
+        resultDiv.style.color = '#e74c3c';
+        playErrorSound();
+    } else if (goodIngredients >= 3 && badIngredients === 0) {
+        result = `🎉 Perfekt! Katten elsker maten! Den er veldig mett og glad! +${points = 50} poeng og +${coins = 25} mynter! 🐱❤️`;
+        resultDiv.style.color = '#00b894';
+        gameState.happiness = Math.min(100, gameState.happiness + 15);
+        gameState.hunger = Math.max(0, gameState.hunger - 25);
+        playSuccessSound();
+    } else if (goodIngredients >= 2) {
+        result = `😸 Bra! Katten liker maten! Den er mett og fornøyd! +${points = 30} poeng og +${coins = 15} mynter!`;
+        resultDiv.style.color = '#00b894';
+        gameState.happiness = Math.min(100, gameState.happiness + 10);
+        gameState.hunger = Math.max(0, gameState.hunger - 20);
+        playSuccessSound();
+    } else if (goodIngredients >= 1) {
+        result = `😊 OK! Katten spiser litt, men ville hatt mer kjøtt eller fisk! +${points = 15} poeng!`;
+        resultDiv.style.color = '#f39c12';
+        gameState.hunger = Math.max(0, gameState.hunger - 10);
+        playClickSound();
+    } else {
+        result = `😐 Katten spiser ikke dette. Katter trenger kjøtt eller fisk! Prøv igjen!`;
+        resultDiv.style.color = '#e74c3c';
+        playErrorSound();
+    }
+    
+    resultDiv.textContent = result;
+    gameState.score += points;
+    gameState.coins += coins;
+    
+    if (points > 0) {
+        createParticles(resultDiv);
+        updateAllDisplays();
+        saveGame();
+    }
+    
+    // Reset after 3 seconds
+    setTimeout(() => {
+        selectedIngredients = [];
+        document.querySelectorAll('.ingredient-btn').forEach(btn => btn.classList.remove('selected'));
+        updateCookingBowl();
+        resultDiv.textContent = '';
+    }, 3000);
+}
+
+// Art Game (Katteestetikk)
+let artCanvas = null;
+let artContext = null;
+let isDrawing = false;
+let currentColor = '#000000';
+let currentTool = 'pen';
+
+function startArtGame() {
+    const container = document.getElementById('art-area');
+    container.style.display = 'block';
+    
+    container.innerHTML = `
+        <h2 style="text-align: center; color: #667eea; font-size: 28px; margin-bottom: 20px;">🎨 Tegn en katt!</h2>
+        <p style="text-align: center; font-size: 18px; margin-bottom: 20px;">Bruk fargene og tegn din egen katt!</p>
+        <div class="art-tools">
+            <button class="art-tool-btn" onclick="setArtTool('pen')">✏️ Penn</button>
+            <button class="art-tool-btn" onclick="setArtTool('eraser')">🧹 Viskelær</button>
+            <button class="art-tool-btn" onclick="clearArtCanvas()">🗑️ Slett alt</button>
+        </div>
+        <div class="art-controls">
+            <div class="color-btn" style="background: #000000;" onclick="setArtColor('#000000')" title="Svart"></div>
+            <div class="color-btn" style="background: #ff6b6b;" onclick="setArtColor('#ff6b6b')" title="Rød"></div>
+            <div class="color-btn" style="background: #4ecdc4;" onclick="setArtColor('#4ecdc4')" title="Tyrkis"></div>
+            <div class="color-btn" style="background: #ffe66d;" onclick="setArtColor('#ffe66d')" title="Gul"></div>
+            <div class="color-btn" style="background: #95e1d3;" onclick="setArtColor('#95e1d3')" title="Mint"></div>
+            <div class="color-btn" style="background: #f38181;" onclick="setArtColor('#f38181')" title="Rosa"></div>
+            <div class="color-btn" style="background: #aa96da;" onclick="setArtColor('#aa96da')" title="Lilla"></div>
+            <div class="color-btn" style="background: #fcbad3;" onclick="setArtColor('#fcbad3')" title="Lys rosa"></div>
+            <div class="color-btn" style="background: #667eea;" onclick="setArtColor('#667eea')" title="Blå"></div>
+            <div class="color-btn" style="background: #ffd93d;" onclick="setArtColor('#ffd93d')" title="Gull"></div>
+        </div>
+        <div class="art-canvas-container">
+            <canvas class="art-canvas" id="art-canvas" width="400" height="400"></canvas>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="action-btn" onclick="saveArtDrawing()">💾 Lagre tegning</button>
+            <button class="action-btn" onclick="showArtDrawing()">🖼️ Vis min tegning</button>
+        </div>
+    `;
+    
+    artCanvas = document.getElementById('art-canvas');
+    artContext = artCanvas.getContext('2d');
+    
+    // Set initial color
+    setArtColor('#000000');
+    
+    // Drawing event listeners
+    artCanvas.addEventListener('mousedown', startDrawing);
+    artCanvas.addEventListener('mousemove', draw);
+    artCanvas.addEventListener('mouseup', stopDrawing);
+    artCanvas.addEventListener('mouseout', stopDrawing);
+    
+    // Touch support for mobile
+    artCanvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = artCanvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        isDrawing = true;
+        artContext.beginPath();
+        artContext.moveTo(x, y);
+    });
+    
+    artCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const touch = e.touches[0];
+        const rect = artCanvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        artContext.lineTo(x, y);
+        artContext.stroke();
+    });
+    
+    artCanvas.addEventListener('touchend', () => {
+        isDrawing = false;
+    });
+}
+
+function setArtColor(color) {
+    currentColor = color;
+    document.querySelectorAll('.color-btn').forEach(btn => {
+        if (btn.style.background === color || btn.style.backgroundColor === color) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    artContext.strokeStyle = color;
+    artContext.fillStyle = color;
+}
+
+function setArtTool(tool) {
+    currentTool = tool;
+    document.querySelectorAll('.art-tool-btn').forEach(btn => {
+        btn.style.background = tool === 'pen' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
+                               tool === 'eraser' ? 'linear-gradient(135deg, #e74c3c, #c0392b)' : 
+                               'linear-gradient(135deg, #95a5a6, #7f8c8d)';
+    });
+    
+    if (tool === 'eraser') {
+        artContext.strokeStyle = '#ffffff';
+        artContext.globalCompositeOperation = 'destination-out';
+    } else {
+        artContext.strokeStyle = currentColor;
+        artContext.globalCompositeOperation = 'source-over';
+    }
+}
+
+function clearArtCanvas() {
+    if (confirm('Er du sikker på at du vil slette hele tegningen?')) {
+        artContext.clearRect(0, 0, artCanvas.width, artCanvas.height);
+        playClickSound();
+    }
+}
+
+function startDrawing(e) {
+    isDrawing = true;
+    const rect = artCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    artContext.beginPath();
+    artContext.moveTo(x, y);
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    const rect = artCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    artContext.lineWidth = currentTool === 'eraser' ? 20 : 5;
+    artContext.lineCap = 'round';
+    artContext.lineJoin = 'round';
+    artContext.lineTo(x, y);
+    artContext.stroke();
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+function saveArtDrawing() {
+    const imageData = artCanvas.toDataURL();
+    localStorage.setItem(`artDrawing_${currentUser}`, imageData);
+    gameState.score += 20;
+    gameState.coins += 10;
+    playSuccessSound();
+    showMessage('🎨 Tegningen er lagret! +20 poeng og +10 mynter!');
+    updateAllDisplays();
+    saveGame();
+}
+
+function showArtDrawing() {
+    const saved = localStorage.getItem(`artDrawing_${currentUser}`);
+    if (saved) {
+        const img = document.createElement('img');
+        img.src = saved;
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '15px';
+        img.style.border = '3px solid #667eea';
+        
+        const container = document.getElementById('art-area');
+        const displayDiv = document.createElement('div');
+        displayDiv.style.textAlign = 'center';
+        displayDiv.style.marginTop = '20px';
+        displayDiv.innerHTML = '<h3>Din lagrede tegning:</h3>';
+        displayDiv.appendChild(img);
+        displayDiv.innerHTML += '<button class="action-btn" onclick="this.parentElement.remove()" style="margin-top: 10px;">Lukk</button>';
+        container.appendChild(displayDiv);
+    } else {
+        showMessage('Du har ingen lagrede tegninger ennå! Tegn først! 🎨');
+    }
+}
+
+// ==================== INTERACTIVE CAT IMAGES ====================
+function showCatImageInfo(imagePath, catName) {
+    showMessage(`👆 Du klikket på ${catName}! 🐱`);
+    playPurrSound();
+    
+    // Special animation for all images
+    const imgMap = {
+        'babycat.jpg': '1',
+        'brindle.jpg': '2',
+        'redcat.jpg': '3',
+        'Cat Pink GIF.gif': '4',
+        'Bored Cat GIF.gif': '5',
+        'Cat Battle GIF.gif': '6'
+    };
+    
+    const imgId = imgMap[imagePath];
+    if (imgId) {
+        const img = document.getElementById(`cat-img-${imgId}`);
+        if (img) {
+            img.style.transform = 'scale(1.3) rotate(360deg)';
+            setTimeout(() => {
+                img.style.transform = '';
+            }, 600);
+        }
+    }
+}
+
 // ==================== STATS DISPLAY ====================
 function renderStats() {
     const container = document.getElementById('stats-grid');
@@ -1421,8 +2693,20 @@ function formatTime(ms) {
 function renderAlbum() {
     const cat = gameState.cats[gameState.currentCat];
     const container = document.getElementById('album-cat-display');
+    
+    const unlockLevel = cat.unlockLevel || ((gameState.currentCat + 1) * 5);
+    
+    let imageHtml = '';
+    if (cat.image && cat.unlocked) {
+        const imageClass = cat.isGif ? 'album-cat-image album-cat-gif' : 'album-cat-image';
+        imageHtml = `<img src="${cat.image}" alt="${cat.name}" class="${imageClass}">`;
+    } else if (cat.image && !cat.unlocked) {
+        imageHtml = `<img src="${cat.image}" alt="${cat.name}" class="album-cat-image album-cat-locked">`;
+    }
+    
     container.innerHTML = `
         <div class="album-cat-info">
+            ${imageHtml}
             <div class="album-cat-emoji">${cat.emoji}</div>
             <div class="album-cat-name">${cat.name}</div>
             <div class="album-cat-status ${cat.unlocked ? '' : 'locked'}">
@@ -1430,14 +2714,15 @@ function renderAlbum() {
                     `<div>Lykke: ${cat.happiness}%</div>
                      <div>Sult: ${cat.hunger}%</div>
                      <div>Energi: ${cat.energy}%</div>` :
-                    '🔒 Låst - Nå nivå ' + ((gameState.currentCat + 1) * 5) + ' for å låse opp'}
+                    `🔒 Låst - Nå nivå ${unlockLevel} for å låse opp`}
             </div>
         </div>
     `;
     
     // Unlock cats based on level
     gameState.cats.forEach((cat, index) => {
-        if (!cat.unlocked && gameState.level >= (index + 1) * 5) {
+        const requiredLevel = cat.unlockLevel || ((index + 1) * 5);
+        if (!cat.unlocked && gameState.level >= requiredLevel) {
             cat.unlocked = true;
             showMessage(`🎉 ${cat.name} er nå låst opp! 🎉`);
             saveGame();
@@ -1666,6 +2951,36 @@ function updateAllDisplays() {
     renderStats();
     renderAlbum();
     renderOwnedItemsInGame();
+    updateCatGifDisplay();
+}
+
+// Update cat GIF display based on mood/state
+function updateCatGifDisplay() {
+    const catGif = document.getElementById('game-cat-gif');
+    const catEmoji = document.getElementById('cat-emoji');
+    if (!catGif || !catEmoji) return;
+    
+    // Show GIF based on cat's state
+    if (gameState.happiness < 30 && gameState.energy < 30) {
+        // Very bored/sad
+        catGif.src = 'Bilder/Bored Cat GIF.gif';
+        catGif.style.display = 'block';
+        catEmoji.style.display = 'none';
+    } else if (gameState.happiness < 50) {
+        // Bored
+        catGif.src = 'Bilder/Bored Cat GIF.gif';
+        catGif.style.display = 'block';
+        catEmoji.style.display = 'none';
+    } else if (gameState.happiness > 80 && gameState.energy > 80) {
+        // Very happy - show pink cat
+        catGif.src = 'Bilder/Cat Pink GIF.gif';
+        catGif.style.display = 'block';
+        catEmoji.style.display = 'none';
+    } else {
+        // Normal - show emoji
+        catGif.style.display = 'none';
+        catEmoji.style.display = 'inline';
+    }
 }
 
 // ==================== UPDATE ACTION COUNTERS ====================
@@ -1764,6 +3079,12 @@ function playSuccessSound() {
     setTimeout(() => playSound(659, 0.15, 'sine', 0.4), 150); // E
     setTimeout(() => playSound(784, 0.2, 'sine', 0.4), 300); // G
     setTimeout(() => playSound(1047, 0.25, 'sine', 0.4), 450); // C (high)
+}
+
+function playErrorSound() {
+    // Error sound - gentle beep
+    playSound(300, 0.2, 'sine', 0.3);
+    setTimeout(() => playSound(250, 0.2, 'sine', 0.3), 200);
 }
 
 function playLevelUpSound() {
