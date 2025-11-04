@@ -860,13 +860,212 @@ body {
 /* ==================== NEW FEATURES STYLES ==================== */
 
 /* Shop Styles */
-.shop-container, .achievements-container, .album-container, .minigames-container, .stats-container, .school-container, .settings-container {
+.shop-container, .achievements-container, .album-container, .minigames-container, .stats-container, .school-container, .settings-container, .groups-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 30px;
     padding: 40px;
     margin: 20px auto;
     max-width: 1000px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Groups Styles */
+.group-section {
+    margin: 30px 0;
+    padding: 25px;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+    border-radius: 15px;
+}
+
+.group-section h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 800;
+}
+
+.group-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.group-input {
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+}
+
+.group-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.group-info-card {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 25px;
+    border-radius: 15px;
+    border: 3px solid #667eea;
+}
+
+.group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.group-header h3 {
+    font-size: 28px;
+    color: #333;
+    margin: 0;
+    font-weight: 800;
+}
+
+.group-role {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+}
+
+.group-members-count {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.group-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.group-member-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #ddd;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.group-member-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.group-member-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+.group-member-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.group-member-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.group-member-name {
+    flex: 1;
+}
+
+.group-member-name h4 {
+    font-size: 20px;
+    color: #333;
+    margin: 0 0 5px 0;
+    font-weight: 800;
+}
+
+.group-member-bio {
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+.group-member-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.group-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+}
+
+.group-stat-label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+}
+
+.group-stat-value {
+    font-size: 18px;
+    color: #667eea;
+    font-weight: 800;
+}
+
+.group-member-rank {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.group-member-card {
+    position: relative;
+}
+
+@media (max-width: 480px) {
+    .group-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .group-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 }
 
 /* Settings Styles */

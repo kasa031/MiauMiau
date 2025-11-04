@@ -84,6 +84,7 @@
             <button class="tab-btn" data-tab="minigames">Minispill 🎯</button>
             <button class="tab-btn" data-tab="school">Katteskole 🎓</button>
             <button class="tab-btn" data-tab="stats">Statistikk 📊</button>
+            <button class="tab-btn" data-tab="groups">Grupper 👥</button>
             <button class="tab-btn" data-tab="settings">Innstillinger ⚙️</button>
         </div>
     </nav>
@@ -376,6 +377,57 @@
             <div class="stats-container">
                 <h1>Statistikk 📊</h1>
                 <div class="stats-grid" id="stats-grid"></div>
+            </div>
+        </div>
+
+        <!-- Groups Tab -->
+        <div id="groups-tab" class="tab-content">
+            <div class="groups-container">
+                <h1>Grupper 👥</h1>
+                
+                <!-- My Group Info -->
+                <div id="my-group-section" class="group-section" style="display: none;">
+                    <h2>🎯 Min gruppe</h2>
+                    <div class="group-info-card">
+                        <div class="group-header">
+                            <h3 id="current-group-name"></h3>
+                            <span id="current-group-role" class="group-role"></span>
+                        </div>
+                        <p id="current-group-members-count" class="group-members-count"></p>
+                        <button class="action-btn" onclick="viewGroupStats()">📊 Se gruppestatistikk</button>
+                        <button class="action-btn" onclick="leaveGroup()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-top: 10px;">Forlat gruppe</button>
+                    </div>
+                </div>
+                
+                <!-- Create Group -->
+                <div class="group-section">
+                    <h2>➕ Opprett ny gruppe</h2>
+                    <div class="group-form">
+                        <label class="settings-label">Gruppenavn:</label>
+                        <input type="text" id="new-group-name" class="group-input" placeholder="F.eks. Kattelag2024" maxlength="30">
+                        <label class="settings-label">Passord (for å joine gruppen):</label>
+                        <input type="password" id="new-group-password" class="group-input" placeholder="Velg et passord" maxlength="20">
+                        <button class="action-btn" onclick="createGroup()">🎉 Opprett gruppe</button>
+                    </div>
+                </div>
+                
+                <!-- Join Group -->
+                <div class="group-section">
+                    <h2>🔍 Bli med i gruppe</h2>
+                    <div class="group-form">
+                        <label class="settings-label">Gruppenavn:</label>
+                        <input type="text" id="join-group-name" class="group-input" placeholder="Skriv gruppenavnet" maxlength="30">
+                        <label class="settings-label">Passord:</label>
+                        <input type="password" id="join-group-password" class="group-input" placeholder="Skriv gruppepassordet">
+                        <button class="action-btn" onclick="joinGroup()">✅ Bli med</button>
+                    </div>
+                </div>
+                
+                <!-- Group Statistics Comparison -->
+                <div id="group-stats-section" class="group-section" style="display: none;">
+                    <h2>📊 Gruppestatistikk</h2>
+                    <div id="group-stats-grid" class="group-stats-grid"></div>
+                </div>
             </div>
         </div>
 

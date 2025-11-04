@@ -34,6 +34,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         } else if (tabName === 'settings') {
             updateLanguageButtons();
             updateProfileDisplay();
+        } else if (tabName === 'groups') {
+            updateGroupDisplay();
         }
     });
 });
@@ -56,6 +58,7 @@ const translations = {
         minigames: 'Minispill 🎯',
         school: 'Katteskole 🎓',
         stats: 'Statistikk 📊',
+        groups: 'Grupper 👥',
         settings: 'Innstillinger ⚙️',
         
         // Login
@@ -147,6 +150,7 @@ const translations = {
         minigames: 'Minigames 🎯',
         school: 'Cat School 🎓',
         stats: 'Statistics 📊',
+        groups: 'Groups 👥',
         settings: 'Settings ⚙️',
         
         // Login
@@ -466,7 +470,9 @@ let gameState = {
         bio: '',
         avatarImage: null, // Base64 image data
         badge: '🐱' // Default badge
-    }
+    },
+    groupId: null, // Current group ID user belongs to
+    groupRole: null // 'owner' or 'member'
 };
 
 const catEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱'];
@@ -564,6 +570,7 @@ function handleLogin() {
     updateAllTexts();
     updateLanguageButtons();
     updateProfileDisplay();
+    updateGroupDisplay();
     playClickSound();
 }
 
