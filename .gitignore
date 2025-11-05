@@ -23,3 +23,12 @@ Audio/
 # Keep MP3 files in root directory (needed for the game)
 !*.mp3
 
+# Sensitive information - API keys, secrets, etc.
+.env
+.env.local
+*.key
+*secret*
+*api*key*
+config.js
+secrets.js
+

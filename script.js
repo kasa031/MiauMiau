@@ -3982,6 +3982,53 @@ function updateActionCounters(action) {
     saveGame();
 }
 
+// ==================== API CONFIGURATION ====================
+// API-nøkkel lastes fra config.js (som IKKE er i git)
+// Hvis config.js ikke eksisterer, bruk denne fallback (men ikke committ denne!)
+let OPENROUTER_API_KEY = null;
+
+// Last API-nøkkel fra config.js hvis den eksisterer
+if (typeof CONFIG !== 'undefined' && CONFIG.OPENROUTER_API_KEY) {
+    OPENROUTER_API_KEY = CONFIG.OPENROUTER_API_KEY;
+} else {
+    // Fallback - skal normalt ikke trenges hvis config.js er satt opp riktig
+    console.warn('⚠️ API-nøkkel ikke funnet! Sjekk at config.js eksisterer og er satt opp riktig.');
+}
+
+// Hjelpefunksjon for API-kall til OpenRouter
+async function callOpenRouterAPI(messages, model = 'openai/gpt-3.5-turbo') {
+    if (!OPENROUTER_API_KEY) {
+        console.error('API-nøkkel ikke satt!');
+        return null;
+    }
+    
+    try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'HTTP-Referer': window.location.origin,
+                'X-Title': 'MiauMiau Cat Game'
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: messages
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('OpenRouter API error:', error);
+        return null;
+    }
+}
+
 // ==================== SOUND EFFECTS (Web Audio API) ====================
 let audioContext = null;
 
