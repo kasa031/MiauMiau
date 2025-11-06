@@ -1274,6 +1274,119 @@ function startChatRefresh() {
     }, 5000);
 }
 
+function toggleEmojiPicker() {
+    const picker = document.getElementById('emoji-picker');
+    if (picker) {
+        picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function insertEmoji(emoji) {
+    const input = document.getElementById('group-chat-input');
+    if (input) {
+        input.value += emoji;
+        input.focus();
+        toggleEmojiPicker();
+    }
+}
+
+// Close emoji picker when clicking outside
+document.addEventListener('click', (e) => {
+    const picker = document.getElementById('emoji-picker');
+    const pickerBtn = document.querySelector('.emoji-picker-btn');
+    if (picker && pickerBtn && !picker.contains(e.target) && !pickerBtn.contains(e.target)) {
+        picker.style.display = 'none';
+    }
+});
+
+function viewGroupMembers() {
+    if (!currentUser || !gameState.groupId) {
+        showMessage('Du er ikke med i noen gruppe!');
+        return;
+    }
+    
+    const membersSection = document.getElementById('group-members-section');
+    const chatSection = document.getElementById('group-chat-section');
+    const statsSection = document.getElementById('group-stats-section');
+    
+    if (chatSection) chatSection.style.display = 'none';
+    if (statsSection) statsSection.style.display = 'none';
+    
+    if (!membersSection) return;
+    
+    membersSection.style.display = 'block';
+    
+    const groups = getGroups();
+    const group = groups[gameState.groupId];
+    if (!group) return;
+    
+    const membersList = document.getElementById('group-members-list');
+    if (!membersList) return;
+    
+    membersList.innerHTML = '';
+    
+    // Get member stats
+    const membersWithStats = group.members.map(member => {
+        const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+        let stats = {
+            username: member,
+            score: 0,
+            level: 1,
+            coins: 0,
+            isOwner: group.owner === member,
+            isCurrentUser: member === currentUser
+        };
+        
+        if (memberData) {
+            try {
+                const memberState = JSON.parse(memberData);
+                stats.score = memberState.score || 0;
+                stats.level = memberState.level || 1;
+                stats.coins = memberState.coins || 0;
+                stats.badge = memberState.profile?.badge || '🐱';
+            } catch (e) {
+                console.error('Error parsing member data:', e);
+            }
+        }
+        
+        return stats;
+    });
+    
+    // Sort by score (highest first)
+    membersWithStats.sort((a, b) => b.score - a.score);
+    
+    membersWithStats.forEach((member, index) => {
+        const memberCard = document.createElement('div');
+        memberCard.className = 'group-member-card-list';
+        if (member.isCurrentUser) {
+            memberCard.classList.add('current-user-member');
+        }
+        
+        const rank = index + 1;
+        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+        
+        memberCard.innerHTML = `
+            <div class="member-rank-badge">${rankEmoji}</div>
+            <div class="member-avatar-badge">${member.badge}</div>
+            <div class="member-info-list">
+                <div class="member-name-list">
+                    ${member.username}
+                    ${member.isOwner ? '<span class="owner-badge">👑 Eier</span>' : ''}
+                    ${member.isCurrentUser ? '<span class="you-badge">(Deg)</span>' : ''}
+                </div>
+                <div class="member-stats-list">
+                    <span>⭐ Nivå ${member.level}</span>
+                    <span>🏆 ${member.score} poeng</span>
+                    <span>💰 ${member.coins} mynter</span>
+                </div>
+            </div>
+        `;
+        membersList.appendChild(memberCard);
+    });
+    
+    membersSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // ==================== CHALLENGE MANAGER ====================
 function showChallengeManager() {
     if (!gameState.groupId) return;

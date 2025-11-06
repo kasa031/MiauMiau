@@ -424,6 +424,7 @@
                         <div class="group-actions">
                             <button class="action-btn" onclick="viewGroupStats()">📊 Se gruppestatistikk</button>
                             <button class="action-btn" onclick="openGroupChat()">💬 Gruppechat</button>
+                            <button class="action-btn" onclick="viewGroupMembers()">👥 Se medlemmer</button>
                             <button class="action-btn" onclick="leaveGroup()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-top: 10px;">Forlat gruppe</button>
                         </div>
                     </div>
@@ -465,10 +466,35 @@
                     <div class="group-chat-container">
                         <div id="group-chat-messages" class="group-chat-messages"></div>
                         <div class="group-chat-input-container">
+                            <div class="chat-emoji-picker">
+                                <button class="emoji-picker-btn" onclick="toggleEmojiPicker()" title="Velg emoji">😊</button>
+                                <div id="emoji-picker" class="emoji-picker" style="display: none;">
+                                    <div class="emoji-grid">
+                                        <span onclick="insertEmoji('😊')">😊</span>
+                                        <span onclick="insertEmoji('😸')">😸</span>
+                                        <span onclick="insertEmoji('😺')">😺</span>
+                                        <span onclick="insertEmoji('😻')">😻</span>
+                                        <span onclick="insertEmoji('🐱')">🐱</span>
+                                        <span onclick="insertEmoji('🎉')">🎉</span>
+                                        <span onclick="insertEmoji('🎮')">🎮</span>
+                                        <span onclick="insertEmoji('🏆')">🏆</span>
+                                        <span onclick="insertEmoji('⭐')">⭐</span>
+                                        <span onclick="insertEmoji('💖')">💖</span>
+                                        <span onclick="insertEmoji('👍')">👍</span>
+                                        <span onclick="insertEmoji('👏')">👏</span>
+                                    </div>
+                                </div>
+                            </div>
                             <input type="text" id="group-chat-input" class="group-chat-input" placeholder="Skriv en melding..." maxlength="200" onkeypress="if(event.key === 'Enter') sendGroupMessage()">
                             <button class="action-btn" onclick="sendGroupMessage()">Send</button>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Group Members List -->
+                <div id="group-members-section" class="group-section" style="display: none;">
+                    <h2>👥 Gruppemedlemmer</h2>
+                    <div id="group-members-list" class="group-members-list"></div>
                 </div>
                 
                 <!-- Challenge Manager -->

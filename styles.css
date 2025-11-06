@@ -1348,6 +1348,153 @@ body {
     margin-top: 15px;
 }
 
+/* Group Members List */
+.group-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.group-member-card-list {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+    border-radius: 12px;
+    border: 2px solid #ddd;
+    transition: all 0.3s;
+}
+
+.group-member-card-list:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.current-user-member {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: #667eea;
+}
+
+.member-rank-badge {
+    font-size: 28px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.member-avatar-badge {
+    font-size: 40px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.member-info-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.member-name-list {
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.owner-badge {
+    background: rgba(255, 215, 0, 0.3);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.current-user-member .owner-badge {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.you-badge {
+    font-size: 14px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.member-stats-list {
+    display: flex;
+    gap: 15px;
+    font-size: 14px;
+    flex-wrap: wrap;
+}
+
+.member-stats-list span {
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.current-user-member .member-stats-list span {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Chat Emoji Picker */
+.chat-emoji-picker {
+    position: relative;
+}
+
+.emoji-picker-btn {
+    background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.emoji-picker-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.emoji-picker {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    border: 2px solid #667eea;
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.emoji-grid span {
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.emoji-grid span:hover {
+    background: #f0f0f0;
+    transform: scale(1.2);
+}
+
 @media (max-width: 480px) {
     .group-stats-grid {
         grid-template-columns: 1fr;
