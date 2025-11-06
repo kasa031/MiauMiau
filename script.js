@@ -464,7 +464,11 @@ let gameState = {
     lastSave: Date.now(),
     actionCooldowns: {}, // Track when actions can be used again
     lastDailyReward: null, // Track last daily reward claim
+    loginStreak: 0, // Days in a row logged in
+    lastLoginDate: null, // Last login date
     catTricks: [], // Track learned cat tricks
+    quests: [], // Active quests
+    completedQuests: [], // Completed quest IDs
     language: 'no', // Language preference: 'no' or 'en'
     profile: {
         bio: '',
@@ -510,6 +514,68 @@ function saveGame() {
     
     gameState.lastSave = Date.now();
     localStorage.setItem(`miaumiauGame_${currentUser}`, JSON.stringify(gameState));
+}
+
+// ==================== EXPORT/IMPORT GAME DATA ====================
+function exportGameData() {
+    if (!currentUser) {
+        showMessage('Du må være innlogget for å eksportere data!');
+        return;
+    }
+    
+    const data = {
+        username: currentUser,
+        gameState: gameState,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `miaumiau_save_${currentUser}_${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    showMessage('✅ Spilldata eksportert! Du kan nå lagre filen som sikkerhetskopi.');
+}
+
+function importGameData(event) {
+    if (!currentUser) {
+        showMessage('Du må være innlogget for å importere data!');
+        return;
+    }
+    
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            if (!data.gameState) {
+                showMessage('❌ Ugyldig filformat!');
+                return;
+            }
+            
+            if (confirm('Dette vil overskrive din nåværende spilldata. Er du sikker?')) {
+                Object.assign(gameState, data.gameState);
+                saveGame();
+                loadGame();
+                updateAllDisplays();
+                showMessage('✅ Spilldata importert!');
+            }
+        } catch (error) {
+            showMessage('❌ Feil ved import: ' + error.message);
+        }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
 }
 
 // ==================== USER MANAGEMENT ====================
@@ -2096,9 +2162,12 @@ function updateDailyReward() {
         return;
     }
     
+    const streak = gameState.loginStreak || 0;
+    const streakText = streak > 0 ? `<br>🔥 Streak: ${streak} dager på rad!` : '';
+    
     container.innerHTML = `
         <div class="daily-reward-available">
-            <strong>🎁 Daglig belønning!</strong><br>
+            <strong>🎁 Daglig belønning!</strong>${streakText}<br>
             <button class="action-btn" onclick="claimDailyReward()" style="margin-top: 10px;">
                 Hent belønning! 🎉
             </button>
@@ -2113,15 +2182,45 @@ function claimDailyReward() {
         return;
     }
     
-    const rewards = [50, 75, 100, 125, 150];
-    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    // Calculate login streak
+    const todayDate = new Date();
+    const lastLogin = gameState.lastLoginDate ? new Date(gameState.lastLoginDate) : null;
+    
+    if (lastLogin) {
+        const daysDiff = Math.floor((todayDate - lastLogin) / (1000 * 60 * 60 * 24));
+        if (daysDiff === 1) {
+            // Consecutive day
+            gameState.loginStreak = (gameState.loginStreak || 0) + 1;
+        } else if (daysDiff > 1) {
+            // Streak broken
+            gameState.loginStreak = 1;
+        }
+        // If same day, don't update streak
+    } else {
+        // First time
+        gameState.loginStreak = 1;
+    }
+    
+    gameState.lastLoginDate = todayDate.toISOString();
+    
+    // Base reward
+    const baseRewards = [50, 75, 100, 125, 150];
+    let reward = baseRewards[Math.floor(Math.random() * baseRewards.length)];
+    
+    // Streak bonus (extra coins for longer streaks)
+    const streakBonus = Math.min(gameState.loginStreak * 10, 100); // Max 100 bonus
+    reward += streakBonus;
     
     gameState.coins += reward;
     gameState.lastDailyReward = today;
     gameState.score += reward;
     
     playSuccessSound();
-    showMessage(`🎁 Daglig belønning! Du fikk ${reward} mynter! 🎉`);
+    let message = `🎁 Daglig belønning! Du fikk ${reward} mynter! 🎉`;
+    if (gameState.loginStreak > 1) {
+        message += `\n🔥 Streak: ${gameState.loginStreak} dager på rad! (+${streakBonus} bonus)`;
+    }
+    showMessage(message);
     updateDailyReward();
     updateAllDisplays();
     saveGame();
@@ -3924,6 +4023,8 @@ function updateAllDisplays() {
     renderAlbum();
     renderOwnedItemsInGame();
     updateCatGifDisplay();
+    checkCatNeeds();
+    updateQuests();
 }
 
 // Update cat GIF display based on mood/state
@@ -4027,6 +4128,248 @@ async function callOpenRouterAPI(messages, model = 'openai/gpt-3.5-turbo') {
         console.error('OpenRouter API error:', error);
         return null;
     }
+}
+
+// ==================== CAT NOTIFICATIONS ====================
+function checkCatNeeds() {
+    const notifications = document.getElementById('cat-notifications');
+    if (!notifications) return;
+    
+    notifications.innerHTML = '';
+    const needs = [];
+    
+    if (gameState.hunger > 70) {
+        needs.push({ icon: '🍖', text: 'Katten er sulten! Mat den!', priority: 1 });
+    }
+    if (gameState.happiness < 30) {
+        needs.push({ icon: '❤️', text: 'Katten er trist! Kos den!', priority: 1 });
+    }
+    if (gameState.energy < 20) {
+        needs.push({ icon: '😴', text: 'Katten er sliten! La den sove!', priority: 1 });
+    }
+    if (gameState.happiness < 50 && gameState.hunger < 50) {
+        needs.push({ icon: '🎾', text: 'Katten vil leke!', priority: 2 });
+    }
+    
+    if (needs.length > 0) {
+        needs.sort((a, b) => a.priority - b.priority);
+        const notification = document.createElement('div');
+        notification.className = 'cat-notification';
+        notification.innerHTML = `
+            <span class="notification-icon">${needs[0].icon}</span>
+            <span class="notification-text">${needs[0].text}</span>
+        `;
+        notifications.appendChild(notification);
+    }
+}
+
+// ==================== QUESTS SYSTEM ====================
+const availableQuests = [
+    { id: 'feed5', name: 'Mat katten 5 ganger', target: 5, type: 'feed', reward: 50, icon: '🍖' },
+    { id: 'play10', name: 'Lek med katten 10 ganger', target: 10, type: 'play', reward: 75, icon: '🎾' },
+    { id: 'pet15', name: 'Kos katten 15 ganger', target: 15, type: 'pet', reward: 100, icon: '❤️' },
+    { id: 'level3', name: 'Nå nivå 3', target: 3, type: 'level', reward: 150, icon: '⭐' },
+    { id: 'coins500', name: 'Samle 500 mynter', target: 500, type: 'coins', reward: 200, icon: '💰' },
+    { id: 'minigame5', name: 'Spill 5 minispill', target: 5, type: 'minigame', reward: 100, icon: '🎯' },
+    { id: 'trick2', name: 'Lær katten 2 triks', target: 2, type: 'tricks', reward: 150, icon: '🎩' },
+    { id: 'shop3', name: 'Kjøp 3 items i butikken', target: 3, type: 'shop', reward: 125, icon: '🛒' }
+];
+
+function generateQuests() {
+    if (!gameState.quests || gameState.quests.length === 0) {
+        // Generate 3 random quests
+        const shuffled = [...availableQuests].sort(() => Math.random() - 0.5);
+        gameState.quests = shuffled.slice(0, 3).map(quest => ({
+            ...quest,
+            progress: 0,
+            completed: false
+        }));
+    }
+}
+
+function updateQuests() {
+    const section = document.getElementById('quests-section');
+    const list = document.getElementById('quests-list');
+    if (!section || !list) return;
+    
+    generateQuests();
+    
+    // Update progress for each quest
+    gameState.quests.forEach(quest => {
+        if (quest.completed) return;
+        
+        switch(quest.type) {
+            case 'feed':
+                quest.progress = gameState.stats.timesFed;
+                break;
+            case 'play':
+                quest.progress = gameState.stats.timesPlayed;
+                break;
+            case 'pet':
+                quest.progress = gameState.stats.timesPetted;
+                break;
+            case 'level':
+                quest.progress = gameState.level;
+                break;
+            case 'coins':
+                quest.progress = gameState.coins;
+                break;
+            case 'minigame':
+                quest.progress = gameState.stats.minigameScore > 0 ? Math.floor(gameState.stats.minigameScore / 100) : 0;
+                break;
+            case 'tricks':
+                quest.progress = gameState.catTricks.length;
+                break;
+            case 'shop':
+                quest.progress = gameState.ownedItems.length;
+                break;
+        }
+        
+        if (quest.progress >= quest.target && !quest.completed) {
+            quest.completed = true;
+            completeQuest(quest);
+        }
+    });
+    
+    // Display quests
+    const activeQuests = gameState.quests.filter(q => !q.completed);
+    if (activeQuests.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    
+    section.style.display = 'block';
+    list.innerHTML = '';
+    
+    activeQuests.forEach(quest => {
+        const questCard = document.createElement('div');
+        questCard.className = 'quest-card';
+        const progressPercent = Math.min((quest.progress / quest.target) * 100, 100);
+        
+        questCard.innerHTML = `
+            <div class="quest-header">
+                <span class="quest-icon">${quest.icon}</span>
+                <span class="quest-name">${quest.name}</span>
+            </div>
+            <div class="quest-progress">
+                <div class="progress-bar-mini" style="background: #e0e0e0;">
+                    <div class="progress-fill" style="width: ${progressPercent}%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                </div>
+                <span class="quest-progress-text">${quest.progress}/${quest.target}</span>
+            </div>
+            <div class="quest-reward">💰 Belønning: ${quest.reward} mynter</div>
+        `;
+        list.appendChild(questCard);
+    });
+}
+
+function completeQuest(quest) {
+    gameState.coins += quest.reward;
+    gameState.score += quest.reward;
+    playSuccessSound();
+    showMessage(`🎉 Oppdrag fullført: ${quest.name}! Du fikk ${quest.reward} mynter! 🎁`);
+    updateAllDisplays();
+    saveGame();
+}
+
+// ==================== CAT QUIZ ====================
+const catQuizQuestions = [
+    { question: 'Hvor mange timer om dagen sover katter vanligvis?', options: ['8-10 timer', '12-16 timer', '20-22 timer', '4-6 timer'], correct: 1, fact: 'Katter sover mye fordi de er rovdyr som trenger å spare energi!' },
+    { question: 'Hva kalles en gruppe katter?', options: ['En flokk', 'En klowder', 'En gruppe', 'En familie'], correct: 1, fact: 'En gruppe katter kalles en "klowder"!' },
+    { question: 'Hvor mange smaksløker har katter?', options: ['Om lag 500', 'Om lag 1000', 'Om lag 2000', 'Om lag 9000'], correct: 0, fact: 'Katter har om lag 500 smaksløker, mens mennesker har om lag 9000!' },
+    { question: 'Hva er den vanligste fargen på katter?', options: ['Svart', 'Hvit', 'Oransje/Tabby', 'Grå'], correct: 2, fact: 'Oransje og tabby (striper) er de vanligste fargene på katter!' },
+    { question: 'Hvor høyt kan en katt hoppe?', options: ['Opp til 1 meter', 'Opp til 2 meter', 'Opp til 3 meter', 'Opp til 5 meter'], correct: 2, fact: 'Katter kan hoppe opp til 6 ganger sin egen lengde - ofte over 3 meter høyt!' },
+    { question: 'Hvor mange tenner har en voksen katt?', options: ['24 tenner', '30 tenner', '32 tenner', '28 tenner'], correct: 1, fact: 'Voksne katter har 30 permanente tenner!' },
+    { question: 'Hva er den raskeste katten?', options: ['Huskatten', 'Løven', 'Geparden', 'Tigeren'], correct: 2, fact: 'Geparden er den raskeste katten og kan løpe opp til 120 km/t!' },
+    { question: 'Hvor mange hjerter har en katt?', options: ['1 hjerte', '2 hjerter', '3 hjerter', '4 hjerter'], correct: 0, fact: 'Katter har 1 hjerte, akkurat som mennesker!' }
+];
+
+let currentQuizQuestion = 0;
+let quizScore = 0;
+
+function startCatQuiz() {
+    const container = document.getElementById('quiz-area');
+    if (!container) return;
+    
+    document.querySelectorAll('.subject-area').forEach(area => {
+        area.style.display = 'none';
+    });
+    
+    container.style.display = 'block';
+    currentQuizQuestion = 0;
+    quizScore = 0;
+    showNextQuizQuestion();
+}
+
+function showNextQuizQuestion() {
+    const container = document.getElementById('quiz-area');
+    if (!container) return;
+    
+    if (currentQuizQuestion >= catQuizQuestions.length) {
+        const finalScore = Math.floor((quizScore / catQuizQuestions.length) * 100);
+        const coinsEarned = Math.floor(finalScore / 10);
+        gameState.coins += coinsEarned;
+        gameState.score += coinsEarned * 2;
+        
+        container.innerHTML = `
+            <div class="quiz-result">
+                <h2>🎉 Quiz ferdig!</h2>
+                <p style="font-size: 24px; margin: 20px 0;">Du fikk ${quizScore} av ${catQuizQuestions.length} riktig!</p>
+                <p style="font-size: 20px; color: #667eea; font-weight: 700;">Poeng: ${finalScore}%</p>
+                <p style="font-size: 18px; margin: 15px 0;">💰 Du tjente ${coinsEarned} mynter!</p>
+                <button class="action-btn" onclick="startCatQuiz()" style="margin-top: 20px;">Spill igjen</button>
+            </div>
+        `;
+        playSuccessSound();
+        updateAllDisplays();
+        saveGame();
+        return;
+    }
+    
+    const question = catQuizQuestions[currentQuizQuestion];
+    
+    container.innerHTML = `
+        <div class="quiz-container">
+            <h2>🧠 Kattefakta Quiz</h2>
+            <div class="quiz-progress">Spørsmål ${currentQuizQuestion + 1} av ${catQuizQuestions.length}</div>
+            <div class="quiz-question">
+                <h3>${question.question}</h3>
+            </div>
+            <div class="quiz-options" id="quiz-options">
+                ${question.options.map((option, index) => `
+                    <button class="quiz-option-btn" onclick="selectQuizAnswer(${index})">${option}</button>
+                `).join('')}
+            </div>
+            <div id="quiz-feedback" class="quiz-feedback"></div>
+        </div>
+    `;
+}
+
+function selectQuizAnswer(selectedIndex) {
+    const question = catQuizQuestions[currentQuizQuestion];
+    const feedback = document.getElementById('quiz-feedback');
+    const options = document.querySelectorAll('.quiz-option-btn');
+    
+    options.forEach(btn => btn.disabled = true);
+    
+    if (selectedIndex === question.correct) {
+        quizScore++;
+        feedback.innerHTML = `<div style="color: #27ae60; font-size: 20px; font-weight: 700; margin: 15px 0;">✅ Riktig! ${question.fact}</div>`;
+        playSuccessSound();
+    } else {
+        feedback.innerHTML = `<div style="color: #e74c3c; font-size: 20px; font-weight: 700; margin: 15px 0;">❌ Feil! Riktig svar: ${question.options[question.correct]}<br><span style="font-size: 16px; color: #667eea;">${question.fact}</span></div>`;
+        playErrorSound();
+    }
+    
+    options[question.correct].style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+    if (selectedIndex !== question.correct) {
+        options[selectedIndex].style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+    }
+    
+    setTimeout(() => {
+        currentQuizQuestion++;
+        showNextQuizQuestion();
+    }, 2500);
 }
 
 // ==================== SOUND EFFECTS (Web Audio API) ====================

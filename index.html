@@ -200,8 +200,13 @@
                 </div>
 
                 <div id="game-message" class="game-message"></div>
+                <div id="cat-notifications" class="cat-notifications"></div>
                 <div id="daily-challenge" class="daily-challenge"></div>
                 <div id="daily-reward-section" class="daily-reward-section"></div>
+                <div id="quests-section" class="quests-section" style="display: none;">
+                    <h3 style="margin: 20px 0 10px; color: #333; font-size: 22px;">📋 Oppdrag:</h3>
+                    <div id="quests-list" class="quests-list"></div>
+                </div>
                 <div id="owned-items-section" class="owned-items-section"></div>
                 <div class="cat-tricks-section">
                     <h3 style="margin: 20px 0 10px; color: #333; font-size: 22px;">🎩 Kattetriks:</h3>
@@ -368,6 +373,12 @@
                         <button class="action-btn" onclick="startArtGame()">Start tegning</button>
                         <div class="subject-area" id="art-area" style="display:none;"></div>
                     </div>
+                    <div class="subject-card" id="quiz-subject">
+                        <h2>🧠 Kattefakta Quiz</h2>
+                        <p>Test kunnskapen din om katter! Svar på spørsmål og få poeng!</p>
+                        <button class="action-btn" onclick="startCatQuiz()">Start quiz</button>
+                        <div class="subject-area" id="quiz-area" style="display:none;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -500,6 +511,17 @@
                         <button class="action-btn" id="lang-en-btn" onclick="setLanguage('en')">🇬🇧 English</button>
                     </div>
                     <p class="settings-info" id="settings-info">Velg språk for spillet. All tekst vil endres til valgt språk.</p>
+                </div>
+                
+                <!-- Data Management Section -->
+                <div class="settings-section">
+                    <h2>💾 Data</h2>
+                    <div class="data-management">
+                        <button class="action-btn" onclick="exportGameData()" style="margin: 5px; background: linear-gradient(135deg, #4ecdc4, #44a08d);">📥 Eksporter spilldata</button>
+                        <button class="action-btn" onclick="document.getElementById('import-file').click()" style="margin: 5px; background: linear-gradient(135deg, #667eea, #764ba2);">📤 Importer spilldata</button>
+                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importGameData(event)">
+                    </div>
+                    <p class="settings-info">Eksporter spilldata for å lagre en sikkerhetskopi, eller importer for å gjenopprette data.</p>
                 </div>
                 
                 <!-- Logout Section -->
