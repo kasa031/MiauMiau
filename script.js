@@ -36,6 +36,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             updateProfileDisplay();
         } else if (tabName === 'groups') {
             updateGroupDisplay();
+            startChatRefresh();
         }
     });
 });
@@ -357,13 +358,10 @@ function updateSchoolDisplay() {
     if (artBtn) artBtn.textContent = t('artStart');
 }
 
-// Update minigames display
+// Update minigames display (now part of game tab)
 function updateMinigamesDisplay() {
-    const minigamesH1 = document.querySelector('#minigames-tab h1');
-    if (minigamesH1) minigamesH1.textContent = t('minigamesTitle');
-    
-    // Update minigame buttons
-    const startButtons = document.querySelectorAll('#minigames-tab .action-btn');
+    // Minigames are now in the game tab, so we update buttons there
+    const startButtons = document.querySelectorAll('#game-tab .minigames-section .action-btn');
     startButtons.forEach(btn => {
         if (btn.textContent.includes('Start')) {
             btn.textContent = t('startGame');
@@ -379,7 +377,6 @@ function updateAllTexts() {
     const shopTab = document.querySelector('[data-tab="shop"]');
     const achievementsTab = document.querySelector('[data-tab="achievements"]');
     const albumTab = document.querySelector('[data-tab="album"]');
-    const minigamesTab = document.querySelector('[data-tab="minigames"]');
     const schoolTab = document.querySelector('[data-tab="school"]');
     const statsTab = document.querySelector('[data-tab="stats"]');
     const settingsTab = document.querySelector('[data-tab="settings"]');
@@ -389,7 +386,6 @@ function updateAllTexts() {
     if (shopTab) shopTab.textContent = t('shop');
     if (achievementsTab) achievementsTab.textContent = t('achievements');
     if (albumTab) albumTab.textContent = t('album');
-    if (minigamesTab) minigamesTab.textContent = t('minigames');
     if (schoolTab) schoolTab.textContent = t('school');
     if (statsTab) statsTab.textContent = t('stats');
     if (settingsTab) settingsTab.textContent = t('settings');
@@ -1066,6 +1062,9 @@ function viewGroupStats() {
         return;
     }
     
+    const chatSection = document.getElementById('group-chat-section');
+    if (chatSection) chatSection.style.display = 'none';
+    
     const groups = getGroups();
     const group = groups[gameState.groupId];
     
@@ -1171,7 +1170,236 @@ function viewGroupStats() {
     statsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Weekly group challenge system
+function getWeekKey() {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
+    const weekNumber = Math.floor(days / 7);
+    return `${now.getFullYear()}_W${weekNumber}`;
+}
+
+// ==================== GROUP CHAT ====================
+function openGroupChat() {
+    const chatSection = document.getElementById('group-chat-section');
+    const statsSection = document.getElementById('group-stats-section');
+    
+    if (statsSection) statsSection.style.display = 'none';
+    if (chatSection) {
+        chatSection.style.display = 'block';
+        loadGroupChat();
+        chatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function loadGroupChat() {
+    if (!gameState.groupId) return;
+    
+    const messagesContainer = document.getElementById('group-chat-messages');
+    if (!messagesContainer) return;
+    
+    const chatKey = `groupChat_${gameState.groupId}`;
+    const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+    
+    messagesContainer.innerHTML = '';
+    
+    if (messages.length === 0) {
+        messagesContainer.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Ingen meldinger ennå. Vær den første til å si hei! 👋</p>';
+        return;
+    }
+    
+    messages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message';
+        if (msg.user === currentUser) {
+            msgDiv.classList.add('chat-message-own');
+        }
+        
+        const time = new Date(msg.timestamp).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+        msgDiv.innerHTML = `
+            <div class="chat-message-header">
+                <span class="chat-username">${msg.user}</span>
+                <span class="chat-time">${time}</span>
+            </div>
+            <div class="chat-message-text">${escapeHtml(msg.text)}</div>
+        `;
+        messagesContainer.appendChild(msgDiv);
+    });
+    
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function sendGroupMessage() {
+    if (!gameState.groupId || !currentUser) return;
+    
+    const input = document.getElementById('group-chat-input');
+    const text = input.value.trim();
+    
+    if (!text) return;
+    
+    const chatKey = `groupChat_${gameState.groupId}`;
+    const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+    
+    messages.push({
+        user: currentUser,
+        text: text,
+        timestamp: Date.now()
+    });
+    
+    // Keep only last 100 messages
+    if (messages.length > 100) {
+        messages.shift();
+    }
+    
+    localStorage.setItem(chatKey, JSON.stringify(messages));
+    input.value = '';
+    loadGroupChat();
+    playClickSound();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Auto-refresh chat every 5 seconds
+let chatRefreshInterval = null;
+function startChatRefresh() {
+    if (chatRefreshInterval) clearInterval(chatRefreshInterval);
+    chatRefreshInterval = setInterval(() => {
+        const chatSection = document.getElementById('group-chat-section');
+        if (chatSection && chatSection.style.display !== 'none') {
+            loadGroupChat();
+        }
+    }, 5000);
+}
+
+// ==================== CHALLENGE MANAGER ====================
+function showChallengeManager() {
+    if (!gameState.groupId) return;
+    
+    const modal = document.getElementById('challenge-manager-modal');
+    if (!modal) return;
+    
+    modal.style.display = 'flex';
+    loadExistingChallenges();
+}
+
+function closeChallengeManager() {
+    const modal = document.getElementById('challenge-manager-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function loadExistingChallenges() {
+    if (!gameState.groupId) return;
+    
+    const weekKey = getWeekKey();
+    const challengesKey = `groupChallenges_${gameState.groupId}_${weekKey}`;
+    const challenges = JSON.parse(localStorage.getItem(challengesKey) || '[]');
+    
+    const list = document.getElementById('existing-challenges-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    
+    if (challenges.length === 0) {
+        list.innerHTML = '<p style="color: #999; padding: 10px;">Ingen egendefinerte utfordringer. Legg til en ny!</p>';
+        return;
+    }
+    
+    challenges.forEach((challenge, index) => {
+        const challengeDiv = document.createElement('div');
+        challengeDiv.className = 'challenge-item-manager';
+        const iconMap = {
+            'score': '🏆',
+            'minigame': '🎯',
+            'feed': '🍖',
+            'play': '🎾',
+            'level': '⭐'
+        };
+        const icon = iconMap[challenge.type] || '🎯';
+        
+        challengeDiv.innerHTML = `
+            <div class="challenge-item-content">
+                <span class="challenge-icon">${icon}</span>
+                <div class="challenge-item-info">
+                    <strong>${challenge.desc}</strong>
+                    <span>Mål: ${challenge.target}</span>
+                </div>
+            </div>
+            <button class="challenge-delete-btn" onclick="removeGroupChallenge(${index})" title="Fjern utfordring">🗑️</button>
+        `;
+        list.appendChild(challengeDiv);
+    });
+}
+
+function addGroupChallenge() {
+    if (!gameState.groupId) return;
+    
+    const type = document.getElementById('new-challenge-type').value;
+    const desc = document.getElementById('new-challenge-desc').value.trim();
+    const target = parseInt(document.getElementById('new-challenge-target').value);
+    
+    if (!desc || !target || target < 1) {
+        showMessage('Vennligst fyll inn alle feltene!');
+        return;
+    }
+    
+    const weekKey = getWeekKey();
+    const challengesKey = `groupChallenges_${gameState.groupId}_${weekKey}`;
+    const challenges = JSON.parse(localStorage.getItem(challengesKey) || '[]');
+    
+    const iconMap = {
+        'score': '🏆',
+        'minigame': '🎯',
+        'feed': '🍖',
+        'play': '🎾',
+        'level': '⭐'
+    };
+    
+    challenges.push({
+        type: type,
+        desc: desc,
+        target: target,
+        icon: iconMap[type] || '🎯',
+        progress: 0,
+        completed: false,
+        createdBy: currentUser,
+        createdAt: Date.now()
+    });
+    
+    localStorage.setItem(challengesKey, JSON.stringify(challenges));
+    
+    // Clear form
+    document.getElementById('new-challenge-desc').value = '';
+    document.getElementById('new-challenge-target').value = '';
+    
+    loadExistingChallenges();
+    updateGroupChallenge();
+    showMessage('✅ Utfordring lagt til!');
+    playSuccessSound();
+}
+
+function removeGroupChallenge(index) {
+    if (!gameState.groupId) return;
+    
+    if (!confirm('Er du sikker på at du vil fjerne denne utfordringen?')) return;
+    
+    const weekKey = getWeekKey();
+    const challengesKey = `groupChallenges_${gameState.groupId}_${weekKey}`;
+    const challenges = JSON.parse(localStorage.getItem(challengesKey) || '[]');
+    
+    if (index >= 0 && index < challenges.length) {
+        challenges.splice(index, 1);
+        localStorage.setItem(challengesKey, JSON.stringify(challenges));
+        loadExistingChallenges();
+        updateGroupChallenge();
+        showMessage('🗑️ Utfordring fjernet');
+        playClickSound();
+    }
+}
+
+// Update updateGroupChallenge to support multiple challenges
 function updateGroupChallenge() {
     if (!gameState.groupId) return;
     
@@ -1179,92 +1407,127 @@ function updateGroupChallenge() {
     const challengeText = document.getElementById('group-challenge-text');
     const challengeProgressBar = document.getElementById('group-challenge-progress-bar');
     const challengeProgressText = document.getElementById('group-challenge-progress-text');
+    const challengesList = document.getElementById('challenges-list');
     
-    // Get or create weekly challenge
+    if (!challengeSection) return;
+    
     const weekKey = getWeekKey();
-    const savedChallenge = localStorage.getItem(`groupChallenge_${gameState.groupId}_${weekKey}`);
     
-    let challenge;
-    if (savedChallenge) {
-        challenge = JSON.parse(savedChallenge);
-    } else {
-        // Create new weekly challenge
-        const challenges = [
-            { type: 'score', desc: 'Samle 1000 poeng til sammen', target: 1000, icon: '🏆' },
-            { type: 'minigame', desc: 'Spill minispill 20 ganger til sammen', target: 20, icon: '🎯' },
-            { type: 'feed', desc: 'Mat katter 50 ganger til sammen', target: 50, icon: '🍖' },
-            { type: 'play', desc: 'Lek med katter 30 ganger til sammen', target: 30, icon: '🎾' },
-            { type: 'level', desc: 'Gå opp 5 nivåer til sammen', target: 5, icon: '⭐' }
-        ];
-        
-        challenge = challenges[Math.floor(Math.random() * challenges.length)];
-        challenge.progress = 0;
-        challenge.weekKey = weekKey;
-        challenge.completed = false;
-        localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenge));
+    // Get custom challenges first
+    const challengesKey = `groupChallenges_${gameState.groupId}_${weekKey}`;
+    let customChallenges = JSON.parse(localStorage.getItem(challengesKey) || '[]');
+    
+    // If no custom challenges, use default
+    let challenges = customChallenges.length > 0 ? customChallenges : [];
+    
+    if (challenges.length === 0) {
+        // Create default challenge
+        const savedChallenge = localStorage.getItem(`groupChallenge_${gameState.groupId}_${weekKey}`);
+        let challenge;
+        if (savedChallenge) {
+            challenge = JSON.parse(savedChallenge);
+        } else {
+            const defaultChallenges = [
+                { type: 'score', desc: 'Samle 1000 poeng til sammen', target: 1000, icon: '🏆' },
+                { type: 'minigame', desc: 'Spill minispill 20 ganger til sammen', target: 20, icon: '🎯' },
+                { type: 'feed', desc: 'Mat katter 50 ganger til sammen', target: 50, icon: '🍖' },
+                { type: 'play', desc: 'Lek med katter 30 ganger til sammen', target: 30, icon: '🎾' },
+                { type: 'level', desc: 'Gå opp 5 nivåer til sammen', target: 5, icon: '⭐' }
+            ];
+            challenge = defaultChallenges[Math.floor(Math.random() * defaultChallenges.length)];
+            challenge.progress = 0;
+            challenge.weekKey = weekKey;
+            challenge.completed = false;
+            localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenge));
+        }
+        challenges = [challenge];
     }
     
-    // Calculate total progress from all members
+    // Calculate progress for all challenges
     const groups = getGroups();
     const group = groups[gameState.groupId];
     if (!group) return;
     
-    let totalProgress = 0;
-    group.members.forEach(member => {
-        const memberData = localStorage.getItem(`miaumiauGame_${member}`);
-        if (memberData) {
-            const memberState = JSON.parse(memberData);
-            if (challenge.type === 'score') {
-                totalProgress += memberState.score || 0;
-            } else if (challenge.type === 'minigame') {
-                const minigameCount = (memberState.stats?.minigameScore || 0) > 0 ? 1 : 0;
-                totalProgress += minigameCount;
-            } else if (challenge.type === 'feed') {
-                totalProgress += memberState.stats?.timesFed || 0;
-            } else if (challenge.type === 'play') {
-                totalProgress += memberState.stats?.timesPlayed || 0;
-            } else if (challenge.type === 'level') {
-                totalProgress += memberState.level || 1;
-            }
-        }
-    });
-    
-    challenge.progress = totalProgress;
-    const progressPercent = Math.min(100, (challenge.progress / challenge.target) * 100);
-    
-    challengeSection.style.display = 'block';
-    challengeText.textContent = `${challenge.icon} ${challenge.desc}`;
-    challengeProgressBar.style.width = progressPercent + '%';
-    challengeProgressText.textContent = `${Math.floor(challenge.progress)}/${challenge.target}`;
-    
-    // Save updated progress
-    localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenge));
-    
-    // Check if completed
-    if (challenge.progress >= challenge.target && !challenge.completed) {
-        challenge.completed = true;
-        localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenge));
-        // Reward all members
+    challenges.forEach(challenge => {
+        let totalProgress = 0;
         group.members.forEach(member => {
             const memberData = localStorage.getItem(`miaumiauGame_${member}`);
             if (memberData) {
                 const memberState = JSON.parse(memberData);
-                memberState.coins = (memberState.coins || 0) + 50;
-                memberState.score = (memberState.score || 0) + 100;
-                localStorage.setItem(`miaumiauGame_${member}`, JSON.stringify(memberState));
+                if (challenge.type === 'score') {
+                    totalProgress += memberState.score || 0;
+                } else if (challenge.type === 'minigame') {
+                    const minigameCount = (memberState.stats?.minigameScore || 0) > 0 ? 1 : 0;
+                    totalProgress += minigameCount;
+                } else if (challenge.type === 'feed') {
+                    totalProgress += memberState.stats?.timesFed || 0;
+                } else if (challenge.type === 'play') {
+                    totalProgress += memberState.stats?.timesPlayed || 0;
+                } else if (challenge.type === 'level') {
+                    totalProgress += memberState.level || 1;
+                }
             }
         });
-        showMessage('🎉 Gruppens ukentlige utfordring fullført! Alle medlemmer fikk +50 mynter og +100 poeng! 🎉');
-        playSuccessSound();
+        challenge.progress = totalProgress;
+        
+        // Check completion
+        if (challenge.progress >= challenge.target && !challenge.completed) {
+            challenge.completed = true;
+            // Reward all members
+            group.members.forEach(member => {
+                const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+                if (memberData) {
+                    const memberState = JSON.parse(memberData);
+                    memberState.coins = (memberState.coins || 0) + 50;
+                    memberState.score = (memberState.score || 0) + 100;
+                    localStorage.setItem(`miaumiauGame_${member}`, JSON.stringify(memberState));
+                }
+            });
+            showMessage(`🎉 Utfordring fullført: ${challenge.desc}! Alle medlemmer fikk +50 mynter og +100 poeng! 🎉`);
+            playSuccessSound();
+        }
+    });
+    
+    // Save updated challenges
+    if (customChallenges.length > 0) {
+        localStorage.setItem(challengesKey, JSON.stringify(challenges));
+    } else {
+        localStorage.setItem(`groupChallenge_${gameState.groupId}_${weekKey}`, JSON.stringify(challenges[0]));
     }
-}
-
-function getWeekKey() {
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
-    const weekNumber = Math.floor(days / 7);
-    return `${now.getFullYear()}_W${weekNumber}`;
+    
+    // Display challenges
+    challengeSection.style.display = 'block';
+    
+    if (challengesList) {
+        challengesList.innerHTML = '';
+        challenges.forEach((challenge, index) => {
+            const progressPercent = Math.min(100, (challenge.progress / challenge.target) * 100);
+            const challengeDiv = document.createElement('div');
+            challengeDiv.className = 'challenge-item';
+            challengeDiv.innerHTML = `
+                <div class="challenge-item-header">
+                    <span class="challenge-icon">${challenge.icon}</span>
+                    <span class="challenge-desc">${challenge.desc}</span>
+                </div>
+                <div class="challenge-progress-bar">
+                    <div class="progress-bar-mini" style="background: #e0e0e0;">
+                        <div class="progress-fill" style="width: ${progressPercent}%; background: ${challenge.completed ? 'linear-gradient(90deg, #27ae60, #2ecc71)' : 'linear-gradient(90deg, #667eea, #764ba2)'};"></div>
+                    </div>
+                    <span class="challenge-progress-text">${Math.floor(challenge.progress)}/${challenge.target}</span>
+                </div>
+            `;
+            challengesList.appendChild(challengeDiv);
+        });
+    }
+    
+    // Show first challenge in old format for backwards compatibility
+    if (challenges.length > 0 && challengeText && challengeProgressBar && challengeProgressText) {
+        const firstChallenge = challenges[0];
+        const progressPercent = Math.min(100, (firstChallenge.progress / firstChallenge.target) * 100);
+        challengeText.textContent = `${firstChallenge.icon} ${firstChallenge.desc}`;
+        challengeProgressBar.style.width = progressPercent + '%';
+        challengeProgressText.textContent = `${Math.floor(firstChallenge.progress)}/${firstChallenge.target}`;
+    }
 }
 
 // Check if user is logged in on page load
@@ -1888,10 +2151,25 @@ const shopItems = [
     { id: 'bg-space', name: 'Rom bakgrunn 🚀', price: 350, emoji: '🚀', effect: 'background', useType: 'cosmetic', useLabel: null }
 ];
 
+// Shop pagination
+let currentShopPage = 0;
+const itemsPerPage = 6;
+
 function renderShop() {
     const container = document.getElementById('shop-items');
+    const pagination = document.getElementById('shop-pagination');
+    const pageInfo = document.getElementById('shop-page-info');
+    const prevBtn = document.getElementById('shop-prev-btn');
+    const nextBtn = document.getElementById('shop-next-btn');
+    
     container.innerHTML = '';
-    shopItems.forEach(item => {
+    
+    const totalPages = Math.ceil(shopItems.length / itemsPerPage);
+    const startIndex = currentShopPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const itemsToShow = shopItems.slice(startIndex, endIndex);
+    
+    itemsToShow.forEach(item => {
         const owned = gameState.ownedItems.includes(item.id);
         const div = document.createElement('div');
         div.className = `shop-item ${owned ? 'owned' : ''}`;
@@ -1905,6 +2183,28 @@ function renderShop() {
         `;
         container.appendChild(div);
     });
+    
+    // Update pagination
+    if (totalPages > 1) {
+        pagination.style.display = 'flex';
+        pageInfo.textContent = `Side ${currentShopPage + 1} av ${totalPages}`;
+        prevBtn.disabled = currentShopPage === 0;
+        nextBtn.disabled = currentShopPage >= totalPages - 1;
+    } else {
+        pagination.style.display = 'none';
+    }
+}
+
+function changeShopPage(direction) {
+    const totalPages = Math.ceil(shopItems.length / itemsPerPage);
+    const newPage = currentShopPage + direction;
+    
+    if (newPage >= 0 && newPage < totalPages) {
+        currentShopPage = newPage;
+        renderShop();
+        // Scroll to top of shop
+        document.getElementById('shop-tab').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 function buyItem(itemId) {
