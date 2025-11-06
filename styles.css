@@ -1877,13 +1877,13 @@ body {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: rgba(231, 76, 60, 0.8);
+    background: linear-gradient(135deg, #ff6b6b, #ffd93d);
     color: white;
     border: none;
     border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -1891,11 +1891,13 @@ body {
     justify-content: center;
     line-height: 1;
     padding: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .music-close-btn:hover {
-    background: rgba(231, 76, 60, 1);
-    transform: scale(1.1);
+    background: linear-gradient(135deg, #ff5252, #ffc107);
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .music-mini-btn {
