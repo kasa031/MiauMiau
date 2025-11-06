@@ -1659,6 +1659,7 @@ function checkLogin() {
             loadGame();
             updateGroupDisplay();
             updateFriendsDisplay();
+            checkGiftNotifications();
             // Load saved background
             const savedBg = localStorage.getItem(`miaumiauBackground_${currentUser}`);
             if (savedBg) {

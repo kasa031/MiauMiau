@@ -1737,6 +1737,81 @@ body {
     gap: 5px;
 }
 
+/* Friends Leaderboard */
+.friends-leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+    border-radius: 12px;
+    border: 2px solid #ddd;
+    transition: all 0.3s;
+}
+
+.leaderboard-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-item-current {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: #667eea;
+}
+
+.leaderboard-rank {
+    font-size: 28px;
+    min-width: 50px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.leaderboard-avatar {
+    font-size: 40px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.leaderboard-info {
+    flex: 1;
+}
+
+.leaderboard-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.leaderboard-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 14px;
+    flex-wrap: wrap;
+}
+
+.leaderboard-stats span {
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.leaderboard-item-current .leaderboard-stats span {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
 @media (max-width: 480px) {
     .group-stats-grid {
         grid-template-columns: 1fr;
