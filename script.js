@@ -1646,6 +1646,633 @@ function updateGroupChallenge() {
     }
 }
 
+// ==================== FRIENDS SYSTEM ====================
+function getFriends() {
+    const friendsData = localStorage.getItem('miaumiauFriends');
+    return friendsData ? JSON.parse(friendsData) : {};
+}
+
+function saveFriends(friends) {
+    localStorage.setItem('miaumiauFriends', JSON.stringify(friends));
+}
+
+function getFriendRequests() {
+    const requestsData = localStorage.getItem('miaumiauFriendRequests');
+    return requestsData ? JSON.parse(requestsData) : {};
+}
+
+function saveFriendRequests(requests) {
+    localStorage.setItem('miaumiauFriendRequests', JSON.stringify(requests));
+}
+
+function sendFriendRequest() {
+    if (!currentUser) {
+        showMessage('Du må være innlogget!');
+        return;
+    }
+    
+    const username = document.getElementById('friend-username-input').value.trim();
+    
+    if (!username) {
+        showMessage('Skriv inn et brukernavn!');
+        return;
+    }
+    
+    if (username === currentUser) {
+        showMessage('Du kan ikke legge til deg selv!');
+        return;
+    }
+    
+    // Check if user exists
+    const users = getUsers();
+    if (!users[username]) {
+        showMessage('Brukeren finnes ikke!');
+        return;
+    }
+    
+    // Check if already friends
+    const friends = getFriends();
+    if (friends[currentUser] && friends[currentUser].includes(username)) {
+        showMessage('Du er allerede venner med denne brukeren!');
+        return;
+    }
+    
+    // Check if request already sent
+    const requests = getFriendRequests();
+    if (requests[username] && requests[username].includes(currentUser)) {
+        showMessage('Du har allerede sendt en vennforespørsel til denne brukeren!');
+        return;
+    }
+    
+    // Add request
+    if (!requests[username]) requests[username] = [];
+    requests[username].push(currentUser);
+    saveFriendRequests(requests);
+    
+    document.getElementById('friend-username-input').value = '';
+    showMessage(`✅ Vennforespørsel sendt til ${username}!`);
+    playSuccessSound();
+    updateFriendsDisplay();
+}
+
+function acceptFriendRequest(fromUser) {
+    if (!currentUser) return;
+    
+    const requests = getFriendRequests();
+    if (!requests[currentUser] || !requests[currentUser].includes(fromUser)) return;
+    
+    // Remove from requests
+    requests[currentUser] = requests[currentUser].filter(u => u !== fromUser);
+    saveFriendRequests(requests);
+    
+    // Add to friends
+    const friends = getFriends();
+    if (!friends[currentUser]) friends[currentUser] = [];
+    if (!friends[currentUser].includes(fromUser)) {
+        friends[currentUser].push(fromUser);
+    }
+    if (!friends[fromUser]) friends[fromUser] = [];
+    if (!friends[fromUser].includes(currentUser)) {
+        friends[fromUser].push(currentUser);
+    }
+    saveFriends(friends);
+    
+    showMessage(`✅ Du er nå venner med ${fromUser}! 🎉`);
+    playSuccessSound();
+    updateFriendsDisplay();
+}
+
+function rejectFriendRequest(fromUser) {
+    if (!currentUser) return;
+    
+    const requests = getFriendRequests();
+    if (!requests[currentUser] || !requests[currentUser].includes(fromUser)) return;
+    
+    requests[currentUser] = requests[currentUser].filter(u => u !== fromUser);
+    saveFriendRequests(requests);
+    
+    showMessage(`Vennforespørsel fra ${fromUser} avvist`);
+    playClickSound();
+    updateFriendsDisplay();
+}
+
+function removeFriend(friendUsername) {
+    if (!currentUser) return;
+    
+    if (!confirm(`Er du sikker på at du vil fjerne ${friendUsername} som venn?`)) return;
+    
+    const friends = getFriends();
+    if (friends[currentUser]) {
+        friends[currentUser] = friends[currentUser].filter(u => u !== friendUsername);
+    }
+    if (friends[friendUsername]) {
+        friends[friendUsername] = friends[friendUsername].filter(u => u !== currentUser);
+    }
+    saveFriends(friends);
+    
+    showMessage(`${friendUsername} fjernet som venn`);
+    playClickSound();
+    updateFriendsDisplay();
+}
+
+function updateFriendsDisplay() {
+    if (!currentUser) return;
+    
+    // Update friend requests
+    const requests = getFriendRequests();
+    const myRequests = requests[currentUser] || [];
+    const requestsList = document.getElementById('friend-requests-list');
+    
+    if (requestsList) {
+        requestsList.innerHTML = '';
+        if (myRequests.length === 0) {
+            requestsList.innerHTML = '<p style="color: #999; padding: 10px; text-align: center;">Ingen vennforespørsler</p>';
+        } else {
+            myRequests.forEach(fromUser => {
+                const requestDiv = document.createElement('div');
+                requestDiv.className = 'friend-request-item';
+                requestDiv.innerHTML = `
+                    <div class="friend-request-info">
+                        <span class="friend-request-avatar">👤</span>
+                        <span class="friend-request-name">${fromUser}</span>
+                    </div>
+                    <div class="friend-request-actions">
+                        <button class="action-btn-small accept-btn" onclick="acceptFriendRequest('${fromUser}')">✅ Godta</button>
+                        <button class="action-btn-small reject-btn" onclick="rejectFriendRequest('${fromUser}')">❌ Avslå</button>
+                    </div>
+                `;
+                requestsList.appendChild(requestDiv);
+            });
+        }
+    }
+    
+    // Update friends list
+    const friends = getFriends();
+    const myFriends = friends[currentUser] || [];
+    const friendsList = document.getElementById('friends-list');
+    
+    if (friendsList) {
+        friendsList.innerHTML = '';
+        if (myFriends.length === 0) {
+            friendsList.innerHTML = '<p style="color: #999; padding: 10px; text-align: center;">Du har ingen venner ennå. Legg til noen! 👫</p>';
+        } else {
+            myFriends.forEach(friendUsername => {
+                // Get friend's stats
+                const friendData = localStorage.getItem(`miaumiauGame_${friendUsername}`);
+                let friendStats = {
+                    level: 1,
+                    score: 0,
+                    badge: '🐱',
+                    online: false
+                };
+                
+                if (friendData) {
+                    try {
+                        const friendState = JSON.parse(friendData);
+                        friendStats.level = friendState.level || 1;
+                        friendStats.score = friendState.score || 0;
+                        friendStats.badge = friendState.profile?.badge || '🐱';
+                    } catch (e) {
+                        console.error('Error parsing friend data:', e);
+                    }
+                }
+                
+                const friendDiv = document.createElement('div');
+                friendDiv.className = 'friend-item';
+                friendDiv.innerHTML = `
+                    <div class="friend-item-avatar">${friendStats.badge}</div>
+                    <div class="friend-item-info">
+                        <div class="friend-item-name">${friendUsername}</div>
+                        <div class="friend-item-stats">⭐ Nivå ${friendStats.level} | 🏆 ${friendStats.score} poeng</div>
+                    </div>
+                    <div class="friend-item-actions">
+                        <button class="action-btn-small" onclick="openFriendMessages('${friendUsername}')" title="Send melding">💌</button>
+                        <button class="action-btn-small" onclick="viewFriendProfile('${friendUsername}')" title="Se profil">👁️</button>
+                        <button class="action-btn-small" onclick="sendGiftToFriend('${friendUsername}')" title="Send gave">🎁</button>
+                        <button class="action-btn-small" onclick="inviteFriendToGroup('${friendUsername}')" title="Inviter til gruppe">👥</button>
+                        <button class="action-btn-small remove-btn" onclick="removeFriend('${friendUsername}')" title="Fjern venn">🗑️</button>
+                    </div>
+                `;
+                friendsList.appendChild(friendDiv);
+            });
+        }
+    }
+    
+    // Update invite friends list in groups tab
+    updateInviteFriendsList();
+    
+    // Update friends leaderboard
+    updateFriendsLeaderboard();
+}
+
+function updateFriendsLeaderboard() {
+    if (!currentUser) return;
+    
+    const leaderboard = document.getElementById('friends-leaderboard');
+    if (!leaderboard) return;
+    
+    const friends = getFriends();
+    const myFriends = friends[currentUser] || [];
+    
+    if (myFriends.length === 0) {
+        leaderboard.innerHTML = '<p style="color: #999; padding: 10px; text-align: center;">Legg til venner for å se vennetavlen! 👫</p>';
+        return;
+    }
+    
+    // Get all friends' stats including current user
+    const allPlayers = [...myFriends, currentUser].map(username => {
+        const playerData = localStorage.getItem(`miaumiauGame_${username}`);
+        let stats = {
+            username: username,
+            level: 1,
+            score: 0,
+            coins: 0,
+            badge: '🐱',
+            isCurrentUser: username === currentUser
+        };
+        
+        if (playerData) {
+            try {
+                const playerState = JSON.parse(playerData);
+                stats.level = playerState.level || 1;
+                stats.score = playerState.score || 0;
+                stats.coins = playerState.coins || 0;
+                stats.badge = playerState.profile?.badge || '🐱';
+            } catch (e) {
+                console.error('Error parsing player data:', e);
+            }
+        }
+        
+        return stats;
+    });
+    
+    // Sort by score (highest first)
+    allPlayers.sort((a, b) => b.score - a.score);
+    
+    leaderboard.innerHTML = '';
+    
+    allPlayers.forEach((player, index) => {
+        const rank = index + 1;
+        const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+        
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'leaderboard-item';
+        if (player.isCurrentUser) {
+            playerDiv.classList.add('leaderboard-item-current');
+        }
+        
+        playerDiv.innerHTML = `
+            <div class="leaderboard-rank">${rankEmoji}</div>
+            <div class="leaderboard-avatar">${player.badge}</div>
+            <div class="leaderboard-info">
+                <div class="leaderboard-name">
+                    ${player.username}
+                    ${player.isCurrentUser ? '<span class="you-badge">(Deg)</span>' : ''}
+                </div>
+                <div class="leaderboard-stats">
+                    <span>⭐ Nivå ${player.level}</span>
+                    <span>🏆 ${player.score} poeng</span>
+                    <span>💰 ${player.coins} mynter</span>
+                </div>
+            </div>
+        `;
+        leaderboard.appendChild(playerDiv);
+    });
+}
+
+function sendGiftToFriend(friendUsername) {
+    if (!currentUser) return;
+    
+    if (gameState.coins < 10) {
+        showMessage('Du trenger minst 10 mynter for å sende en gave! 💰');
+        return;
+    }
+    
+    const giftAmount = prompt(`Hvor mange mynter vil du sende til ${friendUsername}? (Du har ${gameState.coins} mynter)`, '10');
+    const amount = parseInt(giftAmount);
+    
+    if (!amount || amount < 1) {
+        return;
+    }
+    
+    if (amount > gameState.coins) {
+        showMessage('Du har ikke nok mynter! 💰');
+        return;
+    }
+    
+    if (amount > 100) {
+        showMessage('Du kan maksimalt sende 100 mynter om gangen!');
+        return;
+    }
+    
+    // Deduct coins from sender
+    gameState.coins -= amount;
+    saveGame();
+    
+    // Add coins to receiver
+    const friendData = localStorage.getItem(`miaumiauGame_${friendUsername}`);
+    if (friendData) {
+        try {
+            const friendState = JSON.parse(friendData);
+            friendState.coins = (friendState.coins || 0) + amount;
+            localStorage.setItem(`miaumiauGame_${friendUsername}`, JSON.stringify(friendState));
+            
+            // Store gift notification
+            const notificationsKey = `giftNotifications_${friendUsername}`;
+            const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            notifications.push({
+                from: currentUser,
+                amount: amount,
+                timestamp: Date.now()
+            });
+            // Keep only last 20 notifications
+            if (notifications.length > 20) {
+                notifications.shift();
+            }
+            localStorage.setItem(notificationsKey, JSON.stringify(notifications));
+            
+            showMessage(`🎁 Du sendte ${amount} mynter til ${friendUsername}!`);
+            playSuccessSound();
+            updateAllDisplays();
+        } catch (e) {
+            showMessage('Kunne ikke sende gave. Prøv igjen.');
+            // Refund coins
+            gameState.coins += amount;
+            saveGame();
+        }
+    } else {
+        showMessage('Kunne ikke finne vennen. Prøv igjen.');
+        // Refund coins
+        gameState.coins += amount;
+        saveGame();
+    }
+}
+
+function checkGiftNotifications() {
+    if (!currentUser) return;
+    
+    const notificationsKey = `giftNotifications_${currentUser}`;
+    const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+    
+    if (notifications.length > 0) {
+        // Show notification for newest gift
+        const newestGift = notifications[notifications.length - 1];
+        const timeAgo = Date.now() - newestGift.timestamp;
+        
+        // Only show if received in last 5 minutes
+        if (timeAgo < 5 * 60 * 1000) {
+            showMessage(`🎁 Du mottok ${newestGift.amount} mynter fra ${newestGift.from}!`);
+            playSuccessSound();
+            
+            // Clear notifications after showing
+            localStorage.removeItem(notificationsKey);
+        }
+    }
+}
+
+function openFriendMessages(friendUsername) {
+    if (!currentUser) return;
+    
+    const messagesSection = document.getElementById('friend-messages-section');
+    const usernameSpan = document.getElementById('friend-messages-username');
+    
+    if (messagesSection && usernameSpan) {
+        usernameSpan.textContent = friendUsername;
+        messagesSection.style.display = 'block';
+        loadFriendMessages(friendUsername);
+        messagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function loadFriendMessages(friendUsername) {
+    if (!currentUser) return;
+    
+    const messagesList = document.getElementById('friend-messages-list');
+    if (!messagesList) return;
+    
+    const messagesKey = `friendMessages_${currentUser}_${friendUsername}`;
+    const messages = JSON.parse(localStorage.getItem(messagesKey) || '[]');
+    
+    messagesList.innerHTML = '';
+    
+    if (messages.length === 0) {
+        messagesList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Ingen meldinger ennå. Send den første! 👋</p>';
+        return;
+    }
+    
+    messages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'friend-message';
+        if (msg.from === currentUser) {
+            msgDiv.classList.add('friend-message-own');
+        }
+        
+        const time = new Date(msg.timestamp).toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+        msgDiv.innerHTML = `
+            <div class="friend-message-header">
+                <span class="friend-message-username">${msg.from}</span>
+                <span class="friend-message-time">${time}</span>
+            </div>
+            <div class="friend-message-text">${escapeHtml(msg.text)}</div>
+        `;
+        messagesList.appendChild(msgDiv);
+    });
+    
+    messagesList.scrollTop = messagesList.scrollHeight;
+}
+
+function sendFriendMessage() {
+    if (!currentUser) return;
+    
+    const usernameSpan = document.getElementById('friend-messages-username');
+    if (!usernameSpan) return;
+    
+    const friendUsername = usernameSpan.textContent;
+    const input = document.getElementById('friend-message-input');
+    const text = input.value.trim();
+    
+    if (!text) return;
+    
+    const messagesKey = `friendMessages_${currentUser}_${friendUsername}`;
+    const reverseKey = `friendMessages_${friendUsername}_${currentUser}`;
+    const messages = JSON.parse(localStorage.getItem(messagesKey) || '[]');
+    const reverseMessages = JSON.parse(localStorage.getItem(reverseKey) || '[]');
+    
+    const message = {
+        from: currentUser,
+        to: friendUsername,
+        text: text,
+        timestamp: Date.now()
+    };
+    
+    messages.push(message);
+    reverseMessages.push(message);
+    
+    // Keep only last 100 messages
+    if (messages.length > 100) {
+        messages.shift();
+        reverseMessages.shift();
+    }
+    
+    localStorage.setItem(messagesKey, JSON.stringify(messages));
+    localStorage.setItem(reverseKey, JSON.stringify(reverseMessages));
+    
+    input.value = '';
+    loadFriendMessages(friendUsername);
+    playClickSound();
+}
+
+function viewFriendProfile(friendUsername) {
+    const friendData = localStorage.getItem(`miaumiauGame_${friendUsername}`);
+    if (!friendData) {
+        showMessage('Kunne ikke laste vennens profil');
+        return;
+    }
+    
+    try {
+        const friendState = JSON.parse(friendData);
+        const profile = friendState.profile || {};
+        const stats = friendState.stats || {};
+        
+        const profileText = `
+👤 ${friendUsername}
+${profile.badge ? `Badge: ${profile.badge}` : ''}
+⭐ Nivå: ${friendState.level || 1}
+🏆 Poeng: ${friendState.score || 0}
+💰 Mynter: ${friendState.coins || 0}
+🎮 Minispill spilt: ${stats.minigamesPlayed || 0}
+🍖 Ganger matet: ${stats.timesFed || 0}
+🎾 Ganger lekt: ${stats.timesPlayed || 0}
+        `.trim();
+        
+        showMessage(profileText);
+    } catch (e) {
+        showMessage('Kunne ikke laste vennens profil');
+    }
+}
+
+function inviteFriendToGroup(friendUsername) {
+    if (!currentUser || !gameState.groupId) {
+        showMessage('Du må være med i en gruppe først!');
+        return;
+    }
+    
+    const groups = getGroups();
+    const group = groups[gameState.groupId];
+    if (!group) return;
+    
+    if (group.members.includes(friendUsername)) {
+        showMessage(`${friendUsername} er allerede med i gruppen!`);
+        return;
+    }
+    
+    // Store invitation
+    const invitationsKey = `groupInvitations_${friendUsername}`;
+    const invitations = JSON.parse(localStorage.getItem(invitationsKey) || '[]');
+    
+    if (!invitations.find(inv => inv.groupId === gameState.groupId && inv.from === currentUser)) {
+        invitations.push({
+            groupId: gameState.groupId,
+            groupName: group.name,
+            from: currentUser,
+            timestamp: Date.now()
+        });
+        localStorage.setItem(invitationsKey, JSON.stringify(invitations));
+    }
+    
+    showMessage(`✅ Invitasjon sendt til ${friendUsername}! De kan se den når de åpner grupper-fanen.`);
+    playSuccessSound();
+}
+
+function updateInviteFriendsList() {
+    if (!currentUser) return;
+    
+    const inviteList = document.getElementById('invite-friends-list');
+    if (!inviteList) return;
+    
+    const friends = getFriends();
+    const myFriends = friends[currentUser] || [];
+    
+    if (myFriends.length === 0) {
+        inviteList.innerHTML = '<p style="color: #999; font-size: 14px;">Du har ingen venner å invitere</p>';
+        return;
+    }
+    
+    inviteList.innerHTML = '';
+    myFriends.forEach(friendUsername => {
+        const inviteBtn = document.createElement('button');
+        inviteBtn.className = 'action-btn-small';
+        inviteBtn.textContent = `📨 Inviter ${friendUsername}`;
+        inviteBtn.onclick = () => inviteFriendToGroup(friendUsername);
+        inviteBtn.style.margin = '5px';
+        inviteList.appendChild(inviteBtn);
+    });
+    
+    // Check for group invitations
+    const invitationsKey = `groupInvitations_${currentUser}`;
+    const invitations = JSON.parse(localStorage.getItem(invitationsKey) || '[]');
+    
+    if (invitations.length > 0) {
+        const invitationsDiv = document.createElement('div');
+        invitationsDiv.className = 'group-invitations';
+        invitationsDiv.innerHTML = '<h3 style="font-size: 16px; margin: 15px 0 10px 0;">📬 Gruppinvitasjoner:</h3>';
+        
+        invitations.forEach((inv, index) => {
+            const invDiv = document.createElement('div');
+            invDiv.className = 'group-invitation-item';
+            invDiv.innerHTML = `
+                <div class="invitation-info">
+                    <strong>${inv.groupName}</strong>
+                    <span style="font-size: 12px; color: #666;">Fra: ${inv.from}</span>
+                </div>
+                <div class="invitation-actions">
+                    <button class="action-btn-small accept-btn" onclick="acceptGroupInvitation('${inv.groupId}', ${index})">✅</button>
+                    <button class="action-btn-small reject-btn" onclick="rejectGroupInvitation(${index})">❌</button>
+                </div>
+            `;
+            invitationsDiv.appendChild(invDiv);
+        });
+        
+        inviteList.appendChild(invitationsDiv);
+    }
+}
+
+function acceptGroupInvitation(groupId, invitationIndex) {
+    const invitationsKey = `groupInvitations_${currentUser}`;
+    const invitations = JSON.parse(localStorage.getItem(invitationsKey) || '[]');
+    
+    if (invitationIndex >= invitations.length) return;
+    
+    const invitation = invitations[invitationIndex];
+    
+    // Remove invitation
+    invitations.splice(invitationIndex, 1);
+    localStorage.setItem(invitationsKey, JSON.stringify(invitations));
+    
+    // Try to join group (user will need to enter password)
+    document.getElementById('join-group-name').value = invitation.groupName;
+    showMessage(`Skriv inn passordet for ${invitation.groupName} for å bli med!`);
+    
+    // Switch to groups tab
+    document.querySelector('[data-tab="groups"]').click();
+    
+    updateInviteFriendsList();
+}
+
+function rejectGroupInvitation(invitationIndex) {
+    const invitationsKey = `groupInvitations_${currentUser}`;
+    const invitations = JSON.parse(localStorage.getItem(invitationsKey) || '[]');
+    
+    if (invitationIndex >= invitations.length) return;
+    
+    invitations.splice(invitationIndex, 1);
+    localStorage.setItem(invitationsKey, JSON.stringify(invitations));
+    
+    showMessage('Invitasjon avvist');
+    playClickSound();
+    updateInviteFriendsList();
+}
+
 // Check if user is logged in on page load
 function checkLogin() {
     const savedUser = localStorage.getItem('miaumiauCurrentUser');
