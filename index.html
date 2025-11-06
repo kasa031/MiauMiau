@@ -393,6 +393,47 @@
             </div>
         </div>
 
+        <!-- Friends Tab -->
+        <div id="friends-tab" class="tab-content">
+            <div class="friends-container">
+                <h1>Venner 👫</h1>
+                
+                <!-- Friend Requests -->
+                <div id="friend-requests-section" class="friend-section">
+                    <h2>📬 Vennforespørsler</h2>
+                    <div id="friend-requests-list" class="friend-requests-list"></div>
+                </div>
+                
+                <!-- Add Friend -->
+                <div class="friend-section">
+                    <h2>➕ Legg til venn</h2>
+                    <div class="friend-form">
+                        <label class="settings-label">Brukernavn:</label>
+                        <input type="text" id="friend-username-input" class="group-input" placeholder="Skriv brukernavnet" maxlength="30">
+                        <button class="action-btn" onclick="sendFriendRequest()">📤 Send vennforespørsel</button>
+                    </div>
+                </div>
+                
+                <!-- My Friends List -->
+                <div class="friend-section">
+                    <h2>👥 Mine venner</h2>
+                    <div id="friends-list" class="friends-list"></div>
+                </div>
+                
+                <!-- Friend Messages -->
+                <div id="friend-messages-section" class="friend-section" style="display: none;">
+                    <h2>💌 Meldinger til <span id="friend-messages-username"></span></h2>
+                    <div class="friend-messages-container">
+                        <div id="friend-messages-list" class="friend-messages-list"></div>
+                        <div class="friend-messages-input-container">
+                            <input type="text" id="friend-message-input" class="group-chat-input" placeholder="Skriv en melding..." maxlength="200" onkeypress="if(event.key === 'Enter') sendFriendMessage()">
+                            <button class="action-btn" onclick="sendFriendMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Groups Tab -->
         <div id="groups-tab" class="tab-content">
             <div class="groups-container">
@@ -451,6 +492,10 @@
                         <label class="settings-label">Passord:</label>
                         <input type="password" id="join-group-password" class="group-input" placeholder="Skriv gruppepassordet">
                         <button class="action-btn" onclick="joinGroup()">✅ Bli med</button>
+                    </div>
+                    <div class="invite-friends-section" style="margin-top: 15px;">
+                        <h3 style="font-size: 16px; margin-bottom: 10px;">📨 Eller inviter venner til gruppe:</h3>
+                        <div id="invite-friends-list" class="invite-friends-list"></div>
                     </div>
                 </div>
                 

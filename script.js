@@ -34,9 +34,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         } else if (tabName === 'settings') {
             updateLanguageButtons();
             updateProfileDisplay();
+        } else if (tabName === 'friends') {
+            updateFriendsDisplay();
         } else if (tabName === 'groups') {
             updateGroupDisplay();
             startChatRefresh();
+            updateInviteFriendsList();
         }
     });
 });
@@ -1655,6 +1658,7 @@ function checkLogin() {
             document.getElementById('logout-btn').style.display = 'block';
             loadGame();
             updateGroupDisplay();
+            updateFriendsDisplay();
             // Load saved background
             const savedBg = localStorage.getItem(`miaumiauBackground_${currentUser}`);
             if (savedBg) {
