@@ -78,7 +78,7 @@ MiauMiau er et komplett katteparadis hvor du kan:
 - Både statiske bilder og animerte GIF-er
 - Kattens tilstand spares individuelt
 
-### 🎯 Minispill (8 spill!)
+### 🎯 Minispill (10 spill!)
 1. **Musefang** - Fang musene som løper rundt
 2. **Matfanging** - Beveg katten og fang mat
 3. **Kattkamp** - Hjelp katten kjempe i rett tid
@@ -87,6 +87,8 @@ MiauMiau er et komplett katteparadis hvor du kan:
 6. **Nyan Cat** - Spesial spill med Nyan Cat
 7. **Kjedelig Katt** - Lei katten med aktiviteter
 8. **Lesespill** - Match ord med bilder (opplæringsspill)
+9. **Kattememory** (NYTT!) - Finn de matchende kattene! Test hukommelsen din
+10. **Kattehopp** (NYTT!) - Hopp over hindringene! Trykk mellomrom eller klikk for å hoppe
 
 ### 🎓 Katteskole
 **5 fag å utforske:**

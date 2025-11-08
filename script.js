@@ -4425,6 +4425,231 @@ function startReadingGame() {
     showNextQuestion();
 }
 
+// ==================== MEMORY GAME ====================
+let memoryGameInterval = null;
+let memoryGameTime = 60;
+let memoryGameScore = 0;
+let memoryCards = [];
+let flippedCards = [];
+let matchedPairs = 0;
+let isFlipping = false;
+
+const memoryCatEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱', '🐈', '🐈‍⬛', '💖', '🌟'];
+
+function startMemoryGame() {
+    document.getElementById('memory-game-area').style.display = 'block';
+    memoryGameScore = 0;
+    memoryGameTime = 60;
+    matchedPairs = 0;
+    flippedCards = [];
+    isFlipping = false;
+    document.getElementById('memory-score').textContent = '0';
+    document.getElementById('memory-time').textContent = '60';
+    
+    const container = document.getElementById('memory-container');
+    
+    // Create 12 cards (6 pairs)
+    const selectedEmojis = memoryCatEmojis.slice(0, 6);
+    memoryCards = [...selectedEmojis, ...selectedEmojis];
+    // Shuffle
+    for (let i = memoryCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [memoryCards[i], memoryCards[j]] = [memoryCards[j], memoryCards[i]];
+    }
+    
+    container.innerHTML = '<div class="memory-grid"></div>';
+    const grid = container.querySelector('.memory-grid');
+    
+    memoryCards.forEach((emoji, index) => {
+        const card = document.createElement('div');
+        card.className = 'memory-card';
+        card.dataset.index = index;
+        card.dataset.emoji = emoji;
+        card.innerHTML = '<div class="memory-card-back">?</div>';
+        card.onclick = () => flipCard(card, index);
+        grid.appendChild(card);
+    });
+    
+    const timer = setInterval(() => {
+        memoryGameTime--;
+        document.getElementById('memory-time').textContent = memoryGameTime;
+        if (memoryGameTime <= 0) {
+            clearInterval(timer);
+            gameState.coins += Math.floor(memoryGameScore / 8);
+            gameState.stats.minigameScore += memoryGameScore;
+            gameState.score += memoryGameScore;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${memoryGameScore} poeng og fant ${matchedPairs} par! +${Math.floor(memoryGameScore/8)} mynter! 🧠`);
+            container.innerHTML = `<button class="action-btn" onclick="startMemoryGame()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+}
+
+function flipCard(card, index) {
+    if (isFlipping || flippedCards.length >= 2 || card.classList.contains('flipped') || card.classList.contains('matched')) {
+        return;
+    }
+    
+    card.classList.add('flipped');
+    card.innerHTML = `<div class="memory-card-front">${memoryCards[index]}</div>`;
+    flippedCards.push({ card, index, emoji: memoryCards[index] });
+    
+    if (flippedCards.length === 2) {
+        isFlipping = true;
+        const [card1, card2] = flippedCards;
+        
+        if (card1.emoji === card2.emoji) {
+            // Match!
+            setTimeout(() => {
+                card1.card.classList.add('matched');
+                card2.card.classList.add('matched');
+                matchedPairs++;
+                memoryGameScore += 20;
+                document.getElementById('memory-score').textContent = memoryGameScore;
+                playSuccessSound();
+                createParticles(card1.card);
+                flippedCards = [];
+                isFlipping = false;
+                
+                if (matchedPairs === 6) {
+                    memoryGameScore += 50; // Bonus for completing all pairs
+                    document.getElementById('memory-score').textContent = memoryGameScore;
+                    showMessage('🎉 Alle par funnet! Bonus: +50 poeng! 🎉');
+                }
+            }, 500);
+        } else {
+            // No match
+            setTimeout(() => {
+                card1.card.classList.remove('flipped');
+                card2.card.classList.remove('flipped');
+                card1.card.innerHTML = '<div class="memory-card-back">?</div>';
+                card2.card.innerHTML = '<div class="memory-card-back">?</div>';
+                flippedCards = [];
+                isFlipping = false;
+            }, 1000);
+        }
+    }
+}
+
+// ==================== JUMP GAME ====================
+let jumpGameInterval = null;
+let jumpGameTime = 45;
+let jumpGameScore = 0;
+let jumpCatPosition = 50; // Bottom position in %
+let isJumping = false;
+let obstacles = [];
+
+function startJumpGame() {
+    document.getElementById('jump-game-area').style.display = 'block';
+    jumpGameScore = 0;
+    jumpGameTime = 45;
+    jumpCatPosition = 50;
+    isJumping = false;
+    obstacles = [];
+    document.getElementById('jump-score').textContent = '0';
+    document.getElementById('jump-time').textContent = '45';
+    
+    const container = document.getElementById('jump-container');
+    container.innerHTML = `
+        <div class="jump-game-area">
+            <div class="jump-cat" id="jump-cat" style="bottom: ${jumpCatPosition}%;">🐱</div>
+            <div class="jump-ground"></div>
+        </div>
+    `;
+    
+    const jumpCat = document.getElementById('jump-cat');
+    
+    // Jump on spacebar or click
+    const handleJump = () => {
+        if (!isJumping && jumpGameTime > 0) {
+            isJumping = true;
+            jumpCat.style.bottom = '70%';
+            jumpCat.style.transition = 'bottom 0.3s';
+            
+            setTimeout(() => {
+                jumpCat.style.bottom = '50%';
+                jumpCat.style.transition = 'bottom 0.3s';
+                setTimeout(() => {
+                    isJumping = false;
+                }, 300);
+            }, 300);
+        }
+    };
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && document.getElementById('jump-game-area').style.display === 'block') {
+            e.preventDefault();
+            handleJump();
+        }
+    });
+    
+    container.addEventListener('click', handleJump);
+    
+    const timer = setInterval(() => {
+        jumpGameTime--;
+        document.getElementById('jump-time').textContent = jumpGameTime;
+        if (jumpGameTime <= 0) {
+            clearInterval(timer);
+            if (jumpGameInterval) clearInterval(jumpGameInterval);
+            document.removeEventListener('keydown', handleJump);
+            gameState.coins += Math.floor(jumpGameScore / 10);
+            gameState.stats.minigameScore += jumpGameScore;
+            gameState.score += jumpGameScore;
+            updateDailyChallengeProgress('minigame');
+            showMessage(`Tid er ute! Du fikk ${jumpGameScore} poeng! +${Math.floor(jumpGameScore/10)} mynter! 🦘`);
+            container.innerHTML = `<button class="action-btn" onclick="startJumpGame()">Spill igjen</button>`;
+            updateStats();
+            renderStats();
+            saveGame();
+        }
+    }, 1000);
+    
+    // Spawn obstacles
+    jumpGameInterval = setInterval(() => {
+        if (jumpGameTime <= 0) return;
+        
+        const obstacle = document.createElement('div');
+        obstacle.className = 'jump-obstacle';
+        obstacle.style.right = '0%';
+        obstacle.style.bottom = '50%';
+        obstacle.textContent = '🪨';
+        container.querySelector('.jump-game-area').appendChild(obstacle);
+        
+        let obstaclePosition = 0;
+        const moveObstacle = setInterval(() => {
+            if (jumpGameTime <= 0) {
+                clearInterval(moveObstacle);
+                return;
+            }
+            
+            obstaclePosition += 2;
+            obstacle.style.right = obstaclePosition + '%';
+            
+            // Check collision
+            const catRect = jumpCat.getBoundingClientRect();
+            const obstacleRect = obstacle.getBoundingClientRect();
+            
+            if (obstaclePosition > 100) {
+                // Obstacle passed
+                jumpGameScore += 5;
+                document.getElementById('jump-score').textContent = jumpGameScore;
+                obstacle.remove();
+                clearInterval(moveObstacle);
+            } else if (!isJumping && obstaclePosition > 70 && obstaclePosition < 90) {
+                // Collision
+                obstacle.remove();
+                clearInterval(moveObstacle);
+                jumpGameScore = Math.max(0, jumpGameScore - 10);
+                document.getElementById('jump-score').textContent = jumpGameScore;
+                playErrorSound();
+            }
+        }, 50);
+    }, 2000);
+}
+
 // ==================== KATTESKOLE ====================
 
 // Math Game (Kattergening)

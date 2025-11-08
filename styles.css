@@ -3273,6 +3273,113 @@ body.easter {
     font-family: 'Nunito', sans-serif;
 }
 
+/* Memory Game Styles */
+.memory-container {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+    border-radius: 15px;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #5f3dc4;
+}
+
+.memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.memory-card {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    border: 4px solid white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.memory-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.memory-card.flipped {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    transform: rotateY(180deg);
+}
+
+.memory-card.matched {
+    background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    cursor: default;
+    opacity: 0.7;
+}
+
+.memory-card-back, .memory-card-front {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+/* Jump Game Styles */
+.jump-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 3px solid #0984e3;
+}
+
+.jump-game-area {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, #87CEEB 0%, #98D8C8 50%, #6c5ce7 100%);
+}
+
+.jump-cat {
+    position: absolute;
+    left: 20%;
+    font-size: 60px;
+    transition: bottom 0.3s ease;
+    z-index: 10;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.jump-ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to top, #6c5ce7 0%, #a29bfe 100%);
+    border-top: 4px solid #5f3dc4;
+}
+
+.jump-obstacle {
+    position: absolute;
+    font-size: 50px;
+    z-index: 5;
+    transition: right 0.05s linear;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
 @media (max-width: 480px) {
     .reading-image {
         font-size: 80px;
