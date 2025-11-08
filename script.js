@@ -1784,7 +1784,7 @@ function addGroupChallenge() {
     
     loadExistingChallenges();
     updateGroupChallenge();
-    showMessage('✅ Utfordring lagt til!');
+    showMessage(t('challengeAdded'));
     playSuccessSound();
 }
 
@@ -3059,7 +3059,7 @@ document.getElementById('feed-btn').addEventListener('click', () => {
     gameState.score += Math.floor(5 * bonus);
     updateActionCounters('feed');
     playEatSound();
-    showMessage('Mmm, takk! 🍖😸');
+    showMessage(t('feedMessage'));
     showFood('meat', 2000);
     createParticles(document.getElementById('feed-btn'), 'food');
     animateCatAction('feed');
@@ -3069,7 +3069,7 @@ document.getElementById('feed-btn').addEventListener('click', () => {
 
 document.getElementById('play-btn').addEventListener('click', () => {
     if (isActionOnCooldown('play', 3)) {
-        showMessage('Katten leker allerede! Vent litt... ⏳');
+        showMessage(t('catAlreadyPlaying'));
         return;
     }
     
@@ -3087,7 +3087,7 @@ document.getElementById('play-btn').addEventListener('click', () => {
     gameState.score += Math.floor(10 * bonus);
     updateActionCounters('play');
     playPlaySound();
-    showMessage('Så morsomt! La oss leke mer! 🎾😸');
+    showMessage(t('playMessage'));
     createParticles(document.getElementById('play-btn'), 'play');
     animateCatAction('play');
     updateStats();
@@ -3109,7 +3109,7 @@ document.getElementById('pet-btn').addEventListener('click', () => {
     gameState.score += Math.floor(8 * bonus);
     updateActionCounters('pet');
     playPurrSound();
-    showMessage('Purr purr purr... ❤️😸');
+    showMessage(t('petMessage'));
     createParticles(document.getElementById('pet-btn'), 'love');
     animateCatAction('pet');
     updateStats();
@@ -3118,7 +3118,7 @@ document.getElementById('pet-btn').addEventListener('click', () => {
 
 document.getElementById('sleep-btn').addEventListener('click', () => {
     if (isActionOnCooldown('sleep', 5)) {
-        showMessage('Katten sover allerede! La den sove lenger... 😴');
+        showMessage(t('catAlreadySleeping'));
         return;
     }
     
@@ -3136,7 +3136,7 @@ document.getElementById('sleep-btn').addEventListener('click', () => {
     gameState.score += Math.floor(7 * bonus);
     updateActionCounters('sleep');
     playSleepSound();
-    showMessage('Zzz... Takk for roen 😴');
+    showMessage(t('sleepMessage'));
     showBed(3000);
     animateCatAction('sleep');
     updateStats();
@@ -3144,7 +3144,7 @@ document.getElementById('sleep-btn').addEventListener('click', () => {
 
 document.getElementById('clean-btn').addEventListener('click', () => {
     if (isActionOnCooldown('clean', 4)) {
-        showMessage('Katten er allerede ren! Vent litt... ⏳');
+        showMessage(t('catAlreadyClean'));
         return;
     }
     
@@ -3161,7 +3161,7 @@ document.getElementById('clean-btn').addEventListener('click', () => {
     gameState.energy = Math.max(0, gameState.energy - 5);
     gameState.score += Math.floor(6 * bonus);
     updateActionCounters('clean');
-    showMessage('Så rent og fint! 🛁✨');
+    showMessage(t('cleanMessage'));
     createParticles(document.getElementById('clean-btn'));
     animateCatAction('clean');
     updateStats();
@@ -3190,7 +3190,7 @@ document.getElementById('pizza-btn').addEventListener('click', () => {
     updateActionCounters('pizza');
     playEatSound();
     setTimeout(() => playHappySound(), 200);
-    showMessage('Mmm, pizza er så godt! 🍕😻');
+    showMessage(t('pizzaMessage'));
     showFood('pizza', 2000);
     createParticles(document.getElementById('pizza-btn'));
     updateStats();
@@ -3219,7 +3219,7 @@ document.getElementById('bottle-btn').addEventListener('click', () => {
     updateActionCounters('bottle');
     playEatSound();
     setTimeout(() => playPurrSound(), 150);
-    showMessage('Mmm, koselig! 🍼😸');
+    showMessage(t('bottleMessage'));
     showFood('bottle', 2000);
     createParticles(document.getElementById('bottle-btn'));
     updateStats();
@@ -3242,7 +3242,7 @@ document.getElementById('hand-btn').addEventListener('click', () => {
     updateActionCounters('hand');
     playPurrSound();
     setTimeout(() => playMeowSound(), 300);
-    showMessage('Purr purr... Så godt! 👋😸');
+    showMessage(t('handMessage'));
     createParticles(document.getElementById('hand-btn'));
     updateStats();
 });
@@ -3255,7 +3255,7 @@ document.getElementById('game-cat').addEventListener('click', () => {
         updateActionCounters('click');
         playClickSound();
         setTimeout(() => playMeowSound(), 100);
-        showMessage('Hei! 👋😸');
+        showMessage(t('catClickMessage'));
         createParticles(document.getElementById('game-cat'));
     updateStats();
 });
@@ -4813,7 +4813,7 @@ function flipCard(card, index) {
                 if (matchedPairs === 6) {
                     memoryGameScore += 50; // Bonus for completing all pairs
                     document.getElementById('memory-score').textContent = memoryGameScore;
-                    showMessage('🎉 Alle par funnet! Bonus: +50 poeng! 🎉');
+                    showMessage(t('allPairsFound'));
                 }
             }, 500);
         } else {
