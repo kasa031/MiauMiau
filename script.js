@@ -235,6 +235,102 @@ const translations = {
         success: 'Success!',
         error: 'Error!',
         loading: 'Loading...',
+        
+        // Game messages
+        feedMessage: 'Mmm, thanks! 🍖😸',
+        playMessage: 'So fun! Let\'s play more! 🎾😸',
+        petMessage: 'Purr purr purr... ❤️😸',
+        sleepMessage: 'Zzz... Thanks for the peace 😴',
+        cleanMessage: 'So clean and nice! 🛁✨',
+        pizzaMessage: 'Yummy pizza! 🍕😸',
+        bottleMessage: 'Mmm, milk! 🍼😸',
+        handMessage: 'Purr purr... So good! 👋😸',
+        catClickMessage: 'Meow! Hello! 👋😸',
+        
+        // Error messages
+        loadError: 'Error loading game data. Try reloading the page.',
+        saveError: 'Could not save game data. Check browser settings.',
+        exportError: 'You must be logged in to export data!',
+        importError: 'You must be logged in to import data!',
+        invalidFile: '❌ Invalid file format!',
+        importSuccess: '✅ Game data imported!',
+        
+        // Group messages
+        groupCreateSuccess: '🎉 Group "{name}" created! You can now share the password with friends! 🎉',
+        groupJoinSuccess: '🎉 You are now in the group "{name}"! 🎉',
+        groupLeaveSuccess: 'You have left the group.',
+        groupNotFound: 'Group not found! Check that the group name is correct.',
+        wrongPassword: 'Wrong password! Try again.',
+        alreadyInGroup: 'You are already a member of this group!',
+        alreadyInAnotherGroup: 'You are already in a group! Leave it first to join another.',
+        groupNameExists: 'Group name is already in use!',
+        groupNameTooShort: 'Group name must be at least 3 characters!',
+        passwordTooShort: 'Password must be at least 3 characters!',
+        fillAllFields: 'Please fill in all fields!',
+        
+        // Friend messages
+        friendRequestSent: '✅ Friend request sent to {username}!',
+        friendAdded: '✅ You are now friends with {username}! 🎉',
+        friendRequestRejected: 'Friend request from {username} rejected',
+        friendRemoved: '{username} removed as friend',
+        alreadyFriends: 'You are already friends with this user!',
+        requestAlreadySent: 'You have already sent a friend request to this user!',
+        userNotFound: 'User not found!',
+        cannotAddSelf: 'You cannot add yourself!',
+        enterUsername: 'Enter a username!',
+        mustBeLoggedIn: 'You must be logged in!',
+        
+        // Gift messages
+        notEnoughCoins: 'You need at least 10 coins to send a gift! 💰',
+        giftSent: '🎁 You sent {amount} coins to {username}!',
+        giftReceived: '🎁 You received {amount} coins from {from}!',
+        
+        // Challenge messages
+        challengeAdded: '✅ Challenge added!',
+        challengeRemoved: '🗑️ Challenge removed',
+        challengeCompleted: '🎉 Challenge completed: {desc}! All members got +50 coins and +100 points! 🎉',
+        
+        // Profile messages
+        imageTooLarge: 'Image is too large! Maximum size is 5MB.',
+        profileImageUploaded: 'Profile image uploaded! 💾',
+        badgeSelected: 'Badge selected! 🎀',
+        profileSaved: 'Profile saved! ✅',
+        
+        // Cooldown messages
+        actionOnCooldown: 'Action is on cooldown! Wait a bit... ⏳',
+        catAlreadyPlaying: 'The cat is already playing! Wait a bit... ⏳',
+        catAlreadyPetting: 'The cat is already being petted! Wait a bit... ⏳',
+        catAlreadySleeping: 'The cat is already sleeping! Let it sleep longer... 😴',
+        catAlreadyClean: 'The cat is already clean! Wait a bit... ⏳',
+        
+        // Quest messages
+        questCompleted: '🎉 Quest completed: {name}! You got {reward} coins! 🎁',
+        
+        // Achievement messages
+        achievementUnlocked: '🏆 Achievement unlocked: {name}! +{reward} coins! 🏆',
+        
+        // Daily reward messages
+        dailyRewardClaimed: '🎁 Daily reward claimed! You got {coins} coins!',
+        streakBonus: '🔥 {days} day streak! Bonus: +{bonus} coins! 🔥',
+        
+        // Minigame messages
+        timeUp: 'Time\'s up! You got {score} points! +{coins} coins!',
+        memoryTimeUp: 'Time\'s up! You got {score} points and found {pairs} pairs! +{coins} coins! 🧠',
+        allPairsFound: '🎉 All pairs found! Bonus: +50 points! 🎉',
+        
+        // Trick messages
+        trickLearned: '🎉 Amazing! The cat learned the trick "{name}"! +50 points and +25 coins! {emoji}',
+        trickAlreadyKnown: 'The cat already knows "{name}"! It does it perfectly! {emoji}',
+        trickFailed: 'The cat didn\'t learn the trick this time. Try again! 💪',
+        catTooTired: 'The cat is too tired to learn tricks now! Let it rest first! 😴',
+        catNotHappy: 'The cat is not happy enough! Pet and feed it first! ❤️',
+        
+        // Level messages
+        levelUp: '🎉 Level {level}! Great job! Continue taking care of the cat! 🎉',
+        
+        // Other
+        notInGroup: 'You are not in any group!',
+        groupNoLongerExists: 'Group no longer exists!',
     }
 };
 
