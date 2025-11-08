@@ -191,8 +191,12 @@ const translations = {
         
         // Gift messages
         notEnoughCoins: 'Du trenger minst 10 mynter for å sende en gave! 💰',
+        notEnoughCoinsGeneral: 'Du har ikke nok mynter! 💰',
+        maxGiftAmount: 'Du kan maksimalt sende 100 mynter om gangen!',
         giftSent: '🎁 Du sendte {amount} mynter til {username}!',
         giftReceived: '🎁 Du mottok {amount} mynter fra {from}!',
+        giftSendError: 'Kunne ikke sende gave. Prøv igjen.',
+        friendNotFound: 'Kunne ikke finne vennen. Prøv igjen.',
         
         // Challenge messages
         challengeAdded: '✅ Utfordring lagt til!',
@@ -211,6 +215,14 @@ const translations = {
         catAlreadyPetting: 'Katten koser allerede! Vent litt... ⏳',
         catAlreadySleeping: 'Katten sover allerede! La den sove lenger... 😴',
         catAlreadyClean: 'Katten er allerede ren! Vent litt... ⏳',
+        catAlreadyEating: 'Katten spiser allerede! Vent litt... ⏳',
+        catAlreadyDrinking: 'Katten drikker allerede! Vent litt... ⏳',
+        catFull: 'Katten er mett! Den trenger ikke mer mat nå. 😊',
+        catNotHungry: 'Katten er ikke sulten nok til tåteflaske nå. 😊',
+        catTooHappy: 'Katten er allerede veldig glad! Den trenger ikke vask nå! 😊',
+        catTooEnergetic: 'Katten er ikke sliten nok til å sove nå! Den vil heller leke! 🎾',
+        catTooTired: 'Jeg er for sliten... La meg hvile først! 😴',
+        cooldownSkipped: '💰 Kjøpt deg fri! -{cost} mynter',
         
         // Quest messages
         questCompleted: '🎉 Oppdrag fullført: {name}! Du fikk {reward} mynter! 🎁',
@@ -379,8 +391,12 @@ const translations = {
         
         // Gift messages
         notEnoughCoins: 'You need at least 10 coins to send a gift! 💰',
+        notEnoughCoinsGeneral: 'You don\'t have enough coins! 💰',
+        maxGiftAmount: 'You can send a maximum of 100 coins at a time!',
         giftSent: '🎁 You sent {amount} coins to {username}!',
         giftReceived: '🎁 You received {amount} coins from {from}!',
+        giftSendError: 'Could not send gift. Try again.',
+        friendNotFound: 'Could not find friend. Try again.',
         
         // Challenge messages
         challengeAdded: '✅ Challenge added!',
@@ -399,6 +415,14 @@ const translations = {
         catAlreadyPetting: 'The cat is already being petted! Wait a bit... ⏳',
         catAlreadySleeping: 'The cat is already sleeping! Let it sleep longer... 😴',
         catAlreadyClean: 'The cat is already clean! Wait a bit... ⏳',
+        catAlreadyEating: 'The cat is already eating! Wait a bit... ⏳',
+        catAlreadyDrinking: 'The cat is already drinking! Wait a bit... ⏳',
+        catFull: 'The cat is full! It doesn\'t need more food now. 😊',
+        catNotHungry: 'The cat is not hungry enough for a bottle now. 😊',
+        catTooHappy: 'The cat is already very happy! It doesn\'t need a bath now! 😊',
+        catTooEnergetic: 'The cat is not tired enough to sleep now! It would rather play! 🎾',
+        catTooTired: 'I\'m too tired... Let me rest first! 😴',
+        cooldownSkipped: '💰 Bought your way out! -{cost} coins',
         
         // Quest messages
         questCompleted: '🎉 Quest completed: {name}! You got {reward} coins! 🎁',
@@ -1136,7 +1160,7 @@ function generateGroupId() {
 
 function createGroup() {
     if (!currentUser) {
-        showMessage('Du må være innlogget for å opprette en gruppe!');
+        showMessage(t('mustBeLoggedIn'));
         return;
     }
     
@@ -1144,12 +1168,12 @@ function createGroup() {
     const groupPassword = document.getElementById('new-group-password').value;
     
     if (!groupName || groupName.length < 3) {
-        showMessage('Gruppenavn må være minst 3 tegn!');
+        showMessage(t('groupNameTooShort'));
         return;
     }
     
     if (!groupPassword || groupPassword.length < 3) {
-        showMessage('Passord må være minst 3 tegn!');
+        showMessage(t('passwordTooShort'));
         return;
     }
     
@@ -1158,7 +1182,7 @@ function createGroup() {
     // Check if group name already exists
     const existingGroup = Object.values(groups).find(g => g.name.toLowerCase() === groupName.toLowerCase());
     if (existingGroup) {
-        showMessage('Gruppenavnet er allerede i bruk!');
+        showMessage(t('groupNameExists'));
         return;
     }
     
@@ -1198,13 +1222,13 @@ function createGroup() {
     document.getElementById('new-group-password').value = '';
     
     updateGroupDisplay();
-    showMessage(`🎉 Gruppa "${groupName}" er opprettet! Du kan nå dele passordet med venner! 🎉`);
+    showMessage(t('groupCreateSuccess', { name: groupName }));
     playSuccessSound();
 }
 
 function joinGroup() {
     if (!currentUser) {
-        showMessage('Du må være innlogget for å bli med i en gruppe!');
+        showMessage(t('mustBeLoggedIn'));
         return;
     }
     
@@ -1212,13 +1236,13 @@ function joinGroup() {
     const groupPassword = document.getElementById('join-group-password').value;
     
     if (!groupName || !groupPassword) {
-        showMessage('Vennligst fyll inn både gruppenavn og passord!');
+        showMessage(t('fillAllFields'));
         return;
     }
     
     // Check if user is already in a group
     if (gameState.groupId) {
-        showMessage('Du er allerede med i en gruppe! Forlat den først for å bli med i en annen.');
+        showMessage(t('alreadyInAnotherGroup'));
         return;
     }
     
@@ -1226,13 +1250,13 @@ function joinGroup() {
     const group = Object.values(groups).find(g => g.name.toLowerCase() === groupName.toLowerCase());
     
     if (!group) {
-        showMessage('Gruppen finnes ikke! Sjekk at gruppenavnet er riktig.');
+        showMessage(t('groupNotFound'));
         playErrorSound();
         return;
     }
     
     if (group.password !== groupPassword) {
-        showMessage('Feil passord! Prøv igjen.');
+        showMessage(t('wrongPassword'));
         playErrorSound();
         return;
     }
@@ -1243,7 +1267,7 @@ function joinGroup() {
         gameState.groupRole = group.owner === currentUser ? 'owner' : 'member';
         saveGame();
         updateGroupDisplay();
-        showMessage('Du er allerede medlem av denne gruppen!');
+        showMessage(t('alreadyInGroup'));
         return;
     }
     
@@ -1265,7 +1289,7 @@ function joinGroup() {
     document.getElementById('join-group-password').value = '';
     
     updateGroupDisplay();
-    showMessage(`🎉 Du er nå med i gruppen "${group.name}"! 🎉`);
+    showMessage(t('groupJoinSuccess', { name: group.name }));
     playSuccessSound();
 }
 
@@ -1314,7 +1338,7 @@ function leaveGroup() {
     saveGame();
     
     updateGroupDisplay();
-    showMessage('Du har forlatt gruppen.');
+    showMessage(t('groupLeaveSuccess'));
     playClickSound();
 }
 
@@ -1364,7 +1388,7 @@ function viewGroupStats() {
     const group = groups[gameState.groupId];
     
     if (!group) {
-        showMessage('Gruppen finnes ikke lenger!');
+        showMessage(t('groupNoLongerExists'));
         return;
     }
     
@@ -1749,7 +1773,7 @@ function addGroupChallenge() {
     const target = parseInt(document.getElementById('new-challenge-target').value);
     
     if (!desc || !target || target < 1) {
-        showMessage('Vennligst fyll inn alle feltene!');
+        showMessage(t('fillAllFields'));
         return;
     }
     
@@ -1802,7 +1826,7 @@ function removeGroupChallenge(index) {
         localStorage.setItem(challengesKey, JSON.stringify(challenges));
         loadExistingChallenges();
         updateGroupChallenge();
-        showMessage('🗑️ Utfordring fjernet');
+        showMessage(t('challengeRemoved'));
         playClickSound();
     }
 }
@@ -1891,7 +1915,7 @@ function updateGroupChallenge() {
                     localStorage.setItem(`miaumiauGame_${member}`, JSON.stringify(memberState));
                 }
             });
-            showMessage(`🎉 Utfordring fullført: ${challenge.desc}! Alle medlemmer fikk +50 mynter og +100 poeng! 🎉`);
+            showMessage(t('challengeCompleted', { desc: challenge.desc }));
             playSuccessSound();
         }
     });
@@ -1966,33 +1990,33 @@ function sendFriendRequest() {
     const username = document.getElementById('friend-username-input').value.trim();
     
     if (!username) {
-        showMessage('Skriv inn et brukernavn!');
+        showMessage(t('enterUsername'));
         return;
     }
     
     if (username === currentUser) {
-        showMessage('Du kan ikke legge til deg selv!');
+        showMessage(t('cannotAddSelf'));
         return;
     }
     
     // Check if user exists
     const users = getUsers();
     if (!users[username]) {
-        showMessage('Brukeren finnes ikke!');
+        showMessage(t('userNotFound'));
         return;
     }
     
     // Check if already friends
     const friends = getFriends();
     if (friends[currentUser] && friends[currentUser].includes(username)) {
-        showMessage('Du er allerede venner med denne brukeren!');
+        showMessage(t('alreadyFriends'));
         return;
     }
     
     // Check if request already sent
     const requests = getFriendRequests();
     if (requests[username] && requests[username].includes(currentUser)) {
-        showMessage('Du har allerede sendt en vennforespørsel til denne brukeren!');
+        showMessage(t('requestAlreadySent'));
         return;
     }
     
@@ -2002,7 +2026,7 @@ function sendFriendRequest() {
     saveFriendRequests(requests);
     
     document.getElementById('friend-username-input').value = '';
-    showMessage(`✅ Vennforespørsel sendt til ${username}!`);
+    showMessage(t('friendRequestSent', { username }));
     playSuccessSound();
     updateFriendsDisplay();
 }
@@ -2029,7 +2053,7 @@ function acceptFriendRequest(fromUser) {
     }
     saveFriends(friends);
     
-    showMessage(`✅ Du er nå venner med ${fromUser}! 🎉`);
+    showMessage(t('friendAdded', { username: fromUser }));
     playSuccessSound();
     updateFriendsDisplay();
 }
@@ -2043,7 +2067,7 @@ function rejectFriendRequest(fromUser) {
     requests[currentUser] = requests[currentUser].filter(u => u !== fromUser);
     saveFriendRequests(requests);
     
-    showMessage(`Vennforespørsel fra ${fromUser} avvist`);
+    showMessage(t('friendRequestRejected', { username: fromUser }));
     playClickSound();
     updateFriendsDisplay();
 }
@@ -2062,7 +2086,7 @@ function removeFriend(friendUsername) {
     }
     saveFriends(friends);
     
-    showMessage(`${friendUsername} fjernet som venn`);
+    showMessage(t('friendRemoved', { username: friendUsername }));
     playClickSound();
     updateFriendsDisplay();
 }
@@ -2236,7 +2260,7 @@ function sendGiftToFriend(friendUsername) {
     if (!currentUser) return;
     
     if (gameState.coins < 10) {
-        showMessage('Du trenger minst 10 mynter for å sende en gave! 💰');
+        showMessage(t('notEnoughCoins'));
         return;
     }
     
@@ -2248,12 +2272,12 @@ function sendGiftToFriend(friendUsername) {
     }
     
     if (amount > gameState.coins) {
-        showMessage('Du har ikke nok mynter! 💰');
+        showMessage(t('notEnoughCoinsGeneral'));
         return;
     }
     
     if (amount > 100) {
-        showMessage('Du kan maksimalt sende 100 mynter om gangen!');
+        showMessage(t('maxGiftAmount'));
         return;
     }
     
@@ -2288,17 +2312,17 @@ function sendGiftToFriend(friendUsername) {
             }
             safeLocalStorageSet(notificationsKey, JSON.stringify(notifications));
             
-            showMessage(`🎁 Du sendte ${amount} mynter til ${friendUsername}!`);
+            showMessage(t('giftSent', { amount, username: friendUsername }));
             playSuccessSound();
             updateAllDisplays();
         } catch (e) {
-            showMessage('Kunne ikke sende gave. Prøv igjen.');
+            showMessage(t('giftSendError'));
             // Refund coins
             gameState.coins += amount;
             saveGame();
         }
     } else {
-        showMessage('Kunne ikke finne vennen. Prøv igjen.');
+        showMessage(t('friendNotFound'));
         // Refund coins
         gameState.coins += amount;
         saveGame();
@@ -3032,7 +3056,7 @@ function skipCooldown(actionId, buttonId, cost, originalText) {
     }
     
     playBuySound();
-    showMessage(`💰 Kjøpt deg fri! -${cost} mynter`);
+    showMessage(t('cooldownSkipped', { cost }));
     updateAllDisplays();
     saveGame();
 }
@@ -3045,7 +3069,7 @@ document.getElementById('feed-btn').addEventListener('click', () => {
     }
     
     if (gameState.hunger < 10) {
-        showMessage('Katten er mett! Den trenger ikke mer mat nå. 😊');
+        showMessage(t('catFull'));
         return;
     }
     
@@ -3074,7 +3098,7 @@ document.getElementById('play-btn').addEventListener('click', () => {
     }
     
     if (gameState.energy < 20) {
-        showMessage('Jeg er for sliten... La meg hvile først! 😴');
+        showMessage(t('catTooTired'));
         return;
     }
     
@@ -3123,7 +3147,7 @@ document.getElementById('sleep-btn').addEventListener('click', () => {
     }
     
     if (gameState.energy > 80) {
-        showMessage('Katten er ikke sliten nok til å sove nå! Den vil heller leke! 🎾');
+        showMessage(t('catTooEnergetic'));
         return;
     }
     
@@ -3149,7 +3173,7 @@ document.getElementById('clean-btn').addEventListener('click', () => {
     }
     
     if (gameState.happiness > 90) {
-        showMessage('Katten er allerede veldig glad! Den trenger ikke vask nå! 😊');
+        showMessage(t('catTooHappy'));
         return;
     }
     
@@ -3199,12 +3223,12 @@ document.getElementById('pizza-btn').addEventListener('click', () => {
 // Bottle action
 document.getElementById('bottle-btn').addEventListener('click', () => {
     if (isActionOnCooldown('bottle', 2.5)) {
-        showMessage('Katten drikker allerede! Vent litt... ⏳');
+        showMessage(t('catAlreadyDrinking'));
         return;
     }
     
     if (gameState.hunger < 10) {
-        showMessage('Katten er ikke sulten nok til tåteflaske nå. 😊');
+        showMessage(t('catNotHungry'));
         return;
     }
     
@@ -3371,7 +3395,7 @@ function buyItem(itemId) {
         updateAllDisplays();
         saveGame();
     } else {
-        showMessage('Du har ikke nok mynter! 💰');
+        showMessage(t('notEnoughCoinsGeneral'));
     }
 }
 
@@ -3510,7 +3534,7 @@ function checkAchievements() {
             const reward = achievement.target >= 100 ? 100 : 50; // More coins for harder achievements
             gameState.coins += reward;
             playSuccessSound();
-            showMessage(`🏆 Bedrift oppnådd: ${achievement.name}! +${reward} mynter! 🏆`);
+            showMessage(t('achievementUnlocked', { name: achievement.name, reward }));
             saveGame();
         }
     });
@@ -5627,12 +5651,12 @@ function useItem(itemId) {
     }
     
     if (item.useType === 'play' && gameState.energy < 20) {
-        showMessage('Jeg er for sliten... La meg hvile først! 😴');
+        showMessage(t('catTooTired'));
         return;
     }
     
     if (item.useType === 'sleep' && gameState.energy > 80) {
-        showMessage('Katten er ikke sliten nok til å sove nå! Den vil heller leke! 🎾');
+        showMessage(t('catTooEnergetic'));
         return;
     }
     
@@ -6031,7 +6055,7 @@ function completeQuest(quest) {
         
         checkAchievements();
         playSuccessSound();
-        showMessage(`🎉 Oppdrag fullført: ${quest.name}! Du fikk ${quest.reward} mynter! 🎁`);
+        showMessage(t('questCompleted', { name: quest.name, reward: quest.reward }));
         updateAllDisplays();
         saveGame();
         log('info', 'Quest completed', { questId: quest.id, reward: quest.reward });
