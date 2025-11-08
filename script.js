@@ -2382,7 +2382,7 @@ function checkGiftNotifications() {
         
         // Only show if received in last 5 minutes
         if (timeAgo < 5 * 60 * 1000) {
-            showMessage(`🎁 Du mottok ${newestGift.amount} mynter fra ${newestGift.from}!`);
+            showMessage(t('giftReceivedMessage', { amount: newestGift.amount, from: newestGift.from }));
             playSuccessSound();
             
             // Clear notifications after showing
@@ -3080,7 +3080,7 @@ function updateButtonCooldown(buttonId, cooldownSeconds, actionId) {
 
 function skipCooldown(actionId, buttonId, cost, originalText) {
     if (gameState.coins < cost) {
-        showMessage(`Du har ikke nok mynter! Trenger ${cost} mynter. 💰`);
+        showMessage(t('notEnoughCoinsForSkip', { cost }));
         return;
     }
     
@@ -3104,7 +3104,7 @@ function skipCooldown(actionId, buttonId, cost, originalText) {
 // Game actions
 document.getElementById('feed-btn').addEventListener('click', () => {
     if (isActionOnCooldown('feed', 2)) {
-        showMessage('Katten spiser allerede! Vent litt... ⏳');
+        showMessage(t('catAlreadyPlaying'));
         return;
     }
     
@@ -3160,7 +3160,7 @@ document.getElementById('play-btn').addEventListener('click', () => {
 
 document.getElementById('pet-btn').addEventListener('click', () => {
     if (isActionOnCooldown('pet', 1.5)) {
-        showMessage('Katten koser allerede! Vent litt... ⏳');
+        showMessage(t('catAlreadyPetting'));
         return;
     }
     
@@ -3234,12 +3234,12 @@ document.getElementById('clean-btn').addEventListener('click', () => {
 // Pizza action
 document.getElementById('pizza-btn').addEventListener('click', () => {
     if (isActionOnCooldown('pizza', 3)) {
-        showMessage('Katten spiser allerede! Vent litt... ⏳');
+        showMessage(t('catAlreadyPlaying'));
         return;
     }
     
     if (gameState.hunger < 15) {
-        showMessage('Katten er mett! Den trenger ikke pizza nå. 😊');
+        showMessage(t('catFull'));
         return;
     }
     
@@ -3292,7 +3292,7 @@ document.getElementById('bottle-btn').addEventListener('click', () => {
 // Hand pet action
 document.getElementById('hand-btn').addEventListener('click', () => {
     if (isActionOnCooldown('hand', 2)) {
-        showMessage('Katten koser allerede! Vent litt... ⏳');
+        showMessage(t('catAlreadyPetting'));
         return;
     }
     
@@ -3707,7 +3707,7 @@ function updateDailyChallenge() {
         gameState.coins += challenge.reward;
         gameState.challengeCompleted = true;
         playChallengeSound();
-        showMessage(`🎉 Daglig utfordring fullført! +${challenge.reward} mynter! 🎉`);
+        showMessage(t('dailyChallengeCompleted', { reward: challenge.reward }));
         if (currentUser) {
             localStorage.setItem(`dailyChallenge_${currentUser}`, JSON.stringify(challenge));
         }
@@ -3855,18 +3855,18 @@ function teachCatTrick(trick) {
         gameState.coins += 25;
         checkAchievements(); // Check if all tricks learned
         playSuccessSound();
-        showMessage(`🎉 Fantastisk! Katten lærte trikset "${trickNames[trick]}"! +50 poeng og +25 mynter! ${trickEmojis[trick]}`);
+        showMessage(t('trickLearned', { name: trickNames[trick], emoji: trickEmojis[trick] }));
         
         // Show trick animation
         performCatTrick(trick);
         createParticles(document.getElementById('game-cat'), 'trick');
     } else if (learned) {
         playPurrSound();
-        showMessage(`Katten kan allerede "${trickNames[trick]}"! Den gjør det perfekt! ${trickEmojis[trick]}`);
+        showMessage(t('trickAlreadyKnown', { name: trickNames[trick], emoji: trickEmojis[trick] }));
         performCatTrick(trick);
     } else {
         playErrorSound();
-        showMessage(`Katten prøvde, men klarte det ikke denne gangen. Prøv igjen! 💪`);
+        showMessage(t('trickFailed'));
     }
     
     updateAllDisplays();
@@ -4959,7 +4959,7 @@ function startJumpGame() {
             gameState.stats.minigameScore += jumpGameScore;
             gameState.score += jumpGameScore;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${jumpGameScore} poeng! +${Math.floor(jumpGameScore/10)} mynter! 🦘`);
+            showMessage(t('jumpTimeUp', { score: jumpGameScore, coins: Math.floor(jumpGameScore/10) }));
             container.innerHTML = `<button class="action-btn" onclick="startJumpGame()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -5450,7 +5450,7 @@ function saveArtDrawing() {
     gameState.stats.artCreated = 1;
     checkAchievements();
     playSuccessSound();
-    showMessage('🎨 Tegningen er lagret! +20 poeng og +10 mynter!');
+    showMessage(t('drawingSaved'));
     updateAllDisplays();
     saveGame();
 }
