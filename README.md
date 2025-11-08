@@ -23,6 +23,11 @@ MiauMiau er et komplett katteparadis hvor du kan:
 - Kjøpe gjenstander i butikken
 - Se ulike katter i albumet
 - Lytte til musikk mens du spiller
+- **NYTT:** Bli med i grupper med venner
+- **NYTT:** Legg til venner og send gaver
+- **NYTT:** Chat med gruppemedlemmer
+- **NYTT:** Fullfør oppdrag og utfordringer
+- **NYTT:** Logg inn hver dag for streak-bonuser
 
 ## ✨ Hovedfunksjoner
 
@@ -63,9 +68,9 @@ MiauMiau er et komplett katteparadis hvor du kan:
 - Bruk items i spillet for ekstra effekt
 
 ### 🏆 Bedrifter (Achievements)
-- 22+ forskjellige achievements å oppnå
+- 50+ forskjellige achievements å oppnå
 - Belønninger med mynter
-- Kategorier: mat, leke, kose, nivå, poeng, minispill, mynter, items
+- Kategorier: mat, leke, kose, nivå, poeng, minispill, mynter, items, venner, grupper, oppdrag, streak, triks, skole
 
 ### 📸 Kattealbum
 - 7 forskjellige katter å låse opp
@@ -84,7 +89,7 @@ MiauMiau er et komplett katteparadis hvor du kan:
 8. **Lesespill** - Match ord med bilder (opplæringsspill)
 
 ### 🎓 Katteskole
-**4 fag å utforske:**
+**5 fag å utforske:**
 
 1. **🔢 Kattergening**
    - Lær regning med katter
@@ -109,6 +114,12 @@ MiauMiau er et komplett katteparadis hvor du kan:
    - Penn og viskelær
    - Lagre og se tegningene dine
 
+5. **🧠 Kattefakta Quiz** (NYTT!)
+   - Test kunnskapen din om katter
+   - 8 spørsmål med fakta
+   - Lær interessante ting om katter
+   - Få poeng for riktige svar
+
 ### 📊 Statistikk
 - Oversikt over alle handlinger
 - Total spilletid
@@ -127,6 +138,30 @@ MiauMiau er et komplett katteparadis hvor du kan:
 - Lagring av progress per bruker
 - Hver bruker har sin egen katt og progress
 - Data lagres lokalt i nettleseren
+- **NYTT:** Eksport/import av spilldata for backup
+
+### 👥 Grupper (NYTT!)
+- Opprett egne grupper med navn og passord
+- Bli med i venners grupper
+- Se gruppestatistikk og sammenlign med andre
+- Live chat med gruppemedlemmer
+- Administrer ukentlige gruppeutfordringer
+- Inviter venner til gruppen
+
+### 👫 Venner (NYTT!)
+- Send vennforespørsler til andre spillere
+- Se venners statistikk og sammenligne
+- Send gaver (mynter) til venner
+- Privat melding med venner
+- Vennetavle med ranking
+- Inviter venner til grupper
+
+### 📋 Oppdrag og Utfordringer (NYTT!)
+- Daglige oppdrag med belønninger
+- Ukentlige gruppeutfordringer
+- Streak-system: Logg inn hver dag for bonus
+- Notifikasjoner når katten trenger noe
+- 8 forskjellige oppdragstyper
 
 ## 📁 Filstruktur
 
@@ -201,12 +236,32 @@ Spillet er optimalisert for:
 
 - **Daglige utfordringer:** Nye oppgaver hver dag
 - **Daglige belønninger:** Hent belønning hver dag
+- **Streak-system:** Logg inn hver dag for økende bonus
 - **Kattetriks:** Lær katten triks basert på nivå
 - **Dynamiske GIF-er:** Katten viser ulike GIF-er basert på humør
 - **Bakgrunnstemaer:** Kjøp og bytt bakgrunnstema
 - **Touch-støtte:** Alle minispill fungerer på touch-skjermer
+- **Gruppechat:** Snakk med gruppemedlemmer i sanntid
+- **Vennsystem:** Legg til venner, send gaver og meldinger
+- **Oppdragssystem:** Fullfør oppdrag for belønninger
+- **Notifikasjoner:** Få beskjed når katten trenger noe
+- **Paginering:** Enkel navigasjon i butikken
+- **Emoji-picker:** Bruk emojis i chat
+- **Sikkerhet:** API-nøkler lagres sikkert (ikke i git)
 
 ## 📝 Oppdateringer
+
+### Siste versjon (v2.0)
+- ✅ Lagt til gruppesystem med passordbeskyttelse
+- ✅ Implementert vensystem med gaver og meldinger
+- ✅ Lagt til oppdragssystem med 8 oppdragstyper
+- ✅ Implementert streak-system for daglig innlogging
+- ✅ Lagt til live chat i grupper
+- ✅ Lagt til kattefakta quiz i katteskolen
+- ✅ Forbedret error handling og logging
+- ✅ Lagt til 30+ nye achievements
+- ✅ Implementert eksport/import av spilldata
+- ✅ Forbedret sikkerhet for API-nøkler
 
 Spillet er kontinuerlig utvidet med nye funksjoner. Sjekk GitHub for siste versjon!
 

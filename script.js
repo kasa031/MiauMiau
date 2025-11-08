@@ -445,7 +445,12 @@ let gameState = {
         catClicked: 0,
         totalPlayTime: 0,
         minigameScore: 0,
-        itemsUsed: {} // Track usage of each item
+        itemsUsed: {}, // Track usage of each item
+        giftsSent: 0, // Track gifts sent to friends
+        mathSolved: 0, // Track math problems solved
+        artCreated: 0, // Track art created
+        cookingPerfect: 0, // Track perfect cooking
+        groupTopScore: 0 // Track group top score
     },
     cats: [
         { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸', image: null },
@@ -480,39 +485,133 @@ let gameState = {
 
 const catEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱'];
 
+// ==================== LOGGING SYSTEM ====================
+const DEBUG_MODE = false; // Set to true to enable detailed logging
+
+function log(level, message, data = null) {
+    if (!DEBUG_MODE && level === 'debug') return;
+    
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
+    
+    switch(level) {
+        case 'error':
+            console.error(logMessage, data || '');
+            break;
+        case 'warn':
+            console.warn(logMessage, data || '');
+            break;
+        case 'info':
+            console.info(logMessage, data || '');
+            break;
+        case 'debug':
+            console.log(logMessage, data || '');
+            break;
+        default:
+            console.log(logMessage, data || '');
+    }
+}
+
+function safeJSONParse(jsonString, defaultValue = null) {
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        log('error', 'JSON parse error', { error: error.message, jsonString: jsonString?.substring(0, 100) });
+        return defaultValue;
+    }
+}
+
+function safeLocalStorageGet(key, defaultValue = null) {
+    try {
+        const value = localStorage.getItem(key);
+        return value !== null ? value : defaultValue;
+    } catch (error) {
+        log('error', 'LocalStorage get error', { error: error.message, key });
+        return defaultValue;
+    }
+}
+
+function safeLocalStorageSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch (error) {
+        log('error', 'LocalStorage set error', { error: error.message, key });
+        return false;
+    }
+}
+
 // Load game from localStorage for current user
 function loadGame() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        log('warn', 'loadGame called without currentUser');
+        return;
+    }
     
-    const saved = localStorage.getItem(`miaumiauGame_${currentUser}`);
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        Object.assign(gameState, parsed);
+    try {
+        const saved = safeLocalStorageGet(`miaumiauGame_${currentUser}`);
+        if (saved) {
+            const parsed = safeJSONParse(saved, {});
+            if (parsed && Object.keys(parsed).length > 0) {
+                Object.assign(gameState, parsed);
+                log('info', 'Game loaded successfully', { user: currentUser });
+            }
+        }
+        
         // Load language preference
         if (gameState.language) {
             currentLanguage = gameState.language;
         } else {
-            // Try to load from localStorage
-            const savedLang = localStorage.getItem('miaumiau_language');
+            const savedLang = safeLocalStorageGet('miaumiau_language');
             if (savedLang) {
                 currentLanguage = savedLang;
                 gameState.language = savedLang;
             }
         }
+        
         // Calculate play time
         if (gameState.lastSave) {
-            gameState.stats.totalPlayTime += (Date.now() - gameState.lastSave);
+            const timeDiff = Date.now() - gameState.lastSave;
+            if (timeDiff > 0 && timeDiff < 86400000) { // Less than 24 hours
+                gameState.stats.totalPlayTime += timeDiff;
+            }
         }
+        
+        // Ensure stats object has all required fields
+        if (!gameState.stats.giftsSent) gameState.stats.giftsSent = 0;
+        if (!gameState.stats.mathSolved) gameState.stats.mathSolved = 0;
+        if (!gameState.stats.artCreated) gameState.stats.artCreated = 0;
+        if (!gameState.stats.cookingPerfect) gameState.stats.cookingPerfect = 0;
+        if (!gameState.stats.groupTopScore) gameState.stats.groupTopScore = 0;
+        
+        updateAllDisplays();
+    } catch (error) {
+        log('error', 'Error loading game', { error: error.message, user: currentUser });
+        showMessage('Feil ved lasting av spilldata. Prøv å laste siden på nytt.');
     }
-    updateAllDisplays();
 }
 
 // Save game to localStorage for current user
 function saveGame() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        log('warn', 'saveGame called without currentUser');
+        return;
+    }
     
-    gameState.lastSave = Date.now();
-    localStorage.setItem(`miaumiauGame_${currentUser}`, JSON.stringify(gameState));
+    try {
+        gameState.lastSave = Date.now();
+        const jsonData = JSON.stringify(gameState);
+        const success = safeLocalStorageSet(`miaumiauGame_${currentUser}`, jsonData);
+        if (success) {
+            log('debug', 'Game saved successfully', { user: currentUser });
+        } else {
+            log('error', 'Failed to save game', { user: currentUser });
+            showMessage('Kunne ikke lagre spilldata. Sjekk nettleserens innstillinger.');
+        }
+    } catch (error) {
+        log('error', 'Error saving game', { error: error.message, user: currentUser });
+        showMessage('Feil ved lagring av spilldata.');
+    }
 }
 
 // ==================== EXPORT/IMPORT GAME DATA ====================
@@ -1967,19 +2066,24 @@ function sendGiftToFriend(friendUsername) {
     
     // Deduct coins from sender
     gameState.coins -= amount;
+    gameState.stats.giftsSent = (gameState.stats.giftsSent || 0) + 1;
+    checkAchievements();
     saveGame();
     
     // Add coins to receiver
-    const friendData = localStorage.getItem(`miaumiauGame_${friendUsername}`);
+    const friendData = safeLocalStorageGet(`miaumiauGame_${friendUsername}`);
     if (friendData) {
         try {
-            const friendState = JSON.parse(friendData);
-            friendState.coins = (friendState.coins || 0) + amount;
-            localStorage.setItem(`miaumiauGame_${friendUsername}`, JSON.stringify(friendState));
+            const friendState = safeJSONParse(friendData, {});
+            if (friendState) {
+                friendState.coins = (friendState.coins || 0) + amount;
+                safeLocalStorageSet(`miaumiauGame_${friendUsername}`, JSON.stringify(friendState));
+                log('info', 'Gift sent successfully', { to: friendUsername, amount });
+            }
             
             // Store gift notification
             const notificationsKey = `giftNotifications_${friendUsername}`;
-            const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            const notifications = safeJSONParse(safeLocalStorageGet(notificationsKey, '[]'), []);
             notifications.push({
                 from: currentUser,
                 amount: amount,
@@ -1989,7 +2093,7 @@ function sendGiftToFriend(friendUsername) {
             if (notifications.length > 20) {
                 notifications.shift();
             }
-            localStorage.setItem(notificationsKey, JSON.stringify(notifications));
+            safeLocalStorageSet(notificationsKey, JSON.stringify(notifications));
             
             showMessage(`🎁 Du sendte ${amount} mynter til ${friendUsername}!`);
             playSuccessSound();
@@ -3027,7 +3131,35 @@ const achievements = [
     { id: 'artCreated', name: 'Kunstner', desc: 'Lag en tegning i katteskolen', icon: '🎨', target: 1, stat: 'artCreated', type: 'school' },
     { id: 'cookingPerfect', name: 'Kokk', desc: 'Lag perfekt mat til katten 5 ganger', icon: '🍽️', target: 5, stat: 'cookingPerfect', type: 'school' },
     // Trick achievements
-    { id: 'trickAll', name: 'Triksekspert', desc: 'Lær katten alle 4 triks', icon: '🎩', target: 4, stat: 'tricksLearned', type: 'tricks' }
+    { id: 'trickAll', name: 'Triksekspert', desc: 'Lær katten alle 4 triks', icon: '🎩', target: 4, stat: 'tricksLearned', type: 'tricks' },
+    // Friend achievements
+    { id: 'friend1', name: 'Vennlig', desc: 'Få din første venn', icon: '👫', target: 1, stat: 'friendsCount', type: 'friends' },
+    { id: 'friend5', name: 'Populær', desc: 'Få 5 venner', icon: '👥', target: 5, stat: 'friendsCount', type: 'friends' },
+    { id: 'friend10', name: 'Sosial', desc: 'Få 10 venner', icon: '🌟', target: 10, stat: 'friendsCount', type: 'friends' },
+    { id: 'giftSent', name: 'Gavmild', desc: 'Send en gave til en venn', icon: '🎁', target: 1, stat: 'giftsSent', type: 'friends' },
+    // Quest achievements
+    { id: 'quest10', name: 'Oppdragsmester', desc: 'Fullfør 10 oppdrag', icon: '📋', target: 10, stat: 'questsCompleted', type: 'quests' },
+    { id: 'quest25', name: 'Oppdragsguru', desc: 'Fullfør 25 oppdrag', icon: '📜', target: 25, stat: 'questsCompleted', type: 'quests' },
+    // Streak achievements
+    { id: 'streak7', name: 'Ukentlig', desc: 'Logg inn 7 dager på rad', icon: '📅', target: 7, stat: 'loginStreak', type: 'streak' },
+    { id: 'streak30', name: 'Månedlig', desc: 'Logg inn 30 dager på rad', icon: '🗓️', target: 30, stat: 'loginStreak', type: 'streak' },
+    // Advanced achievements
+    { id: 'pet200', name: 'Koselegende', desc: 'Kose katten 200 ganger', icon: '💖', target: 200, stat: 'timesPetted' },
+    { id: 'play200', name: 'Lekelegende', desc: 'Lek med katten 200 ganger', icon: '🎮', target: 200, stat: 'timesPlayed' },
+    { id: 'fed200', name: 'Matlegende', desc: 'Mat katten 200 ganger', icon: '🍖', target: 200, stat: 'timesFed' },
+    { id: 'level40', name: 'Ultralegende', desc: 'Nå nivå 40', icon: '💫', target: 40, stat: 'level', type: 'level' },
+    { id: 'level50', name: 'Mester', desc: 'Nå nivå 50', icon: '👑', target: 50, stat: 'level', type: 'level' },
+    { id: 'coins1000', name: 'Millionær', desc: 'Samle 1000 mynter', icon: '💸', target: 1000, stat: 'coins', type: 'coins' },
+    { id: 'coins5000', name: 'Milliardær', desc: 'Samle 5000 mynter', icon: '💎', target: 5000, stat: 'coins', type: 'coins' },
+    { id: 'score25000', name: 'Poengkonge', desc: 'Samle 25000 poeng', icon: '🏅', target: 25000, stat: 'score', type: 'score' },
+    { id: 'score50000', name: 'Poengkeiser', desc: 'Samle 50000 poeng', icon: '👑', target: 50000, stat: 'score', type: 'score' },
+    { id: 'minigame1000', name: 'Minispilllegende', desc: 'Få 1000 poeng i minispill', icon: '🎯', target: 1000, stat: 'minigameScore', type: 'minigame' },
+    { id: 'items20', name: 'Ultra-samler', desc: 'Eie 20 items', icon: '🛍️', target: 20, stat: 'ownedItems', type: 'items' },
+    { id: 'clean100', name: 'Renlighetsekspert', desc: 'Vask katten 100 ganger', icon: '🧼', target: 100, stat: 'timesCleaned' },
+    { id: 'sleep100', name: 'Søvnguru', desc: 'La katten sove 100 ganger', icon: '😴', target: 100, stat: 'timesSlept' },
+    { id: 'bottle20', name: 'Tåteflaske-elsker', desc: 'Gi tåteflaske 20 ganger', icon: '🍼', target: 20, stat: 'bottleGiven' },
+    { id: 'hand20', name: 'Kosehånd-mester', desc: 'Bruk kosehånd 20 ganger', icon: '👋', target: 20, stat: 'handPetted' },
+    { id: 'click100', name: 'Klikkmester', desc: 'Klikk på katten 100 ganger', icon: '👆', target: 100, stat: 'catClicked' }
 ];
 
 function checkAchievements() {
@@ -3063,6 +3195,17 @@ function checkAchievements() {
             }
         } else if (achievement.type === 'tricks') {
             progress = gameState.catTricks ? gameState.catTricks.length : 0;
+        } else if (achievement.type === 'friends') {
+            if (achievement.id === 'friend1' || achievement.id === 'friend5' || achievement.id === 'friend10') {
+                const friends = getFriends();
+                progress = friends ? friends.length : 0;
+            } else if (achievement.id === 'giftSent') {
+                progress = gameState.stats.giftsSent || 0;
+            }
+        } else if (achievement.type === 'quests') {
+            progress = gameState.completedQuests ? gameState.completedQuests.length : 0;
+        } else if (achievement.type === 'streak') {
+            progress = gameState.loginStreak || 0;
         } else {
             progress = gameState.stats[achievement.stat] || 0;
         }
@@ -3081,6 +3224,7 @@ function checkAchievements() {
 
 function renderAchievements() {
     const container = document.getElementById('achievements-grid');
+    if (!container) return;
     container.innerHTML = '';
     achievements.forEach(achievement => {
         const unlocked = gameState.achievements[achievement.id];
@@ -3089,6 +3233,41 @@ function renderAchievements() {
             progress = gameState.level;
         } else if (achievement.type === 'score') {
             progress = gameState.score;
+        } else if (achievement.type === 'minigame') {
+            progress = gameState.stats.minigameScore || 0;
+        } else if (achievement.type === 'coins') {
+            progress = gameState.coins;
+        } else if (achievement.type === 'items') {
+            progress = gameState.ownedItems.length;
+        } else if (achievement.type === 'group') {
+            if (achievement.id === 'groupJoin') {
+                progress = gameState.groupId ? 1 : 0;
+            } else if (achievement.id === 'groupCreate') {
+                progress = gameState.groupRole === 'owner' ? 1 : 0;
+            } else if (achievement.id === 'groupTop') {
+                progress = gameState.stats.groupTopScore || 0;
+            }
+        } else if (achievement.type === 'school') {
+            if (achievement.id === 'math10') {
+                progress = gameState.stats.mathSolved || 0;
+            } else if (achievement.id === 'artCreated') {
+                progress = gameState.stats.artCreated || 0;
+            } else if (achievement.id === 'cookingPerfect') {
+                progress = gameState.stats.cookingPerfect || 0;
+            }
+        } else if (achievement.type === 'tricks') {
+            progress = gameState.catTricks ? gameState.catTricks.length : 0;
+        } else if (achievement.type === 'friends') {
+            if (achievement.id === 'friend1' || achievement.id === 'friend5' || achievement.id === 'friend10') {
+                const friends = getFriends();
+                progress = friends ? friends.length : 0;
+            } else if (achievement.id === 'giftSent') {
+                progress = gameState.stats.giftsSent || 0;
+            }
+        } else if (achievement.type === 'quests') {
+            progress = gameState.completedQuests ? gameState.completedQuests.length : 0;
+        } else if (achievement.type === 'streak') {
+            progress = gameState.loginStreak || 0;
         } else {
             progress = gameState.stats[achievement.stat] || 0;
         }
@@ -5309,12 +5488,36 @@ function updateQuests() {
 }
 
 function completeQuest(quest) {
-    gameState.coins += quest.reward;
-    gameState.score += quest.reward;
-    playSuccessSound();
-    showMessage(`🎉 Oppdrag fullført: ${quest.name}! Du fikk ${quest.reward} mynter! 🎁`);
-    updateAllDisplays();
-    saveGame();
+    try {
+        if (!quest || !quest.id) {
+            log('error', 'completeQuest called with invalid quest', quest);
+            return;
+        }
+        
+        gameState.coins += quest.reward;
+        gameState.score += quest.reward;
+        
+        // Track completed quests
+        if (!gameState.completedQuests) {
+            gameState.completedQuests = [];
+        }
+        if (!gameState.completedQuests.includes(quest.id)) {
+            gameState.completedQuests.push(quest.id);
+        }
+        
+        // Remove from active quests
+        gameState.quests = gameState.quests.filter(q => q.id !== quest.id);
+        
+        checkAchievements();
+        playSuccessSound();
+        showMessage(`🎉 Oppdrag fullført: ${quest.name}! Du fikk ${quest.reward} mynter! 🎁`);
+        updateAllDisplays();
+        saveGame();
+        log('info', 'Quest completed', { questId: quest.id, reward: quest.reward });
+    } catch (error) {
+        log('error', 'Error completing quest', { error: error.message, quest });
+        showMessage('Feil ved fullføring av oppdrag.');
+    }
 }
 
 // ==================== CAT QUIZ ====================
