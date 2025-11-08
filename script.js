@@ -2547,22 +2547,119 @@ function showFood(foodType, duration = 2000) {
 }
 
 // Create particle effects
-function createParticles(element) {
-    const particles = ['⭐', '✨', '🎉', '💫', '🌟'];
-    const rect = element.getBoundingClientRect();
+// Enhanced particle system with different types
+function createParticles(element, type = 'default') {
+    if (!element) return;
     
-    for (let i = 0; i < 10; i++) {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const particleSets = {
+        'default': ['⭐', '✨', '🎉', '💫', '🌟'],
+        'food': ['🍖', '🍕', '🍼', '🥛', '🍗'],
+        'love': ['❤️', '💕', '💖', '💗', '💝'],
+        'play': ['🎾', '🎮', '🎯', '🎪', '🎨'],
+        'success': ['🎉', '✨', '🏆', '👑', '💎'],
+        'trick': ['🎩', '🦘', '🌪️', '💃', '⭐']
+    };
+    
+    const particles = particleSets[type] || particleSets['default'];
+    const count = type === 'success' ? 15 : 10;
+    
+    // Create particle container if it doesn't exist
+    let particleContainer = document.getElementById('particle-container');
+    if (!particleContainer) {
+        particleContainer = document.createElement('div');
+        particleContainer.id = 'particle-container';
+        particleContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;';
+        document.body.appendChild(particleContainer);
+    }
+    
+    for (let i = 0; i < count; i++) {
         const particle = document.createElement('div');
-        particle.className = 'particle';
+        particle.className = `particle particle-${type}`;
         particle.textContent = particles[Math.floor(Math.random() * particles.length)];
-        particle.style.left = (rect.left + rect.width / 2 + (Math.random() - 0.5) * 100) + 'px';
-        particle.style.top = (rect.top + rect.height / 2) + 'px';
-        document.body.appendChild(particle);
+        
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+        const distance = 50 + Math.random() * 100;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.animationDelay = (Math.random() * 0.3) + 's';
+        
+        particleContainer.appendChild(particle);
         
         setTimeout(() => {
-            particle.remove();
+            if (particle.parentNode) {
+                particle.remove();
+            }
         }, 2000);
     }
+}
+
+// Enhanced cat action animations
+function animateCatAction(action) {
+    const catEmoji = document.getElementById('cat-emoji');
+    const catGif = document.getElementById('game-cat-gif');
+    const catElement = catEmoji || catGif;
+    
+    if (!catElement) return;
+    
+    const animations = {
+        'feed': { 
+            emoji: '😋', 
+            animation: 'catEat 0.8s ease',
+            particles: 'food'
+        },
+        'play': { 
+            emoji: '😸', 
+            animation: 'catPlay 1s ease',
+            particles: 'play'
+        },
+        'pet': { 
+            emoji: '😻', 
+            animation: 'catPurr 0.6s ease',
+            particles: 'love'
+        },
+        'sleep': { 
+            emoji: '😴', 
+            animation: 'catSleep 1.2s ease',
+            particles: 'default'
+        },
+        'clean': { 
+            emoji: '🛁', 
+            animation: 'catClean 1s ease',
+            particles: 'default'
+        }
+    };
+    
+    const anim = animations[action];
+    if (!anim) return;
+    
+    // Store original state
+    const originalEmoji = catEmoji ? catEmoji.textContent : '';
+    const originalAnimation = catElement.style.animation;
+    
+    // Apply animation
+    if (catEmoji) {
+        catEmoji.textContent = anim.emoji;
+    }
+    catElement.style.animation = anim.animation;
+    
+    // Create particles
+    createParticles(catElement, anim.particles);
+    
+    // Reset after animation
+    setTimeout(() => {
+        if (catEmoji) {
+            catEmoji.textContent = originalEmoji;
+        }
+        catElement.style.animation = originalAnimation;
+        updateCatGifDisplay();
+    }, 1200);
 }
 
 // Level-specific content and rewards
@@ -2598,12 +2695,12 @@ function levelUpReward(level, oldLevel) {
     if (level > oldLevel) {
         playLevelUpSound();
     }
-    createParticles(document.getElementById('game-cat'));
+    createParticles(document.getElementById('game-cat'), 'success');
     
     // Extra particles for higher levels
     if (level >= 5) {
         setTimeout(() => {
-            createParticles(document.getElementById('game-cat'));
+            createParticles(document.getElementById('game-cat'), 'success');
         }, 500);
     }
 }
@@ -2771,7 +2868,8 @@ document.getElementById('feed-btn').addEventListener('click', () => {
     playEatSound();
     showMessage('Mmm, takk! 🍖😸');
     showFood('meat', 2000);
-    createParticles(document.getElementById('feed-btn'));
+    createParticles(document.getElementById('feed-btn'), 'food');
+    animateCatAction('feed');
     updateStats();
     updateCatGifDisplay();
 });
@@ -2797,7 +2895,8 @@ document.getElementById('play-btn').addEventListener('click', () => {
     updateActionCounters('play');
     playPlaySound();
     showMessage('Så morsomt! La oss leke mer! 🎾😸');
-    createParticles(document.getElementById('play-btn'));
+    createParticles(document.getElementById('play-btn'), 'play');
+    animateCatAction('play');
     updateStats();
     updateCatGifDisplay();
 });
@@ -2818,7 +2917,8 @@ document.getElementById('pet-btn').addEventListener('click', () => {
     updateActionCounters('pet');
     playPurrSound();
     showMessage('Purr purr purr... ❤️😸');
-    createParticles(document.getElementById('pet-btn'));
+    createParticles(document.getElementById('pet-btn'), 'love');
+    animateCatAction('pet');
     updateStats();
     updateCatGifDisplay();
 });
@@ -2845,6 +2945,7 @@ document.getElementById('sleep-btn').addEventListener('click', () => {
     playSleepSound();
     showMessage('Zzz... Takk for roen 😴');
     showBed(3000);
+    animateCatAction('sleep');
     updateStats();
 });
 
@@ -2869,6 +2970,7 @@ document.getElementById('clean-btn').addEventListener('click', () => {
     updateActionCounters('clean');
     showMessage('Så rent og fint! 🛁✨');
     createParticles(document.getElementById('clean-btn'));
+    animateCatAction('clean');
     updateStats();
 });
 
@@ -3500,6 +3602,7 @@ function teachCatTrick(trick) {
         
         // Show trick animation
         performCatTrick(trick);
+        createParticles(document.getElementById('game-cat'), 'trick');
     } else if (learned) {
         playPurrSound();
         showMessage(`Katten kan allerede "${trickNames[trick]}"! Den gjør det perfekt! ${trickEmojis[trick]}`);

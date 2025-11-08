@@ -507,6 +507,67 @@ body {
     }
 }
 
+/* Enhanced cat action animations */
+@keyframes catEat {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.2) rotate(-5deg); }
+    50% { transform: scale(1.1) rotate(5deg); }
+    75% { transform: scale(1.15) rotate(-3deg); }
+}
+
+@keyframes catPlay {
+    0%, 100% { transform: translateY(0) scale(1); }
+    25% { transform: translateY(-20px) scale(1.1) rotate(-10deg); }
+    50% { transform: translateY(0) scale(1.2) rotate(10deg); }
+    75% { transform: translateY(-15px) scale(1.1) rotate(-5deg); }
+}
+
+@keyframes catPurr {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.15); }
+    50% { transform: scale(1.1); }
+    75% { transform: scale(1.12); }
+}
+
+@keyframes catSleep {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(5deg) scale(0.95); }
+}
+
+@keyframes catClean {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(15deg); }
+}
+
+/* Particle type styles */
+.particle-food {
+    font-size: 24px;
+    animation: particleFloat 1.5s ease-out forwards;
+}
+
+.particle-love {
+    font-size: 20px;
+    animation: particleFloat 2s ease-out forwards;
+    color: #ff69b4;
+}
+
+.particle-play {
+    font-size: 22px;
+    animation: particleFloat 1.8s ease-out forwards;
+}
+
+.particle-success {
+    font-size: 28px;
+    animation: particleFloat 2.5s ease-out forwards;
+}
+
+.particle-trick {
+    font-size: 26px;
+    animation: particleFloat 2s ease-out forwards;
+}
+
 /* Game Finished Screen */
 .game-finished-screen {
     position: fixed;
