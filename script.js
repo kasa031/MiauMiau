@@ -143,6 +143,103 @@ const translations = {
         success: 'Suksess!',
         error: 'Feil!',
         loading: 'Laster...',
+        
+        // Game messages
+        feedMessage: 'Mmm, takk! 🍖😸',
+        playMessage: 'Så morsomt! La oss leke mer! 🎾😸',
+        petMessage: 'Purr purr purr... ❤️😸',
+        sleepMessage: 'Zzz... Takk for roen 😴',
+        cleanMessage: 'Så rent og fint! 🛁✨',
+        pizzaMessage: 'Nam nam, pizza! 🍕😸',
+        bottleMessage: 'Mmm, melk! 🍼😸',
+        handMessage: 'Purr purr... Så godt! 👋😸',
+        catClickMessage: 'Mjau! Hei! 👋😸',
+        
+        // Error messages
+        loadError: 'Feil ved lasting av spilldata. Prøv å laste siden på nytt.',
+        saveError: 'Kunne ikke lagre spilldata. Sjekk nettleserens innstillinger.',
+        exportError: 'Du må være innlogget for å eksportere data!',
+        importError: 'Du må være innlogget for å importere data!',
+        invalidFile: '❌ Ugyldig filformat!',
+        importSuccess: '✅ Spilldata importert!',
+        exportSuccess: '✅ Spilldata eksportert! Du kan nå lagre filen som sikkerhetskopi.',
+        
+        // Group messages
+        groupCreateSuccess: '🎉 Gruppa "{name}" er opprettet! Du kan nå dele passordet med venner! 🎉',
+        groupJoinSuccess: '🎉 Du er nå med i gruppen "{name}"! 🎉',
+        groupLeaveSuccess: 'Du har forlatt gruppen.',
+        groupNotFound: 'Gruppen finnes ikke! Sjekk at gruppenavnet er riktig.',
+        wrongPassword: 'Feil passord! Prøv igjen.',
+        alreadyInGroup: 'Du er allerede medlem av denne gruppen!',
+        alreadyInAnotherGroup: 'Du er allerede med i en gruppe! Forlat den først for å bli med i en annen.',
+        groupNameExists: 'Gruppenavnet er allerede i bruk!',
+        groupNameTooShort: 'Gruppenavn må være minst 3 tegn!',
+        passwordTooShort: 'Passord må være minst 3 tegn!',
+        fillAllFields: 'Vennligst fyll inn alle feltene!',
+        
+        // Friend messages
+        friendRequestSent: '✅ Vennforespørsel sendt til {username}!',
+        friendAdded: '✅ Du er nå venner med {username}! 🎉',
+        friendRequestRejected: 'Vennforespørsel fra {username} avvist',
+        friendRemoved: '{username} fjernet som venn',
+        alreadyFriends: 'Du er allerede venner med denne brukeren!',
+        requestAlreadySent: 'Du har allerede sendt en vennforespørsel til denne brukeren!',
+        userNotFound: 'Brukeren finnes ikke!',
+        cannotAddSelf: 'Du kan ikke legge til deg selv!',
+        enterUsername: 'Skriv inn et brukernavn!',
+        mustBeLoggedIn: 'Du må være innlogget!',
+        
+        // Gift messages
+        notEnoughCoins: 'Du trenger minst 10 mynter for å sende en gave! 💰',
+        giftSent: '🎁 Du sendte {amount} mynter til {username}!',
+        giftReceived: '🎁 Du mottok {amount} mynter fra {from}!',
+        
+        // Challenge messages
+        challengeAdded: '✅ Utfordring lagt til!',
+        challengeRemoved: '🗑️ Utfordring fjernet',
+        challengeCompleted: '🎉 Utfordring fullført: {desc}! Alle medlemmer fikk +50 mynter og +100 poeng! 🎉',
+        
+        // Profile messages
+        imageTooLarge: 'Bildet er for stort! Maksimal størrelse er 5MB.',
+        profileImageUploaded: 'Profilbilde lastet opp! 💾',
+        badgeSelected: 'Badge valgt! 🎀',
+        profileSaved: 'Profil lagret! ✅',
+        
+        // Cooldown messages
+        actionOnCooldown: 'Handlingen er på cooldown! Vent litt... ⏳',
+        catAlreadyPlaying: 'Katten leker allerede! Vent litt... ⏳',
+        catAlreadyPetting: 'Katten koser allerede! Vent litt... ⏳',
+        catAlreadySleeping: 'Katten sover allerede! La den sove lenger... 😴',
+        catAlreadyClean: 'Katten er allerede ren! Vent litt... ⏳',
+        
+        // Quest messages
+        questCompleted: '🎉 Oppdrag fullført: {name}! Du fikk {reward} mynter! 🎁',
+        
+        // Achievement messages
+        achievementUnlocked: '🏆 Bedrift oppnådd: {name}! +{reward} mynter! 🏆',
+        
+        // Daily reward messages
+        dailyRewardClaimed: '🎁 Daglig belønning hentet! Du fikk {coins} mynter!',
+        streakBonus: '🔥 {days} dagers streak! Bonus: +{bonus} mynter! 🔥',
+        
+        // Minigame messages
+        timeUp: 'Tid er ute! Du fikk {score} poeng! +{coins} mynter!',
+        memoryTimeUp: 'Tid er ute! Du fikk {score} poeng og fant {pairs} par! +{coins} mynter! 🧠',
+        allPairsFound: '🎉 Alle par funnet! Bonus: +50 poeng! 🎉',
+        
+        // Trick messages
+        trickLearned: '🎉 Fantastisk! Katten lærte trikset "{name}"! +50 poeng og +25 mynter! {emoji}',
+        trickAlreadyKnown: 'Katten kan allerede "{name}"! Den gjør det perfekt! {emoji}',
+        trickFailed: 'Katten lærte ikke trikset denne gangen. Prøv igjen! 💪',
+        catTooTired: 'Katten er for sliten for å lære triks nå! La den hvile først! 😴',
+        catNotHappy: 'Katten er ikke glad nok! Kos og mat den først! ❤️',
+        
+        // Level messages
+        levelUp: '🎉 Nivå {level}! Fantastisk jobb! Fortsett å ta vare på katten! 🎉',
+        
+        // Other
+        notInGroup: 'Du er ikke med i noen gruppe!',
+        groupNoLongerExists: 'Gruppen finnes ikke lenger!',
     },
     en: {
         // Navigation
@@ -683,7 +780,7 @@ function loadGame() {
         updateAllDisplays();
     } catch (error) {
         log('error', 'Error loading game', { error: error.message, user: currentUser });
-        showMessage('Feil ved lasting av spilldata. Prøv å laste siden på nytt.');
+        showMessage(t('loadError'));
     }
 }
 
@@ -702,18 +799,18 @@ function saveGame() {
             log('debug', 'Game saved successfully', { user: currentUser });
         } else {
             log('error', 'Failed to save game', { user: currentUser });
-            showMessage('Kunne ikke lagre spilldata. Sjekk nettleserens innstillinger.');
+            showMessage(t('saveError'));
         }
     } catch (error) {
         log('error', 'Error saving game', { error: error.message, user: currentUser });
-        showMessage('Feil ved lagring av spilldata.');
+        showMessage(t('saveError'));
     }
 }
 
 // ==================== EXPORT/IMPORT GAME DATA ====================
 function exportGameData() {
     if (!currentUser) {
-        showMessage('Du må være innlogget for å eksportere data!');
+        showMessage(t('exportError'));
         return;
     }
     
@@ -733,12 +830,12 @@ function exportGameData() {
     link.click();
     URL.revokeObjectURL(url);
     
-    showMessage('✅ Spilldata eksportert! Du kan nå lagre filen som sikkerhetskopi.');
+    showMessage(t('exportSuccess'));
 }
 
 function importGameData(event) {
     if (!currentUser) {
-        showMessage('Du må være innlogget for å importere data!');
+        showMessage(t('importError'));
         return;
     }
     
@@ -751,7 +848,7 @@ function importGameData(event) {
             const data = JSON.parse(e.target.result);
             
             if (!data.gameState) {
-                showMessage('❌ Ugyldig filformat!');
+                showMessage(t('invalidFile'));
                 return;
             }
             
@@ -760,7 +857,7 @@ function importGameData(event) {
                 saveGame();
                 loadGame();
                 updateAllDisplays();
-                showMessage('✅ Spilldata importert!');
+                showMessage(t('importSuccess'));
             }
         } catch (error) {
             showMessage('❌ Feil ved import: ' + error.message);
@@ -922,7 +1019,7 @@ function handleSignup() {
     saveGame();
     updateAllDisplays();
     playSuccessSound();
-    showMessage(`Velkommen, ${username}! 🎉 Spillet ditt er klart!`);
+    showMessage(t('welcomeNewUser', { username }));
 }
 
 // ==================== PROFILE FUNCTIONS ====================
@@ -959,7 +1056,7 @@ function handleProfileImageUpload(event) {
     if (!file) return;
     
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        showMessage('Bildet er for stort! Maksimal størrelse er 5MB.');
+        showMessage(t('imageTooLarge'));
         return;
     }
     
@@ -971,7 +1068,7 @@ function handleProfileImageUpload(event) {
         document.getElementById('profile-avatar').style.display = 'block';
         document.getElementById('profile-badge').style.display = 'none';
         saveProfile();
-        showMessage('Profilbilde lastet opp! 💾');
+        showMessage(t('profileImageUploaded'));
     };
     reader.readAsDataURL(file);
 }
@@ -990,18 +1087,18 @@ function selectBadge(badge) {
     event.target.classList.add('selected');
     
     saveProfile();
-    showMessage('Badge valgt! 🎀');
+    showMessage(t('badgeSelected'));
 }
 
 function saveProfile() {
     if (!currentUser) {
-        showMessage('Du må være innlogget for å lagre profil!');
+        showMessage(t('mustBeLoggedIn'));
         return;
     }
     
     gameState.profile.bio = document.getElementById('profile-bio').value;
     saveGame();
-    showMessage('Profil lagret! ✅');
+    showMessage(t('profileSaved'));
 }
 
 function handleLogout() {
