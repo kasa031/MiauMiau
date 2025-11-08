@@ -238,6 +238,13 @@ const translations = {
         timeUp: 'Tid er ute! Du fikk {score} poeng! +{coins} mynter!',
         memoryTimeUp: 'Tid er ute! Du fikk {score} poeng og fant {pairs} par! +{coins} mynter! 🧠',
         allPairsFound: '🎉 Alle par funnet! Bonus: +50 poeng! 🎉',
+        readingTimeUp: 'Tid er ute! Du fikk {score} poeng! +{coins} mynter! Bra jobbet med lesingen! 📚',
+        jumpTimeUp: 'Tid er ute! Du fikk {score} poeng! +{coins} mynter! 🦘',
+        notEnoughCoinsForSkip: 'Du har ikke nok mynter! Trenger {cost} mynter. 💰',
+        skipCooldownBought: '💰 Kjøpt deg fri! -{cost} mynter',
+        giftReceivedMessage: '🎁 Du mottok {amount} mynter fra {from}!',
+        dailyChallengeCompleted: '🎉 Daglig utfordring fullført! +{reward} mynter! 🎉',
+        drawingSaved: '🎨 Tegningen er lagret! +20 poeng og +10 mynter!',
         
         // Trick messages
         trickLearned: '🎉 Fantastisk! Katten lærte trikset "{name}"! +50 poeng og +25 mynter! {emoji}',
@@ -252,6 +259,19 @@ const translations = {
         // Other
         notInGroup: 'Du er ikke med i noen gruppe!',
         groupNoLongerExists: 'Gruppen finnes ikke lenger!',
+        mustBeInGroup: 'Du må være med i en gruppe først!',
+        dailyRewardAlreadyClaimed: 'Du har allerede hentet belønningen i dag! Kom tilbake i morgen! 🎁',
+        noDrawingsYet: 'Du har ingen lagrede tegninger ennå! Tegn først! 🎨',
+        dontOwnItem: 'Du eier ikke dette itemet! 💰',
+        gameReset: '🎉 Spillet er startet på nytt! Lykke til! 🐱',
+        welcomeNewGame: '🎉 Velkommen! Ta vare på katten og stig i nivå! 🐱',
+        importErrorDetail: '❌ Feil ved import: {error}',
+        notEnoughCoinsForSkip: 'Du har ikke nok mynter! Trenger {cost} mynter. 💰',
+        cooldownSkipped: '💰 Kjøpt deg fri! -{cost} mynter',
+        catFull: 'Katten er mett! Den trenger ikke mer mat nå. 😊',
+        catNotTired: 'Katten er ikke sliten nok til å sove nå! Den vil heller leke! 🎾',
+        catVeryHappy: 'Katten er allerede veldig glad! Den trenger ikke vask nå! 😊',
+        catTooTired: 'Jeg er for sliten... La meg hvile først! 😴',
     },
     en: {
         // Navigation
@@ -438,6 +458,13 @@ const translations = {
         timeUp: 'Time\'s up! You got {score} points! +{coins} coins!',
         memoryTimeUp: 'Time\'s up! You got {score} points and found {pairs} pairs! +{coins} coins! 🧠',
         allPairsFound: '🎉 All pairs found! Bonus: +50 points! 🎉',
+        readingTimeUp: 'Time\'s up! You got {score} points! +{coins} coins! Great reading work! 📚',
+        jumpTimeUp: 'Time\'s up! You got {score} points! +{coins} coins! 🦘',
+        notEnoughCoinsForSkip: 'You don\'t have enough coins! Need {cost} coins. 💰',
+        skipCooldownBought: '💰 Bought your way out! -{cost} coins',
+        giftReceivedMessage: '🎁 You received {amount} coins from {from}!',
+        dailyChallengeCompleted: '🎉 Daily challenge completed! +{reward} coins! 🎉',
+        drawingSaved: '🎨 Drawing saved! +20 points and +10 coins!',
         
         // Trick messages
         trickLearned: '🎉 Amazing! The cat learned the trick "{name}"! +50 points and +25 coins! {emoji}',
@@ -452,6 +479,19 @@ const translations = {
         // Other
         notInGroup: 'You are not in any group!',
         groupNoLongerExists: 'Group no longer exists!',
+        mustBeInGroup: 'You must be in a group first!',
+        dailyRewardAlreadyClaimed: 'You have already claimed the reward today! Come back tomorrow! 🎁',
+        noDrawingsYet: 'You have no saved drawings yet! Draw first! 🎨',
+        dontOwnItem: 'You don\'t own this item! 💰',
+        gameReset: '🎉 Game has been reset! Good luck! 🐱',
+        welcomeNewGame: '🎉 Welcome! Take care of the cat and level up! 🐱',
+        importErrorDetail: '❌ Import error: {error}',
+        notEnoughCoinsForSkip: 'You don\'t have enough coins! Need {cost} coins. 💰',
+        cooldownSkipped: '💰 Bought your way out! -{cost} coins',
+        catFull: 'The cat is full! It doesn\'t need more food now. 😊',
+        catNotTired: 'The cat is not tired enough to sleep now! It would rather play! 🎾',
+        catVeryHappy: 'The cat is already very happy! It doesn\'t need a bath now! 😊',
+        catTooTired: 'I\'m too tired... Let me rest first! 😴',
     }
 };
 
@@ -1295,7 +1335,7 @@ function joinGroup() {
 
 function leaveGroup() {
     if (!currentUser || !gameState.groupId) {
-        showMessage('Du er ikke med i noen gruppe!');
+        showMessage(t('notInGroup'));
         return;
     }
     
@@ -1377,7 +1417,7 @@ function updateGroupDisplay() {
 
 function viewGroupStats() {
     if (!currentUser || !gameState.groupId) {
-        showMessage('Du er ikke med i noen gruppe!');
+        showMessage(t('notInGroup'));
         return;
     }
     
@@ -1620,7 +1660,7 @@ document.addEventListener('click', (e) => {
 
 function viewGroupMembers() {
     if (!currentUser || !gameState.groupId) {
-        showMessage('Du er ikke med i noen gruppe!');
+        showMessage(t('notInGroup'));
         return;
     }
     
@@ -1983,7 +2023,7 @@ function saveFriendRequests(requests) {
 
 function sendFriendRequest() {
     if (!currentUser) {
-        showMessage('Du må være innlogget!');
+        showMessage(t('mustBeLoggedIn'));
         return;
     }
     
@@ -2474,7 +2514,7 @@ ${profile.badge ? `Badge: ${profile.badge}` : ''}
 
 function inviteFriendToGroup(friendUsername) {
     if (!currentUser || !gameState.groupId) {
-        showMessage('Du må være med i en gruppe først!');
+        showMessage(t('mustBeInGroup'));
         return;
     }
     
@@ -3721,7 +3761,7 @@ function updateDailyReward() {
 function claimDailyReward() {
     const today = new Date().toDateString();
     if (gameState.lastDailyReward === today) {
-        showMessage('Du har allerede hentet belønningen i dag! Kom tilbake i morgen! 🎁');
+        showMessage(t('dailyRewardAlreadyClaimed'));
         return;
     }
     
@@ -3894,7 +3934,7 @@ function startMouseHunt() {
             gameState.stats.minigameScore += mouseHuntScore;
             gameState.score += mouseHuntScore; // Add to total score
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${mouseHuntScore} poeng! +${Math.floor(mouseHuntScore/10)} mynter!`);
+            showMessage(t('timeUp', { score: mouseHuntScore, coins: Math.floor(mouseHuntScore/10) }));
             mouseArea.innerHTML = `<button class="action-btn" onclick="startMouseHunt()">Spill igjen</button>`;
             updateStats(); // Update all stats including level
             renderStats(); // Update stats display
@@ -3987,7 +4027,7 @@ function startFoodCatch() {
             gameState.stats.minigameScore += foodCatchScore;
             gameState.score += foodCatchScore; // Add to total score
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${foodCatchScore} poeng! +${Math.floor(foodCatchScore/10)} mynter!`);
+            showMessage(t('timeUp', { score: foodCatchScore, coins: Math.floor(foodCatchScore/10) }));
             container.innerHTML = `<button class="action-btn" onclick="startFoodCatch()">Spill igjen</button>`;
             updateStats(); // Update all stats including level
             renderStats(); // Update stats display
@@ -4221,7 +4261,7 @@ function startCatBattle() {
             gameState.stats.minigameScore += catBattleScore;
             gameState.score += catBattleScore;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${catBattleScore} poeng! +${Math.floor(catBattleScore/10)} mynter!`);
+            showMessage(t('timeUp', { score: catBattleScore, coins: Math.floor(catBattleScore/10) }));
             container.innerHTML = `<button class="action-btn" onclick="startCatBattle()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -4317,7 +4357,7 @@ function startCatScratch() {
             gameState.stats.minigameScore += catScratchScore;
             gameState.score += catScratchScore;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${catScratchScore} poeng! +${Math.floor(catScratchScore/10)} mynter!`);
+            showMessage(t('timeUp', { score: catScratchScore, coins: Math.floor(catScratchScore/10) }));
             container.innerHTML = `<button class="action-btn" onclick="startCatScratch()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -4381,7 +4421,7 @@ function startCatHunt() {
             gameState.stats.minigameScore += catHuntScore;
             gameState.score += catHuntScore;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${catHuntScore} poeng! +${Math.floor(catHuntScore/10)} mynter!`);
+            showMessage(t('timeUp', { score: catHuntScore, coins: Math.floor(catHuntScore/10) }));
             container.innerHTML = `<button class="action-btn" onclick="startCatHunt()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -4513,7 +4553,7 @@ function startNyanCat() {
             gameState.stats.minigameScore += nyanCatScore;
             gameState.score += nyanCatScore;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${nyanCatScore} poeng! +${Math.floor(nyanCatScore/5)} mynter!`);
+            showMessage(t('timeUp', { score: nyanCatScore, coins: Math.floor(nyanCatScore/5) }));
             container.innerHTML = `<button class="action-btn" onclick="startNyanCat()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -4571,7 +4611,7 @@ function startBoredCat() {
             gameState.stats.minigameScore += boredCatScore;
             gameState.score += boredCatScore;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${boredCatScore} poeng! +${Math.floor(boredCatScore/10)} mynter!`);
+            showMessage(t('timeUp', { score: boredCatScore, coins: Math.floor(boredCatScore/10) }));
             container.innerHTML = `<button class="action-btn" onclick="startBoredCat()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -4671,7 +4711,7 @@ function startReadingGame() {
             gameState.stats.minigameScore += readingGameScore * 2; // Bonus for lesing
             gameState.score += readingGameScore * 2;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${readingGameScore} poeng! +${Math.floor(readingGameScore/5)} mynter! Bra jobbet med lesingen! 📚`);
+            showMessage(t('readingTimeUp', { score: readingGameScore, coins: Math.floor(readingGameScore/5) }));
             container.innerHTML = `<button class="action-btn" onclick="startReadingGame()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -4799,7 +4839,7 @@ function startMemoryGame() {
             gameState.stats.minigameScore += memoryGameScore;
             gameState.score += memoryGameScore;
             updateDailyChallengeProgress('minigame');
-            showMessage(`Tid er ute! Du fikk ${memoryGameScore} poeng og fant ${matchedPairs} par! +${Math.floor(memoryGameScore/8)} mynter! 🧠`);
+            showMessage(t('memoryTimeUp', { score: memoryGameScore, pairs: matchedPairs, coins: Math.floor(memoryGameScore/8) }));
             container.innerHTML = `<button class="action-btn" onclick="startMemoryGame()">Spill igjen</button>`;
             updateStats();
             renderStats();
@@ -6061,7 +6101,7 @@ function completeQuest(quest) {
         log('info', 'Quest completed', { questId: quest.id, reward: quest.reward });
     } catch (error) {
         log('error', 'Error completing quest', { error: error.message, quest });
-        showMessage('Feil ved fullføring av oppdrag.');
+        showMessage(t('error') + ': ' + error.message);
     }
 }
 
