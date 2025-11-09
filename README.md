@@ -68,9 +68,9 @@ MiauMiau er et komplett katteparadis hvor du kan:
 - Bruk items i spillet for ekstra effekt
 
 ### 🏆 Bedrifter (Achievements)
-- 50+ forskjellige achievements å oppnå
+- 70+ forskjellige achievements å oppnå
 - Belønninger med mynter
-- Kategorier: mat, leke, kose, nivå, poeng, minispill, mynter, items, venner, grupper, oppdrag, streak, triks, skole
+- Kategorier: mat, leke, kose, nivå, poeng, minispill, mynter, items, venner, grupper, oppdrag, streak, triks, skole, quiz, memory, hopp, chat, utfordringer
 
 ### 📸 Kattealbum
 - 7 forskjellige katter å låse opp
@@ -87,8 +87,8 @@ MiauMiau er et komplett katteparadis hvor du kan:
 6. **Nyan Cat** - Spesial spill med Nyan Cat
 7. **Kjedelig Katt** - Lei katten med aktiviteter
 8. **Lesespill** - Match ord med bilder (opplæringsspill)
-9. **Kattememory** (NYTT!) - Finn de matchende kattene! Test hukommelsen din
-10. **Kattehopp** (NYTT!) - Hopp over hindringene! Trykk mellomrom eller klikk for å hoppe
+9. **Kattememory** - Finn de matchende kattene! Test hukommelsen din
+10. **Kattehopp** - Hopp over hindringene! Trykk mellomrom eller klikk for å hoppe
 
 ### 🎓 Katteskole
 **5 fag å utforske:**

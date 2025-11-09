@@ -699,7 +699,13 @@ let gameState = {
         mathSolved: 0, // Track math problems solved
         artCreated: 0, // Track art created
         cookingPerfect: 0, // Track perfect cooking
-        groupTopScore: 0 // Track group top score
+        groupTopScore: 0, // Track group top score
+        quizPerfect: 0, // Track perfect quiz scores
+        quizCompleted: 0, // Track quiz completions
+        memoryWins: 0, // Track memory game wins
+        jumpScore: 0, // Track jump game high score
+        chatMessages: 0, // Track chat messages sent
+        challengesCompleted: 0 // Track group challenges completed
     },
     cats: [
         { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸', image: null },
@@ -3510,7 +3516,25 @@ const achievements = [
     { id: 'sleep100', name: 'Søvnguru', desc: 'La katten sove 100 ganger', icon: '😴', target: 100, stat: 'timesSlept' },
     { id: 'bottle20', name: 'Tåteflaske-elsker', desc: 'Gi tåteflaske 20 ganger', icon: '🍼', target: 20, stat: 'bottleGiven' },
     { id: 'hand20', name: 'Kosehånd-mester', desc: 'Bruk kosehånd 20 ganger', icon: '👋', target: 20, stat: 'handPetted' },
-    { id: 'click100', name: 'Klikkmester', desc: 'Klikk på katten 100 ganger', icon: '👆', target: 100, stat: 'catClicked' }
+    { id: 'click100', name: 'Klikkmester', desc: 'Klikk på katten 100 ganger', icon: '👆', target: 100, stat: 'catClicked' },
+    // Quiz achievements
+    { id: 'quizPerfect', name: 'Katteekspert', desc: 'Få perfekt score på kattefakta quiz', icon: '🧠', target: 1, stat: 'quizPerfect', type: 'school' },
+    { id: 'quiz5', name: 'Quizmester', desc: 'Fullfør kattefakta quiz 5 ganger', icon: '📚', target: 5, stat: 'quizCompleted', type: 'school' },
+    // Memory game achievements
+    { id: 'memoryWin', name: 'Hukommelsesmester', desc: 'Vinn kattememory', icon: '🧩', target: 1, stat: 'memoryWins', type: 'minigame' },
+    { id: 'memory5', name: 'Memoryguru', desc: 'Vinn kattememory 5 ganger', icon: '🎯', target: 5, stat: 'memoryWins', type: 'minigame' },
+    // Jump game achievements
+    { id: 'jump100', name: 'Hoppmester', desc: 'Få 100 poeng i kattehopp', icon: '🦘', target: 100, stat: 'jumpScore', type: 'minigame' },
+    { id: 'jump500', name: 'Hopplegende', desc: 'Få 500 poeng i kattehopp', icon: '🚀', target: 500, stat: 'jumpScore', type: 'minigame' },
+    // Chat achievements
+    { id: 'chat50', name: 'Chatter', desc: 'Send 50 meldinger i gruppechat', icon: '💬', target: 50, stat: 'chatMessages', type: 'group' },
+    // Challenge achievements
+    { id: 'challenge10', name: 'Utfordringsmester', desc: 'Fullfør 10 gruppeutfordringer', icon: '🎯', target: 10, stat: 'challengesCompleted', type: 'group' },
+    // Streak achievements
+    { id: 'streak100', name: 'Streaklegende', desc: 'Logg inn 100 dager på rad', icon: '🔥', target: 100, stat: 'loginStreak', type: 'streak' },
+    // Gift achievements
+    { id: 'gift10', name: 'Gavmild sjela', desc: 'Send 10 gaver til venner', icon: '🎁', target: 10, stat: 'giftsSent', type: 'friends' },
+    { id: 'gift50', name: 'Gavmester', desc: 'Send 50 gaver til venner', icon: '💝', target: 50, stat: 'giftsSent', type: 'friends' }
 ];
 
 function checkAchievements() {
@@ -3523,7 +3547,13 @@ function checkAchievements() {
         } else if (achievement.type === 'score') {
             progress = gameState.score;
         } else if (achievement.type === 'minigame') {
-            progress = gameState.stats.minigameScore || 0;
+            if (achievement.id === 'memoryWin' || achievement.id === 'memory5') {
+                progress = gameState.stats.memoryWins || 0;
+            } else if (achievement.id === 'jump100' || achievement.id === 'jump500') {
+                progress = gameState.stats.jumpScore || 0;
+            } else {
+                progress = gameState.stats.minigameScore || 0;
+            }
         } else if (achievement.type === 'coins') {
             progress = gameState.coins;
         } else if (achievement.type === 'items') {
@@ -3535,6 +3565,10 @@ function checkAchievements() {
                 progress = gameState.groupRole === 'owner' ? 1 : 0;
             } else if (achievement.id === 'groupTop') {
                 progress = gameState.stats.groupTopScore || 0;
+            } else if (achievement.id === 'chat50') {
+                progress = gameState.stats.chatMessages || 0;
+            } else if (achievement.id === 'challenge10') {
+                progress = gameState.stats.challengesCompleted || 0;
             }
         } else if (achievement.type === 'school') {
             if (achievement.id === 'math10') {
@@ -3543,6 +3577,10 @@ function checkAchievements() {
                 progress = gameState.stats.artCreated || 0;
             } else if (achievement.id === 'cookingPerfect') {
                 progress = gameState.stats.cookingPerfect || 0;
+            } else if (achievement.id === 'quizPerfect') {
+                progress = gameState.stats.quizPerfect || 0;
+            } else if (achievement.id === 'quiz5') {
+                progress = gameState.stats.quizCompleted || 0;
             }
         } else if (achievement.type === 'tricks') {
             progress = gameState.catTricks ? gameState.catTricks.length : 0;
@@ -3550,7 +3588,7 @@ function checkAchievements() {
             if (achievement.id === 'friend1' || achievement.id === 'friend5' || achievement.id === 'friend10') {
                 const friends = getFriends();
                 progress = friends ? friends.length : 0;
-            } else if (achievement.id === 'giftSent') {
+            } else if (achievement.id === 'giftSent' || achievement.id === 'gift10' || achievement.id === 'gift50') {
                 progress = gameState.stats.giftsSent || 0;
             }
         } else if (achievement.type === 'quests') {
@@ -3585,7 +3623,13 @@ function renderAchievements() {
         } else if (achievement.type === 'score') {
             progress = gameState.score;
         } else if (achievement.type === 'minigame') {
-            progress = gameState.stats.minigameScore || 0;
+            if (achievement.id === 'memoryWin' || achievement.id === 'memory5') {
+                progress = gameState.stats.memoryWins || 0;
+            } else if (achievement.id === 'jump100' || achievement.id === 'jump500') {
+                progress = gameState.stats.jumpScore || 0;
+            } else {
+                progress = gameState.stats.minigameScore || 0;
+            }
         } else if (achievement.type === 'coins') {
             progress = gameState.coins;
         } else if (achievement.type === 'items') {
@@ -3597,6 +3641,10 @@ function renderAchievements() {
                 progress = gameState.groupRole === 'owner' ? 1 : 0;
             } else if (achievement.id === 'groupTop') {
                 progress = gameState.stats.groupTopScore || 0;
+            } else if (achievement.id === 'chat50') {
+                progress = gameState.stats.chatMessages || 0;
+            } else if (achievement.id === 'challenge10') {
+                progress = gameState.stats.challengesCompleted || 0;
             }
         } else if (achievement.type === 'school') {
             if (achievement.id === 'math10') {
@@ -3605,6 +3653,10 @@ function renderAchievements() {
                 progress = gameState.stats.artCreated || 0;
             } else if (achievement.id === 'cookingPerfect') {
                 progress = gameState.stats.cookingPerfect || 0;
+            } else if (achievement.id === 'quizPerfect') {
+                progress = gameState.stats.quizPerfect || 0;
+            } else if (achievement.id === 'quiz5') {
+                progress = gameState.stats.quizCompleted || 0;
             }
         } else if (achievement.type === 'tricks') {
             progress = gameState.catTricks ? gameState.catTricks.length : 0;
@@ -3612,7 +3664,7 @@ function renderAchievements() {
             if (achievement.id === 'friend1' || achievement.id === 'friend5' || achievement.id === 'friend10') {
                 const friends = getFriends();
                 progress = friends ? friends.length : 0;
-            } else if (achievement.id === 'giftSent') {
+            } else if (achievement.id === 'giftSent' || achievement.id === 'gift10' || achievement.id === 'gift50') {
                 progress = gameState.stats.giftsSent || 0;
             }
         } else if (achievement.type === 'quests') {
