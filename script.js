@@ -1608,6 +1608,10 @@ function sendGroupMessage() {
     }
     
     localStorage.setItem(chatKey, JSON.stringify(messages));
+    // Update chat messages stat
+    gameState.stats.chatMessages = (gameState.stats.chatMessages || 0) + 1;
+    checkAchievements();
+    saveGame();
     input.value = '';
     loadGroupChat();
     playClickSound();
@@ -1943,16 +1947,25 @@ function updateGroupChallenge() {
         // Check completion
         if (challenge.progress >= challenge.target && !challenge.completed) {
             challenge.completed = true;
-            // Reward all members
+            // Reward all members and update stats
             group.members.forEach(member => {
                 const memberData = localStorage.getItem(`miaumiauGame_${member}`);
                 if (memberData) {
                     const memberState = JSON.parse(memberData);
                     memberState.coins = (memberState.coins || 0) + 50;
                     memberState.score = (memberState.score || 0) + 100;
+                    // Update challenges completed stat
+                    if (!memberState.stats) memberState.stats = {};
+                    memberState.stats.challengesCompleted = (memberState.stats.challengesCompleted || 0) + 1;
                     localStorage.setItem(`miaumiauGame_${member}`, JSON.stringify(memberState));
                 }
             });
+            // Update current user's stat if they're in the group
+            if (currentUser && group.members.includes(currentUser)) {
+                gameState.stats.challengesCompleted = (gameState.stats.challengesCompleted || 0) + 1;
+                checkAchievements();
+                saveGame();
+            }
             showMessage(t('challengeCompleted', { desc: challenge.desc }));
             playSuccessSound();
         }
@@ -4921,6 +4934,10 @@ function flipCard(card, index) {
                 if (matchedPairs === 6) {
                     memoryGameScore += 50; // Bonus for completing all pairs
                     document.getElementById('memory-score').textContent = memoryGameScore;
+                    // Update memory wins stat
+                    gameState.stats.memoryWins = (gameState.stats.memoryWins || 0) + 1;
+                    checkAchievements();
+                    saveGame();
                     showMessage(t('allPairsFound'));
                 }
             }, 500);
@@ -5002,6 +5019,11 @@ function startJumpGame() {
             gameState.coins += Math.floor(jumpGameScore / 10);
             gameState.stats.minigameScore += jumpGameScore;
             gameState.score += jumpGameScore;
+            // Update jump game high score
+            if (jumpGameScore > (gameState.stats.jumpScore || 0)) {
+                gameState.stats.jumpScore = jumpGameScore;
+            }
+            checkAchievements();
             updateDailyChallengeProgress('minigame');
             showMessage(t('jumpTimeUp', { score: jumpGameScore, coins: Math.floor(jumpGameScore/10) }));
             container.innerHTML = `<button class="action-btn" onclick="startJumpGame()">Spill igjen</button>`;
@@ -6187,6 +6209,14 @@ function showNextQuizQuestion() {
         const coinsEarned = Math.floor(finalScore / 10);
         gameState.coins += coinsEarned;
         gameState.score += coinsEarned * 2;
+        
+        // Update quiz stats
+        gameState.stats.quizCompleted = (gameState.stats.quizCompleted || 0) + 1;
+        if (quizScore === catQuizQuestions.length) {
+            gameState.stats.quizPerfect = (gameState.stats.quizPerfect || 0) + 1;
+        }
+        checkAchievements();
+        saveGame();
         
         container.innerHTML = `
             <div class="quiz-result">
