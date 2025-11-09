@@ -957,12 +957,27 @@ function importGameData(event) {
 
 // ==================== USER MANAGEMENT ====================
 function getUsers() {
-    const usersJson = localStorage.getItem('miaumiauUsers');
-    return usersJson ? JSON.parse(usersJson) : {};
+    try {
+        const usersJson = safeLocalStorageGet('miaumiauUsers');
+        return usersJson ? safeJSONParse(usersJson, {}) : {};
+    } catch (error) {
+        log('error', 'Error getting users', error);
+        return {};
+    }
 }
 
 function saveUsers(users) {
-    localStorage.setItem('miaumiauUsers', JSON.stringify(users));
+    try {
+        const usersJson = JSON.stringify(users);
+        const success = safeLocalStorageSet('miaumiauUsers', usersJson);
+        if (!success) {
+            log('error', 'Failed to save users');
+            showMessage(t('saveError') || 'Failed to save user data');
+        }
+    } catch (error) {
+        log('error', 'Error saving users', error);
+        showMessage(t('saveError') || 'Failed to save user data');
+    }
 }
 
 function showLogin() {
@@ -978,43 +993,60 @@ function showSignup() {
 }
 
 function handleLogin() {
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
-    
-    if (!username || !password) {
-        document.getElementById('login-error').textContent = 'Vennligst fyll inn både brukernavn og passord!';
-        return;
+    try {
+        const usernameInput = document.getElementById('login-username');
+        const passwordInput = document.getElementById('login-password');
+        const errorElement = document.getElementById('login-error');
+        
+        if (!usernameInput || !passwordInput || !errorElement) {
+            log('error', 'Login form elements not found');
+            return;
+        }
+        
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        
+        if (!username || !password) {
+            errorElement.textContent = t('loginError') || 'Vennligst fyll inn både brukernavn og passord!';
+            return;
+        }
+        
+        const users = getUsers();
+        
+        if (!users[username]) {
+            errorElement.textContent = t('loginError') || 'Brukernavn finnes ikke!';
+            return;
+        }
+        
+        if (users[username].password !== password) {
+            errorElement.textContent = t('loginError') || 'Feil passord!';
+            return;
+        }
+        
+        // Login successful
+        currentUser = username;
+        safeLocalStorageSet('miaumiauCurrentUser', username);
+        document.getElementById('login-overlay').style.display = 'none';
+        
+        // Update profile display in settings
+        updateProfileDisplay();
+        document.getElementById('logout-btn').style.display = 'block';
+        
+        // Load user's game data
+        loadGame();
+        // Update all texts after loading game (to apply language)
+        updateAllTexts();
+        updateLanguageButtons();
+        updateProfileDisplay();
+        updateGroupDisplay();
+        playClickSound();
+    } catch (error) {
+        log('error', 'Error during login', error);
+        const errorElement = document.getElementById('login-error');
+        if (errorElement) {
+            errorElement.textContent = t('error') + ': ' + (error.message || 'Login failed');
+        }
     }
-    
-    const users = getUsers();
-    
-    if (!users[username]) {
-        document.getElementById('login-error').textContent = 'Brukernavn finnes ikke!';
-        return;
-    }
-    
-    if (users[username].password !== password) {
-        document.getElementById('login-error').textContent = 'Feil passord!';
-        return;
-    }
-    
-    // Login successful
-    currentUser = username;
-    localStorage.setItem('miaumiauCurrentUser', username);
-    document.getElementById('login-overlay').style.display = 'none';
-    
-    // Update profile display in settings
-    updateProfileDisplay();
-    document.getElementById('logout-btn').style.display = 'block';
-    
-    // Load user's game data
-    loadGame();
-    // Update all texts after loading game (to apply language)
-    updateAllTexts();
-    updateLanguageButtons();
-    updateProfileDisplay();
-    updateGroupDisplay();
-    playClickSound();
 }
 
 function handleSignup() {
@@ -1082,7 +1114,18 @@ function handleSignup() {
             catClicked: 0,
             totalPlayTime: 0,
             minigameScore: 0,
-            itemsUsed: {}
+            itemsUsed: {},
+            giftsSent: 0,
+            mathSolved: 0,
+            artCreated: 0,
+            cookingPerfect: 0,
+            groupTopScore: 0,
+            quizPerfect: 0,
+            quizCompleted: 0,
+            memoryWins: 0,
+            jumpScore: 0,
+            chatMessages: 0,
+            challengesCompleted: 0
         },
         cats: [
             { name: 'Katt 1', unlocked: true, happiness: 50, hunger: 50, energy: 50, emoji: '😸', image: null },
@@ -1100,7 +1143,19 @@ function handleSignup() {
         lastSave: Date.now(),
         actionCooldowns: {},
         lastDailyReward: null,
-        catTricks: []
+        loginStreak: 0,
+        lastLoginDate: null,
+        catTricks: [],
+        quests: [],
+        completedQuests: [],
+        language: 'no',
+        profile: {
+            bio: '',
+            avatarImage: null,
+            badge: '🐱'
+        },
+        groupId: null,
+        groupRole: null
     };
     saveGame();
     updateAllDisplays();
