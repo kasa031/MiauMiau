@@ -122,9 +122,9 @@
 - [ ] **Minifisering** - Minifiser CSS og JS for produksjon
 
 ### Sikkerhet
-- [ ] **Input-validering** - Bedre validering av brukerinput (delvis implementert)
-- [ ] **XSS-beskyttelse** - Forbedret beskyttelse mot XSS (delvis implementert)
-- [ ] **Rate limiting** - Begrens antall handlinger per tid
+- [x] **Input-validering** - Bedre validering av brukerinput (implementert med validateUsername, validatePassword, validateGroupName, sanitizeInput)
+- [x] **XSS-beskyttelse** - Forbedret beskyttelse mot XSS (escapeHtml brukes på all brukerinput)
+- [x] **Rate limiting** - Begrens antall handlinger per tid (implementert med checkRateLimit)
 - [ ] **Data-kryptering** - Krypter sensitive data i localStorage
 - [ ] **Backup-system** - Automatisk backup av spilldata
 
@@ -358,8 +358,8 @@
 3. **Flere minispill** - Legg til 2-3 nye minispill
 4. **Forbedret UI** - Forbedre visuell design og animasjoner
 5. **Dokumentasjon** - Fullfør brukerveiledning og teknisk dokumentasjon
-6. **Input-validering** - Forbedre validering av brukerinput
-7. **XSS-beskyttelse** - Forbedre beskyttelse mot XSS
+6. ~~**Input-validering** - Forbedre validering av brukerinput~~ ✅
+7. ~~**XSS-beskyttelse** - Forbedre beskyttelse mot XSS~~ ✅
 
 ---
 
