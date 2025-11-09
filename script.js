@@ -268,6 +268,9 @@ const translations = {
         welcomeNewGame: '🎉 Velkommen! Ta vare på katten og stig i nivå! 🐱',
         importErrorDetail: '❌ Feil ved import: {error}',
         catTooTired: 'Jeg er for sliten... La meg hvile først! 😴',
+        playAgain: 'Spill igjen',
+        messageTooLong: 'Meldingen er for lang! Maksimum 500 tegn.',
+        error: 'Feil',
     },
     en: {
         // Navigation
@@ -484,6 +487,9 @@ const translations = {
         welcomeNewGame: '🎉 Welcome! Take care of the cat and level up! 🐱',
         importErrorDetail: '❌ Import error: {error}',
         catTooTired: 'I\'m too tired... Let me rest first! 😴',
+        playAgain: 'Play again',
+        messageTooLong: 'Message is too long! Maximum 500 characters.',
+        error: 'Error',
     }
 };
 
@@ -1586,35 +1592,60 @@ function loadGroupChat() {
 }
 
 function sendGroupMessage() {
-    if (!gameState.groupId || !currentUser) return;
-    
-    const input = document.getElementById('group-chat-input');
-    const text = input.value.trim();
-    
-    if (!text) return;
-    
-    const chatKey = `groupChat_${gameState.groupId}`;
-    const messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
-    
-    messages.push({
-        user: currentUser,
-        text: text,
-        timestamp: Date.now()
-    });
-    
-    // Keep only last 100 messages
-    if (messages.length > 100) {
-        messages.shift();
+    try {
+        if (!gameState.groupId || !currentUser) {
+            log('warn', 'Cannot send message: not in group or not logged in');
+            return;
+        }
+        
+        const input = document.getElementById('group-chat-input');
+        if (!input) {
+            log('error', 'Chat input element not found');
+            return;
+        }
+        
+        const text = input.value.trim();
+        
+        if (!text) return;
+        
+        // Limit message length
+        if (text.length > 500) {
+            showMessage(t('messageTooLong') || 'Message is too long! Maximum 500 characters.');
+            return;
+        }
+        
+        const chatKey = `groupChat_${gameState.groupId}`;
+        let messages = [];
+        try {
+            messages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+        } catch (e) {
+            log('error', 'Error parsing chat messages', e);
+            messages = [];
+        }
+        
+        messages.push({
+            user: currentUser,
+            text: escapeHtml(text), // Escape HTML for security
+            timestamp: Date.now()
+        });
+        
+        // Keep only last 100 messages
+        if (messages.length > 100) {
+            messages.shift();
+        }
+        
+        localStorage.setItem(chatKey, JSON.stringify(messages));
+        // Update chat messages stat
+        gameState.stats.chatMessages = (gameState.stats.chatMessages || 0) + 1;
+        checkAchievements();
+        saveGame();
+        input.value = '';
+        loadGroupChat();
+        playClickSound();
+    } catch (error) {
+        log('error', 'Error sending group message', error);
+        showMessage(t('error') + ': ' + (error.message || 'Failed to send message'));
     }
-    
-    localStorage.setItem(chatKey, JSON.stringify(messages));
-    // Update chat messages stat
-    gameState.stats.chatMessages = (gameState.stats.chatMessages || 0) + 1;
-    checkAchievements();
-    saveGame();
-    input.value = '';
-    loadGroupChat();
-    playClickSound();
 }
 
 function escapeHtml(text) {
@@ -4854,16 +4885,31 @@ let isFlipping = false;
 const memoryCatEmojis = ['😸', '😺', '😻', '😽', '🙀', '😼', '😾', '🐱', '🐈', '🐈‍⬛', '💖', '🌟'];
 
 function startMemoryGame() {
-    document.getElementById('memory-game-area').style.display = 'block';
-    memoryGameScore = 0;
-    memoryGameTime = 60;
-    matchedPairs = 0;
-    flippedCards = [];
-    isFlipping = false;
-    document.getElementById('memory-score').textContent = '0';
-    document.getElementById('memory-time').textContent = '60';
-    
-    const container = document.getElementById('memory-container');
+    try {
+        // Clean up any existing game
+        if (memoryGameInterval) {
+            clearInterval(memoryGameInterval);
+            memoryGameInterval = null;
+        }
+        
+        const gameArea = document.getElementById('memory-game-area');
+        const container = document.getElementById('memory-container');
+        if (!gameArea || !container) {
+            log('error', 'Memory game elements not found');
+            return;
+        }
+        
+        gameArea.style.display = 'block';
+        memoryGameScore = 0;
+        memoryGameTime = 60;
+        matchedPairs = 0;
+        flippedCards = [];
+        isFlipping = false;
+        
+        const scoreEl = document.getElementById('memory-score');
+        const timeEl = document.getElementById('memory-time');
+        if (scoreEl) scoreEl.textContent = '0';
+        if (timeEl) timeEl.textContent = '60';
     
     // Create 12 cards (6 pairs)
     const selectedEmojis = memoryCatEmojis.slice(0, 6);
@@ -4887,22 +4933,32 @@ function startMemoryGame() {
         grid.appendChild(card);
     });
     
-    const timer = setInterval(() => {
-        memoryGameTime--;
-        document.getElementById('memory-time').textContent = memoryGameTime;
-        if (memoryGameTime <= 0) {
-            clearInterval(timer);
-            gameState.coins += Math.floor(memoryGameScore / 8);
-            gameState.stats.minigameScore += memoryGameScore;
-            gameState.score += memoryGameScore;
-            updateDailyChallengeProgress('minigame');
-            showMessage(t('memoryTimeUp', { score: memoryGameScore, pairs: matchedPairs, coins: Math.floor(memoryGameScore/8) }));
-            container.innerHTML = `<button class="action-btn" onclick="startMemoryGame()">Spill igjen</button>`;
-            updateStats();
-            renderStats();
-            saveGame();
-        }
-    }, 1000);
+        const timer = setInterval(() => {
+            memoryGameTime--;
+            const timeEl = document.getElementById('memory-time');
+            if (timeEl) timeEl.textContent = memoryGameTime;
+            if (memoryGameTime <= 0) {
+                clearInterval(timer);
+                if (memoryGameInterval) {
+                    clearInterval(memoryGameInterval);
+                    memoryGameInterval = null;
+                }
+                gameState.coins += Math.floor(memoryGameScore / 8);
+                gameState.stats.minigameScore += memoryGameScore;
+                gameState.score += memoryGameScore;
+                updateDailyChallengeProgress('minigame');
+                checkAchievements();
+                showMessage(t('memoryTimeUp', { score: memoryGameScore, pairs: matchedPairs, coins: Math.floor(memoryGameScore/8) }));
+                container.innerHTML = `<button class="action-btn" onclick="startMemoryGame()">${t('playAgain') || 'Spill igjen'}</button>`;
+                updateStats();
+                renderStats();
+                saveGame();
+            }
+        }, 1000);
+    } catch (error) {
+        log('error', 'Error starting memory game', error);
+        showMessage(t('error') + ': ' + (error.message || 'Failed to start game'));
+    }
 }
 
 function flipCard(card, index) {
@@ -4964,16 +5020,31 @@ let isJumping = false;
 let obstacles = [];
 
 function startJumpGame() {
-    document.getElementById('jump-game-area').style.display = 'block';
-    jumpGameScore = 0;
-    jumpGameTime = 45;
-    jumpCatPosition = 50;
-    isJumping = false;
-    obstacles = [];
-    document.getElementById('jump-score').textContent = '0';
-    document.getElementById('jump-time').textContent = '45';
-    
-    const container = document.getElementById('jump-container');
+    try {
+        // Clean up any existing game
+        if (jumpGameInterval) {
+            clearInterval(jumpGameInterval);
+            jumpGameInterval = null;
+        }
+        
+        const gameArea = document.getElementById('jump-game-area');
+        const container = document.getElementById('jump-container');
+        if (!gameArea || !container) {
+            log('error', 'Jump game elements not found');
+            return;
+        }
+        
+        gameArea.style.display = 'block';
+        jumpGameScore = 0;
+        jumpGameTime = 45;
+        jumpCatPosition = 50;
+        isJumping = false;
+        obstacles = [];
+        
+        const scoreEl = document.getElementById('jump-score');
+        const timeEl = document.getElementById('jump-time');
+        if (scoreEl) scoreEl.textContent = '0';
+        if (timeEl) timeEl.textContent = '45';
     container.innerHTML = `
         <div class="jump-game-area">
             <div class="jump-cat" id="jump-cat" style="bottom: ${jumpCatPosition}%;">🐱</div>
@@ -5026,13 +5097,13 @@ function startJumpGame() {
             checkAchievements();
             updateDailyChallengeProgress('minigame');
             showMessage(t('jumpTimeUp', { score: jumpGameScore, coins: Math.floor(jumpGameScore/10) }));
-            container.innerHTML = `<button class="action-btn" onclick="startJumpGame()">Spill igjen</button>`;
+            container.innerHTML = `<button class="action-btn" onclick="startJumpGame()">${t('playAgain') || 'Spill igjen'}</button>`;
             updateStats();
             renderStats();
             saveGame();
         }
     }, 1000);
-    
+        
     // Spawn obstacles
     jumpGameInterval = setInterval(() => {
         if (jumpGameTime <= 0) return;
@@ -5074,6 +5145,10 @@ function startJumpGame() {
             }
         }, 50);
     }, 2000);
+    } catch (error) {
+        log('error', 'Error starting jump game', error);
+        showMessage(t('error') + ': ' + (error.message || 'Failed to start game'));
+    }
 }
 
 // ==================== KATTESKOLE ====================
