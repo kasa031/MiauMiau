@@ -273,6 +273,14 @@ const translations = {
         error: 'Feil',
         saveError: 'Kunne ikke lagre data. Prøv igjen.',
         loadError: 'Kunne ikke laste data. Prøv å oppdatere siden.',
+        
+        // Validation messages
+        invalidUsername: 'Ugyldig brukernavn! Bruk bare bokstaver, tall, bindestrek og understrek (3-20 tegn).',
+        invalidPassword: 'Passord må være mellom 4 og 100 tegn!',
+        invalidGroupName: 'Ugyldig gruppenavn! Bruk bare bokstaver, tall, mellomrom, bindestrek og understrek (3-30 tegn).',
+        invalidMessage: 'Meldingen inneholder ugyldige tegn.',
+        invalidAmount: 'Ugyldig beløp!',
+        rateLimitExceeded: 'Du har gjort for mange handlinger nylig. Vent litt før du prøver igjen.',
     },
     en: {
         // Navigation
