@@ -271,6 +271,8 @@ const translations = {
         playAgain: 'Spill igjen',
         messageTooLong: 'Meldingen er for lang! Maksimum 500 tegn.',
         error: 'Feil',
+        saveError: 'Kunne ikke lagre data. Prøv igjen.',
+        loadError: 'Kunne ikke laste data. Prøv å oppdatere siden.',
     },
     en: {
         // Navigation
@@ -490,6 +492,8 @@ const translations = {
         playAgain: 'Play again',
         messageTooLong: 'Message is too long! Maximum 500 characters.',
         error: 'Error',
+        saveError: 'Could not save data. Please try again.',
+        loadError: 'Could not load data. Please refresh the page.',
     }
 };
 
@@ -839,11 +843,25 @@ function loadGame() {
         }
         
         // Ensure stats object has all required fields
+        if (!gameState.stats) gameState.stats = {};
         if (!gameState.stats.giftsSent) gameState.stats.giftsSent = 0;
         if (!gameState.stats.mathSolved) gameState.stats.mathSolved = 0;
         if (!gameState.stats.artCreated) gameState.stats.artCreated = 0;
         if (!gameState.stats.cookingPerfect) gameState.stats.cookingPerfect = 0;
         if (!gameState.stats.groupTopScore) gameState.stats.groupTopScore = 0;
+        if (!gameState.stats.quizPerfect) gameState.stats.quizPerfect = 0;
+        if (!gameState.stats.quizCompleted) gameState.stats.quizCompleted = 0;
+        if (!gameState.stats.memoryWins) gameState.stats.memoryWins = 0;
+        if (!gameState.stats.jumpScore) gameState.stats.jumpScore = 0;
+        if (!gameState.stats.chatMessages) gameState.stats.chatMessages = 0;
+        if (!gameState.stats.challengesCompleted) gameState.stats.challengesCompleted = 0;
+        
+        // Ensure other required fields exist
+        if (!gameState.achievements) gameState.achievements = {};
+        if (!gameState.ownedItems) gameState.ownedItems = [];
+        if (!gameState.catTricks) gameState.catTricks = [];
+        if (!gameState.quests) gameState.quests = [];
+        if (!gameState.completedQuests) gameState.completedQuests = [];
         
         updateAllDisplays();
     } catch (error) {
@@ -1190,12 +1208,27 @@ function handleLogout() {
 // Each group: { id, name, password, owner, members: [username], createdAt }
 
 function getGroups() {
-    const groupsJson = localStorage.getItem('miaumiauGroups');
-    return groupsJson ? JSON.parse(groupsJson) : {};
+    try {
+        const groupsJson = safeLocalStorageGet('miaumiauGroups');
+        return groupsJson ? safeJSONParse(groupsJson, {}) : {};
+    } catch (error) {
+        log('error', 'Error getting groups', error);
+        return {};
+    }
 }
 
 function saveGroups(groups) {
-    localStorage.setItem('miaumiauGroups', JSON.stringify(groups));
+    try {
+        const groupsJson = JSON.stringify(groups);
+        const success = safeLocalStorageSet('miaumiauGroups', groupsJson);
+        if (!success) {
+            log('error', 'Failed to save groups');
+            showMessage(t('saveError') || 'Failed to save groups');
+        }
+    } catch (error) {
+        log('error', 'Error saving groups', error);
+        showMessage(t('saveError') || 'Failed to save groups');
+    }
 }
 
 function generateGroupId() {
@@ -2046,21 +2079,47 @@ function updateGroupChallenge() {
 
 // ==================== FRIENDS SYSTEM ====================
 function getFriends() {
-    const friendsData = localStorage.getItem('miaumiauFriends');
-    return friendsData ? JSON.parse(friendsData) : {};
+    try {
+        const friendsData = safeLocalStorageGet('miaumiauFriends');
+        return friendsData ? safeJSONParse(friendsData, {}) : {};
+    } catch (error) {
+        log('error', 'Error getting friends', error);
+        return {};
+    }
 }
 
 function saveFriends(friends) {
-    localStorage.setItem('miaumiauFriends', JSON.stringify(friends));
+    try {
+        const friendsJson = JSON.stringify(friends);
+        const success = safeLocalStorageSet('miaumiauFriends', friendsJson);
+        if (!success) {
+            log('error', 'Failed to save friends');
+        }
+    } catch (error) {
+        log('error', 'Error saving friends', error);
+    }
 }
 
 function getFriendRequests() {
-    const requestsData = localStorage.getItem('miaumiauFriendRequests');
-    return requestsData ? JSON.parse(requestsData) : {};
+    try {
+        const requestsData = safeLocalStorageGet('miaumiauFriendRequests');
+        return requestsData ? safeJSONParse(requestsData, {}) : {};
+    } catch (error) {
+        log('error', 'Error getting friend requests', error);
+        return {};
+    }
 }
 
 function saveFriendRequests(requests) {
-    localStorage.setItem('miaumiauFriendRequests', JSON.stringify(requests));
+    try {
+        const requestsJson = JSON.stringify(requests);
+        const success = safeLocalStorageSet('miaumiauFriendRequests', requestsJson);
+        if (!success) {
+            log('error', 'Failed to save friend requests');
+        }
+    } catch (error) {
+        log('error', 'Error saving friend requests', error);
+    }
 }
 
 function sendFriendRequest() {
