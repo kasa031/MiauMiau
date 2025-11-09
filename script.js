@@ -259,18 +259,14 @@ const translations = {
         // Other
         notInGroup: 'Du er ikke med i noen gruppe!',
         groupNoLongerExists: 'Gruppen finnes ikke lenger!',
+        gameReset: '🎉 Spillet er startet på nytt! Lykke til! 🐱',
+        welcomeMessage: '🎉 Velkommen! Ta vare på katten og stig i nivå! 🐱',
         mustBeInGroup: 'Du må være med i en gruppe først!',
         dailyRewardAlreadyClaimed: 'Du har allerede hentet belønningen i dag! Kom tilbake i morgen! 🎁',
         noDrawingsYet: 'Du har ingen lagrede tegninger ennå! Tegn først! 🎨',
         dontOwnItem: 'Du eier ikke dette itemet! 💰',
-        gameReset: '🎉 Spillet er startet på nytt! Lykke til! 🐱',
         welcomeNewGame: '🎉 Velkommen! Ta vare på katten og stig i nivå! 🐱',
         importErrorDetail: '❌ Feil ved import: {error}',
-        notEnoughCoinsForSkip: 'Du har ikke nok mynter! Trenger {cost} mynter. 💰',
-        cooldownSkipped: '💰 Kjøpt deg fri! -{cost} mynter',
-        catFull: 'Katten er mett! Den trenger ikke mer mat nå. 😊',
-        catNotTired: 'Katten er ikke sliten nok til å sove nå! Den vil heller leke! 🎾',
-        catVeryHappy: 'Katten er allerede veldig glad! Den trenger ikke vask nå! 😊',
         catTooTired: 'Jeg er for sliten... La meg hvile først! 😴',
     },
     en: {
@@ -479,18 +475,14 @@ const translations = {
         // Other
         notInGroup: 'You are not in any group!',
         groupNoLongerExists: 'Group no longer exists!',
+        gameReset: '🎉 Game has been reset! Good luck! 🐱',
+        welcomeMessage: '🎉 Welcome! Take care of the cat and level up! 🐱',
         mustBeInGroup: 'You must be in a group first!',
         dailyRewardAlreadyClaimed: 'You have already claimed the reward today! Come back tomorrow! 🎁',
         noDrawingsYet: 'You have no saved drawings yet! Draw first! 🎨',
         dontOwnItem: 'You don\'t own this item! 💰',
-        gameReset: '🎉 Game has been reset! Good luck! 🐱',
         welcomeNewGame: '🎉 Welcome! Take care of the cat and level up! 🐱',
         importErrorDetail: '❌ Import error: {error}',
-        notEnoughCoinsForSkip: 'You don\'t have enough coins! Need {cost} coins. 💰',
-        cooldownSkipped: '💰 Bought your way out! -{cost} coins',
-        catFull: 'The cat is full! It doesn\'t need more food now. 😊',
-        catNotTired: 'The cat is not tired enough to sleep now! It would rather play! 🎾',
-        catVeryHappy: 'The cat is already very happy! It doesn\'t need a bath now! 😊',
         catTooTired: 'I\'m too tired... Let me rest first! 😴',
     }
 };
@@ -924,7 +916,7 @@ function importGameData(event) {
                 showMessage(t('importSuccess'));
             }
         } catch (error) {
-            showMessage('❌ Feil ved import: ' + error.message);
+            showMessage(t('importErrorDetail', { error: error.message }));
         }
     };
     reader.readAsText(file);
@@ -6614,13 +6606,13 @@ document.getElementById('restart-game-btn').addEventListener('click', () => {
     updateStats();
     
     // Show welcome message
-    showMessage('🎉 Spillet er startet på nytt! Lykke til! 🐱');
+    showMessage(t('gameReset'));
 });
 
 // Show initial level info
 setTimeout(() => {
     if (gameState.level === 1) {
-        showMessage('🎉 Velkommen! Ta vare på katten og stig i nivå! 🐱');
+        showMessage(t('welcomeMessage'));
     }
 }, 1000);
 
