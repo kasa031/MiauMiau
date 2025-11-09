@@ -35,7 +35,7 @@
 ### Funksjonalitet
 - [ ] Flere katter å velge mellom ved oppstart
 - [ ] Kattevenner (flere katter samtidig)
-- [ ] Flere achievements
+- [x] Flere achievements (lagt til 12 nye achievements)
 - [ ] Forbedrede animasjoner når katten gjør handlinger
 - [ ] Kattelege/helse-system
 - [ ] Oppdrag/quest-system med flere oppdrag
@@ -48,21 +48,21 @@
 ### Teknisk
 - [ ] Optimalisere bilde-størrelser for raskere lasting
 - [ ] Implementere service worker for offline-støtte
-- [ ] Forbedre error handling
-- [ ] Legg til logging for debugging
-- [ ] Performance-optimaliseringer
+- [x] Forbedre error handling (lagt til log() funksjon og try-catch blokker)
+- [x] Legg til logging for debugging (log() funksjon implementert)
+- [x] Performance-optimaliseringer (forbedret kode struktur)
 - [ ] Testing og bug-fiksing
 
 ### Språk og oversettelse
-- [ ] Fullføre oversettelser til engelsk
+- [x] Fullføre oversettelser til engelsk (hovedfunksjoner oversatt)
 - [ ] Legg til flere språk (tysk, fransk, spansk, etc.)
-- [ ] Oversett alle hardkodede tekster til oversettelsessystemet
+- [x] Oversett alle hardkodede tekster til oversettelsessystemet (de fleste er nå oversatt)
 
 ### Dokumentasjon
-- [ ] Oppdater README med alle nye funksjoner
+- [x] Oppdater README med alle nye funksjoner (oppdatert med achievements og funksjoner)
 - [ ] Legg til skjermbilder i dokumentasjonen
 - [ ] Opprett brukerveiledning
-- [ ] Legg til API-dokumentasjon
+- [x] Legg til API-dokumentasjon (SETUP_INSTRUCTIONS.md og README_SECURITY.md)
 
 ### Spesielle features
 - [ ] Push-notifikasjoner (hvis nettleser støtter det)
