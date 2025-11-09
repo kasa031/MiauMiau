@@ -6276,25 +6276,62 @@ function checkCatNeeds() {
 
 // ==================== QUESTS SYSTEM ====================
 const availableQuests = [
+    // Basic care quests
     { id: 'feed5', name: 'Mat katten 5 ganger', target: 5, type: 'feed', reward: 50, icon: '🍖' },
+    { id: 'feed20', name: 'Mat katten 20 ganger', target: 20, type: 'feed', reward: 150, icon: '🍖' },
     { id: 'play10', name: 'Lek med katten 10 ganger', target: 10, type: 'play', reward: 75, icon: '🎾' },
+    { id: 'play30', name: 'Lek med katten 30 ganger', target: 30, type: 'play', reward: 200, icon: '🎾' },
     { id: 'pet15', name: 'Kos katten 15 ganger', target: 15, type: 'pet', reward: 100, icon: '❤️' },
+    { id: 'pet50', name: 'Kos katten 50 ganger', target: 50, type: 'pet', reward: 250, icon: '❤️' },
+    { id: 'clean10', name: 'Vask katten 10 ganger', target: 10, type: 'clean', reward: 80, icon: '🛁' },
+    { id: 'sleep5', name: 'La katten sove 5 ganger', target: 5, type: 'sleep', reward: 60, icon: '😴' },
+    
+    // Progression quests
     { id: 'level3', name: 'Nå nivå 3', target: 3, type: 'level', reward: 150, icon: '⭐' },
+    { id: 'level10', name: 'Nå nivå 10', target: 10, type: 'level', reward: 300, icon: '⭐' },
     { id: 'coins500', name: 'Samle 500 mynter', target: 500, type: 'coins', reward: 200, icon: '💰' },
+    { id: 'coins1000', name: 'Samle 1000 mynter', target: 1000, type: 'coins', reward: 400, icon: '💰' },
+    { id: 'score1000', name: 'Samle 1000 poeng', target: 1000, type: 'score', reward: 150, icon: '🏆' },
+    
+    // Minigame quests
     { id: 'minigame5', name: 'Spill 5 minispill', target: 5, type: 'minigame', reward: 100, icon: '🎯' },
+    { id: 'memory3', name: 'Vinn kattememory 3 ganger', target: 3, type: 'memory', reward: 150, icon: '🧩' },
+    { id: 'jump200', name: 'Få 200 poeng i kattehopp', target: 200, type: 'jump', reward: 120, icon: '🦘' },
+    
+    // School quests
+    { id: 'quiz3', name: 'Fullfør quiz 3 ganger', target: 3, type: 'quiz', reward: 100, icon: '🧠' },
+    { id: 'math20', name: 'Løs 20 regnestykker', target: 20, type: 'math', reward: 150, icon: '🔢' },
+    { id: 'art5', name: 'Lag 5 tegninger', target: 5, type: 'art', reward: 125, icon: '🎨' },
+    
+    // Social quests
     { id: 'trick2', name: 'Lær katten 2 triks', target: 2, type: 'tricks', reward: 150, icon: '🎩' },
-    { id: 'shop3', name: 'Kjøp 3 items i butikken', target: 3, type: 'shop', reward: 125, icon: '🛒' }
+    { id: 'trick4', name: 'Lær katten alle 4 triks', target: 4, type: 'tricks', reward: 300, icon: '🎩' },
+    { id: 'shop3', name: 'Kjøp 3 items i butikken', target: 3, type: 'shop', reward: 125, icon: '🛒' },
+    { id: 'shop10', name: 'Kjøp 10 items i butikken', target: 10, type: 'shop', reward: 300, icon: '🛒' },
+    { id: 'friend3', name: 'Få 3 venner', target: 3, type: 'friends', reward: 200, icon: '👫' },
+    { id: 'gift5', name: 'Send 5 gaver til venner', target: 5, type: 'gifts', reward: 150, icon: '🎁' },
+    { id: 'chat20', name: 'Send 20 meldinger i chat', target: 20, type: 'chat', reward: 100, icon: '💬' },
+    { id: 'groupChallenge', name: 'Fullfør en gruppeutfordring', target: 1, type: 'groupChallenge', reward: 200, icon: '👥' },
+    
+    // Streak quests
+    { id: 'streak3', name: 'Logg inn 3 dager på rad', target: 3, type: 'streak', reward: 100, icon: '🔥' },
+    { id: 'streak7', name: 'Logg inn 7 dager på rad', target: 7, type: 'streak', reward: 250, icon: '🔥' },
+    
+    // Achievement quests
+    { id: 'achievement10', name: 'Oppnå 10 achievements', target: 10, type: 'achievements', reward: 200, icon: '🏆' },
+    { id: 'achievement25', name: 'Oppnå 25 achievements', target: 25, type: 'achievements', reward: 400, icon: '🏆' }
 ];
 
 function generateQuests() {
     if (!gameState.quests || gameState.quests.length === 0) {
-        // Generate 3 random quests
+        // Generate 4 random quests (increased from 3)
         const shuffled = [...availableQuests].sort(() => Math.random() - 0.5);
-        gameState.quests = shuffled.slice(0, 3).map(quest => ({
+        gameState.quests = shuffled.slice(0, 4).map(quest => ({
             ...quest,
             progress: 0,
             completed: false
         }));
+        saveGame();
     }
 }
 
@@ -6319,20 +6356,63 @@ function updateQuests() {
             case 'pet':
                 quest.progress = gameState.stats.timesPetted;
                 break;
+            case 'clean':
+                quest.progress = gameState.stats.timesCleaned;
+                break;
+            case 'sleep':
+                quest.progress = gameState.stats.timesSlept;
+                break;
             case 'level':
                 quest.progress = gameState.level;
                 break;
             case 'coins':
                 quest.progress = gameState.coins;
                 break;
+            case 'score':
+                quest.progress = gameState.score;
+                break;
             case 'minigame':
                 quest.progress = gameState.stats.minigameScore > 0 ? Math.floor(gameState.stats.minigameScore / 100) : 0;
                 break;
+            case 'memory':
+                quest.progress = gameState.stats.memoryWins || 0;
+                break;
+            case 'jump':
+                quest.progress = gameState.stats.jumpScore || 0;
+                break;
+            case 'quiz':
+                quest.progress = gameState.stats.quizCompleted || 0;
+                break;
+            case 'math':
+                quest.progress = gameState.stats.mathSolved || 0;
+                break;
+            case 'art':
+                quest.progress = gameState.stats.artCreated || 0;
+                break;
             case 'tricks':
-                quest.progress = gameState.catTricks.length;
+                quest.progress = gameState.catTricks ? gameState.catTricks.length : 0;
                 break;
             case 'shop':
                 quest.progress = gameState.ownedItems.length;
+                break;
+            case 'friends':
+                const friends = getFriends();
+                quest.progress = friends ? Object.keys(friends).length : 0;
+                break;
+            case 'gifts':
+                quest.progress = gameState.stats.giftsSent || 0;
+                break;
+            case 'chat':
+                quest.progress = gameState.stats.chatMessages || 0;
+                break;
+            case 'groupChallenge':
+                quest.progress = gameState.stats.challengesCompleted || 0;
+                break;
+            case 'streak':
+                quest.progress = gameState.loginStreak || 0;
+                break;
+            case 'achievements':
+                quest.progress = gameState.achievements ? Object.keys(gameState.achievements).filter(k => gameState.achievements[k]).length : 0;
                 break;
         }
         
