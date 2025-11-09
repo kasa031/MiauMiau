@@ -1040,6 +1040,12 @@ function handleLogin() {
             return;
         }
         
+        // Validate username format
+        if (!validateUsername(username)) {
+            errorElement.textContent = t('invalidUsername') || 'Ugyldig brukernavn! Bruk bare bokstaver, tall, bindestrek og understrek (3-20 tegn).';
+            return;
+        }
+        
         const users = getUsers();
         
         if (!users[username]) {
@@ -1094,13 +1100,15 @@ function handleSignup() {
         const password = passwordInput.value;
         const passwordConfirm = passwordConfirmInput.value;
         
-        if (!username || username.length < 3) {
-            errorElement.textContent = t('signupError') || 'Brukernavn må være minst 3 tegn!';
+        // Validate username format
+        if (!validateUsername(username)) {
+            errorElement.textContent = t('invalidUsername') || 'Ugyldig brukernavn! Bruk bare bokstaver, tall, bindestrek og understrek (3-20 tegn).';
             return;
         }
         
-        if (!password || password.length < 4) {
-            errorElement.textContent = t('signupError') || 'Passord må være minst 4 tegn!';
+        // Validate password
+        if (!validatePassword(password)) {
+            errorElement.textContent = t('invalidPassword') || 'Passord må være mellom 4 og 100 tegn!';
             return;
         }
         
@@ -1346,13 +1354,21 @@ function createGroup() {
     const groupName = document.getElementById('new-group-name').value.trim();
     const groupPassword = document.getElementById('new-group-password').value;
     
-    if (!groupName || groupName.length < 3) {
-        showMessage(t('groupNameTooShort'));
+    // Validate group name
+    if (!validateGroupName(groupName)) {
+        showMessage(t('invalidGroupName') || 'Ugyldig gruppenavn! Bruk bare bokstaver, tall, mellomrom, bindestrek og understrek (3-30 tegn).');
         return;
     }
     
-    if (!groupPassword || groupPassword.length < 3) {
-        showMessage(t('passwordTooShort'));
+    // Validate password
+    if (!validatePassword(groupPassword)) {
+        showMessage(t('invalidPassword') || 'Passord må være mellom 4 og 100 tegn!');
+        return;
+    }
+    
+    // Rate limiting for group creation
+    if (!checkRateLimit('createGroup', currentUser, 3, 300000)) { // Max 3 groups per 5 minutes
+        showMessage(t('rateLimitExceeded') || 'Du har opprettet for mange grupper nylig. Vent litt før du prøver igjen.');
         return;
     }
     
@@ -1416,6 +1432,18 @@ function joinGroup() {
     
     if (!groupName || !groupPassword) {
         showMessage(t('fillAllFields'));
+        return;
+    }
+    
+    // Validate group name format
+    if (!validateGroupName(groupName)) {
+        showMessage(t('invalidGroupName') || 'Ugyldig gruppenavn!');
+        return;
+    }
+    
+    // Rate limiting for join attempts
+    if (!checkRateLimit('joinGroup', currentUser, 10, 60000)) { // Max 10 attempts per minute
+        showMessage(t('rateLimitExceeded') || 'For mange forsøk. Vent litt før du prøver igjen.');
         return;
     }
     
@@ -1743,9 +1771,16 @@ function sendGroupMessage() {
         
         if (!text) return;
         
-        // Limit message length
-        if (text.length > 500) {
-            showMessage(t('messageTooLong') || 'Message is too long! Maximum 500 characters.');
+        // Sanitize and validate message
+        const sanitizedText = sanitizeInput(text, 500);
+        if (sanitizedText.length === 0) {
+            showMessage(t('invalidMessage') || 'Meldingen inneholder ugyldige tegn.');
+            return;
+        }
+        
+        // Rate limiting for messages
+        if (!checkRateLimit('sendMessage', currentUser, 30, 60000)) { // Max 30 messages per minute
+            showMessage(t('rateLimitExceeded') || 'Du sender meldinger for raskt. Vent litt før du prøver igjen.');
             return;
         }
         
@@ -1759,8 +1794,8 @@ function sendGroupMessage() {
         }
         
         messages.push({
-            user: currentUser,
-            text: escapeHtml(text), // Escape HTML for security
+            user: escapeHtml(currentUser), // Escape username for security
+            text: escapeHtml(sanitizedText), // Escape and sanitize message
             timestamp: Date.now()
         });
         
@@ -1783,10 +1818,65 @@ function sendGroupMessage() {
     }
 }
 
+// ==================== INPUT VALIDATION & SECURITY ====================
+
 function escapeHtml(text) {
+    if (typeof text !== 'string') return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Validate username - alphanumeric, underscore, dash, 3-20 chars
+function validateUsername(username) {
+    if (!username || typeof username !== 'string') return false;
+    const trimmed = username.trim();
+    if (trimmed.length < 3 || trimmed.length > 20) return false;
+    return /^[a-zA-Z0-9_-]+$/.test(trimmed);
+}
+
+// Validate password - min 4 chars, max 100 chars
+function validatePassword(password) {
+    if (!password || typeof password !== 'string') return false;
+    return password.length >= 4 && password.length <= 100;
+}
+
+// Validate group name - alphanumeric, spaces, dash, underscore, 3-30 chars
+function validateGroupName(name) {
+    if (!name || typeof name !== 'string') return false;
+    const trimmed = name.trim();
+    if (trimmed.length < 3 || trimmed.length > 30) return false;
+    return /^[a-zA-Z0-9\s_-]+$/.test(trimmed);
+}
+
+// Sanitize input - remove dangerous characters and limit length
+function sanitizeInput(input, maxLength = 500) {
+    if (typeof input !== 'string') return '';
+    return input.trim().slice(0, maxLength).replace(/[<>]/g, '');
+}
+
+// Rate limiting helper - track actions per user
+const rateLimitStore = {};
+function checkRateLimit(action, userId, maxActions = 10, windowMs = 60000) {
+    const key = `${userId}_${action}`;
+    const now = Date.now();
+    
+    if (!rateLimitStore[key]) {
+        rateLimitStore[key] = { count: 1, resetTime: now + windowMs };
+        return true;
+    }
+    
+    if (now > rateLimitStore[key].resetTime) {
+        rateLimitStore[key] = { count: 1, resetTime: now + windowMs };
+        return true;
+    }
+    
+    if (rateLimitStore[key].count >= maxActions) {
+        return false;
+    }
+    
+    rateLimitStore[key].count++;
+    return true;
 }
 
 // Auto-refresh chat every 5 seconds
@@ -2237,8 +2327,20 @@ function sendFriendRequest() {
         return;
     }
     
+    // Validate username format
+    if (!validateUsername(username)) {
+        showMessage(t('invalidUsername') || 'Ugyldig brukernavn!');
+        return;
+    }
+    
     if (username === currentUser) {
         showMessage(t('cannotAddSelf'));
+        return;
+    }
+    
+    // Rate limiting for friend requests
+    if (!checkRateLimit('sendFriendRequest', currentUser, 20, 60000)) { // Max 20 requests per minute
+        showMessage(t('rateLimitExceeded') || 'For mange venneforespørsler. Vent litt før du prøver igjen.');
         return;
     }
     
@@ -2507,10 +2609,25 @@ function sendGiftToFriend(friendUsername) {
         return;
     }
     
-    const giftAmount = prompt(`Hvor mange mynter vil du sende til ${friendUsername}? (Du har ${gameState.coins} mynter)`, '10');
+    // Validate friend username
+    if (!validateUsername(friendUsername)) {
+        showMessage(t('invalidUsername') || 'Ugyldig brukernavn!');
+        return;
+    }
+    
+    // Rate limiting for gifts
+    if (!checkRateLimit('sendGift', currentUser, 10, 60000)) { // Max 10 gifts per minute
+        showMessage(t('rateLimitExceeded') || 'Du sender gaver for raskt. Vent litt før du prøver igjen.');
+        return;
+    }
+    
+    const giftAmount = prompt(`Hvor mange mynter vil du sende til ${escapeHtml(friendUsername)}? (Du har ${gameState.coins} mynter)`, '10');
+    if (!giftAmount) return; // User cancelled
+    
     const amount = parseInt(giftAmount);
     
-    if (!amount || amount < 1) {
+    if (!amount || amount < 1 || isNaN(amount)) {
+        showMessage(t('invalidAmount') || 'Ugyldig beløp!');
         return;
     }
     
