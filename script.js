@@ -895,17 +895,18 @@ function saveGame() {
 
 // ==================== EXPORT/IMPORT GAME DATA ====================
 function exportGameData() {
-    if (!currentUser) {
-        showMessage(t('exportError'));
-        return;
-    }
-    
-    const data = {
-        username: currentUser,
-        gameState: gameState,
-        exportDate: new Date().toISOString(),
-        version: '1.0'
-    };
+    try {
+        if (!currentUser) {
+            showMessage(t('exportError') || t('mustBeLoggedIn') || 'Du må være innlogget!');
+            return;
+        }
+        
+        const data = {
+            username: currentUser,
+            gameState: gameState,
+            exportDate: new Date().toISOString(),
+            version: '2.0'
+        };
     
     const dataStr = JSON.stringify(data, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -913,46 +914,74 @@ function exportGameData() {
     const link = document.createElement('a');
     link.href = url;
     link.download = `miaumiau_save_${currentUser}_${Date.now()}.json`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
-    showMessage(t('exportSuccess'));
+    showMessage(t('exportSuccess') || '✅ Spilldata eksportert!');
+    log('info', 'Game data exported', { user: currentUser });
+    } catch (error) {
+        log('error', 'Error exporting game data', error);
+        showMessage(t('exportError') || 'Kunne ikke eksportere data. Prøv igjen.');
+    }
 }
 
 function importGameData(event) {
-    if (!currentUser) {
-        showMessage(t('importError'));
-        return;
-    }
-    
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            
-            if (!data.gameState) {
-                showMessage(t('invalidFile'));
-                return;
-            }
-            
-            if (confirm('Dette vil overskrive din nåværende spilldata. Er du sikker?')) {
-                Object.assign(gameState, data.gameState);
-                saveGame();
-                loadGame();
-                updateAllDisplays();
-                showMessage(t('importSuccess'));
-            }
-        } catch (error) {
-            showMessage(t('importErrorDetail', { error: error.message }));
+    try {
+        if (!currentUser) {
+            showMessage(t('importError') || t('mustBeLoggedIn') || 'Du må være innlogget!');
+            return;
         }
-    };
-    reader.readAsText(file);
-    
-    // Reset file input
-    event.target.value = '';
+        
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Check file type
+        if (!file.name.endsWith('.json')) {
+            showMessage(t('invalidFile') || '❌ Ugyldig filformat! Filen må være en JSON-fil.');
+            event.target.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = safeJSONParse(e.target.result, null);
+                
+                if (!data || !data.gameState) {
+                    showMessage(t('invalidFile') || '❌ Ugyldig filformat!');
+                    return;
+                }
+                
+                const confirmMessage = currentLanguage === 'no' 
+                    ? 'Dette vil overskrive din nåværende spilldata. Er du sikker?'
+                    : 'This will overwrite your current game data. Are you sure?';
+                
+                if (confirm(confirmMessage)) {
+                    Object.assign(gameState, data.gameState);
+                    saveGame();
+                    loadGame();
+                    updateAllDisplays();
+                    showMessage(t('importSuccess') || '✅ Spilldata importert!');
+                    log('info', 'Game data imported', { user: currentUser });
+                }
+            } catch (error) {
+                log('error', 'Error parsing imported data', error);
+                showMessage(t('importErrorDetail', { error: error.message }) || '❌ Feil ved import: ' + error.message);
+            }
+        };
+        reader.onerror = function() {
+            log('error', 'Error reading file');
+            showMessage(t('importError') || 'Kunne ikke lese filen. Prøv igjen.');
+        };
+        reader.readAsText(file);
+        
+        // Reset file input
+        event.target.value = '';
+    } catch (error) {
+        log('error', 'Error importing game data', error);
+        showMessage(t('importError') || 'Kunne ikke importere data. Prøv igjen.');
+    }
 }
 
 // ==================== USER MANAGEMENT ====================
