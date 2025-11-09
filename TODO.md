@@ -38,7 +38,7 @@
 - [x] Flere achievements (lagt til 12 nye achievements)
 - [ ] Forbedrede animasjoner når katten gjør handlinger
 - [ ] Kattelege/helse-system
-- [ ] Oppdrag/quest-system med flere oppdrag
+- [x] Oppdrag/quest-system med flere oppdrag (utvidet fra 8 til 30+ oppdragstyper)
 - [ ] Sesongbaserte events
 - [ ] Leaderboard/ranking-system
 - [ ] Flere minispill

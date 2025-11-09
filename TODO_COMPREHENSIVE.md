@@ -38,7 +38,7 @@
 - [ ] **Brukerprofiler** - Utvidet profil med mer informasjon
 
 ### Oppdrag og utfordringer
-- [ ] **Flere oppdragstyper** - Utvid fra 8 til 15+ oppdragstyper
+- [x] **Flere oppdragstyper** - Utvidet fra 8 til 30+ oppdragstyper
 - [ ] **Sesongoppdrag** - Spesielle oppdrag basert på sesong
 - [ ] **Daglige gruppeutfordringer** - I tillegg til ukentlige
 - [ ] **Achievement-oppdrag** - Oppdrag basert på achievements
