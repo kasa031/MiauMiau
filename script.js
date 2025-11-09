@@ -1050,43 +1050,54 @@ function handleLogin() {
 }
 
 function handleSignup() {
-    const username = document.getElementById('signup-username').value.trim();
-    const password = document.getElementById('signup-password').value;
-    const passwordConfirm = document.getElementById('signup-password-confirm').value;
-    
-    if (!username || username.length < 3) {
-        document.getElementById('login-error').textContent = 'Brukernavn må være minst 3 tegn!';
-        return;
-    }
-    
-    if (!password || password.length < 4) {
-        document.getElementById('login-error').textContent = 'Passord må være minst 4 tegn!';
-        return;
-    }
-    
-    if (password !== passwordConfirm) {
-        document.getElementById('login-error').textContent = 'Passordene matcher ikke!';
-        return;
-    }
-    
-    const users = getUsers();
-    
-    if (users[username]) {
-        document.getElementById('login-error').textContent = 'Brukernavn er allerede i bruk!';
-        return;
-    }
-    
-    // Create new user
-    users[username] = {
-        password: password,
-        createdAt: Date.now()
-    };
-    saveUsers(users);
-    
-    // Login as new user
-    currentUser = username;
-    localStorage.setItem('miaumiauCurrentUser', username);
-    document.getElementById('login-overlay').style.display = 'none';
+    try {
+        const usernameInput = document.getElementById('signup-username');
+        const passwordInput = document.getElementById('signup-password');
+        const passwordConfirmInput = document.getElementById('signup-password-confirm');
+        const errorElement = document.getElementById('login-error');
+        
+        if (!usernameInput || !passwordInput || !passwordConfirmInput || !errorElement) {
+            log('error', 'Signup form elements not found');
+            return;
+        }
+        
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        const passwordConfirm = passwordConfirmInput.value;
+        
+        if (!username || username.length < 3) {
+            errorElement.textContent = t('signupError') || 'Brukernavn må være minst 3 tegn!';
+            return;
+        }
+        
+        if (!password || password.length < 4) {
+            errorElement.textContent = t('signupError') || 'Passord må være minst 4 tegn!';
+            return;
+        }
+        
+        if (password !== passwordConfirm) {
+            errorElement.textContent = t('passwordMismatch') || 'Passordene matcher ikke!';
+            return;
+        }
+        
+        const users = getUsers();
+        
+        if (users[username]) {
+            errorElement.textContent = t('userExists') || 'Brukernavn er allerede i bruk!';
+            return;
+        }
+        
+        // Create new user
+        users[username] = {
+            password: password,
+            createdAt: Date.now()
+        };
+        saveUsers(users);
+        
+        // Login as new user
+        currentUser = username;
+        safeLocalStorageSet('miaumiauCurrentUser', username);
+        document.getElementById('login-overlay').style.display = 'none';
     
     // Update profile display in settings
     updateProfileDisplay();
@@ -1161,6 +1172,13 @@ function handleSignup() {
     updateAllDisplays();
     playSuccessSound();
     showMessage(t('welcomeNewUser', { username }));
+    } catch (error) {
+        log('error', 'Error during signup', error);
+        const errorElement = document.getElementById('login-error');
+        if (errorElement) {
+            errorElement.textContent = t('error') + ': ' + (error.message || 'Signup failed');
+        }
+    }
 }
 
 // ==================== PROFILE FUNCTIONS ====================
