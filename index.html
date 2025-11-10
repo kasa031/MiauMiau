@@ -237,6 +237,13 @@
                     <button class="action-btn" id="bottle-btn">🍼 Tåteflaske</button>
                     <button class="action-btn" id="hand-btn">👋 Kosehånd</button>
                     <button class="action-btn" id="treat-btn" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">🏥 Behandle</button>
+                    <button class="action-btn" id="manage-cats-btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">🐱 Kattevenner</button>
+                </div>
+                
+                <!-- Active Cats Display -->
+                <div id="active-cats-section" class="active-cats-section" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 10px; color: #333;">🐱 Aktive katter:</h3>
+                    <div id="active-cats-container" class="active-cats-container"></div>
                 </div>
 
                 <div id="game-message" class="game-message"></div>
@@ -769,6 +776,18 @@
         <img src="cat_finished.jpg" alt="Søt kattunge som har rundet spillet" class="finished-cat-image">
         <p>Takk for at du tok så godt vare på katten din! Du er en ekte kattemester! 🏆</p>
         <button id="restart-game-btn" class="action-btn restart-btn">Start på nytt! 🐱</button>
+    </div>
+
+    <!-- Cat Friends Management Overlay -->
+    <div id="cat-friends-overlay" class="overlay" style="display: none;">
+        <div class="overlay-content cat-friends-modal">
+            <h2>🐱 Administrer kattevenner</h2>
+            <p style="margin-bottom: 20px; color: #666;">Velg hvilke katter som skal være aktive samtidig. Du kan ha opp til 5 katter aktive om gangen!</p>
+            <div id="cat-friends-grid" class="cat-friends-grid"></div>
+            <div style="margin-top: 20px;">
+                <button class="action-btn" onclick="closeCatFriendsOverlay()" style="background: linear-gradient(135deg, #95a5a6, #7f8c8d);">Lukk</button>
+            </div>
+        </div>
     </div>
 
     <!-- Background Music -->
