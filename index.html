@@ -8,6 +8,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MiauMiau">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-config" content="browserconfig.xml">
     
     <title>MiauMiau - Katteparadis!</title>
     
@@ -748,6 +752,13 @@
                         </button>
                     </div>
                     <p class="settings-info" id="theme-info">Velg tema for spillet. Automatisk endrer seg basert på tid på dagen.</p>
+                </div>
+                
+                <!-- PWA Install Section -->
+                <div class="settings-section" id="pwa-install-section" style="display: none;">
+                    <h2>📱 Installer app</h2>
+                    <button class="action-btn" onclick="installPWA()" style="margin: 5px; background: linear-gradient(135deg, #667eea, #764ba2);">📱 Installer på hjemmeskjerm</button>
+                    <p class="settings-info">Installer MiauMiau som en app på enheten din for raskere tilgang og offline-støtte!</p>
                 </div>
                 
                 <!-- Data Management Section -->
