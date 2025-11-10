@@ -74,8 +74,8 @@
 - [ ] **Kattehus/dekorasjon-system** - La brukere dekorere kattens miljø
 
 ### Sosiale funksjoner
-- [ ] **Global leaderboard** - Rangering av alle spillere
-- [ ] **Leaderboard/ranking-system** - Rangering av spillere
+- [x] **Global leaderboard** - Rangering av alle spillere (implementert i stats-tab med sortering)
+- [x] **Leaderboard/ranking-system** - Rangering av spillere (global leaderboard med flere sorteringsalternativer)
 - [ ] **Gruppe-konkurranser** - Konkurranser mellom grupper
 - [ ] **Venn-grupper** - La venner danne private grupper
 - [ ] **Gavebutikk** - Spesielle gaver som kan kjøpes og sendes
