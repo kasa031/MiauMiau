@@ -1016,6 +1016,17 @@ function loadGame() {
         if (!gameState.quests) gameState.quests = [];
         if (!gameState.completedQuests) gameState.completedQuests = [];
         
+        // Initialize health system if not present
+        if (typeof gameState.health === 'undefined') {
+            gameState.health = 100;
+        }
+        if (typeof gameState.sickness === 'undefined') {
+            gameState.sickness = null;
+        }
+        if (typeof gameState.sicknessStartTime === 'undefined') {
+            gameState.sicknessStartTime = null;
+        }
+        
         updateAllDisplays();
     } catch (error) {
         log('error', 'Error loading game', { error: error.message, user: currentUser });

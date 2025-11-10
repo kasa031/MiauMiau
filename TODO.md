@@ -67,7 +67,7 @@
 ### Kjernefunksjoner
 - [x] **Flere katter ved oppstart** - La brukere velge mellom flere katter når de starter (implementert med kattvelger-overlay)
 - [ ] **Kattevenner** - Støtte for flere katter samtidig i spillet
-- [ ] **Kattelege/helse-system** - Legg til helsebar og sykdommer som må behandles
+- [x] **Kattelege/helse-system** - Legg til helsebar og sykdommer som må behandles (implementert med helsebar, sykdommer og behandlingsknapp)
 - [ ] **Flere minispill** - Utvid med 3-5 nye minispill (f.eks. kattelabyrint, kattematch-3, kattetapet)
 - [ ] **Sesongbaserte events** - Spesielle events ved jul, påske, sommer, etc.
 - [ ] **Kattekonkurranser** - Ukentlige konkurranser mellom grupper eller venner
