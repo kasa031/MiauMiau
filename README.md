@@ -13,6 +13,21 @@ En omfattende, morsom og fargerik nettside for kattelokkere med spill, læring o
 1. Gå til: `https://kasa031.github.io/MiauMiau/`
 2. Spillet er klart å bruke! 🎮
 
+## 📱 Progressive Web App (PWA)
+
+MiauMiau er nå en **Progressive Web App**! Dette betyr at du kan:
+- 📲 **Installere appen** på telefonen eller datamaskinen
+- 🔌 **Spille offline** - appen fungerer uten internett
+- ⚡ **Raskere lasting** - ressurser caches lokalt
+- 🎯 **App-lignende opplevelse** - fullskjerm, ingen adresselinje
+
+**Hvordan installere:**
+- **Chrome/Edge:** Klikk på install-ikonet i adresselinjen
+- **Mobile:** "Legg til hjem-skjerm" fra nettlesermenyen
+- **iOS Safari:** Del → Legg til hjem-skjerm
+
+Se [PWA_SETUP.md](PWA_SETUP.md) for mer informasjon.
+
 ## 🎮 Hva er dette?
 
 MiauMiau er et komplett katteparadis hvor du kan:
