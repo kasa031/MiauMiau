@@ -18,6 +18,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         // Update specific tabs when opened
         if (tabName === 'stats') {
             renderStats();
+            renderGlobalLeaderboard('score'); // Show score leaderboard by default
         } else if (tabName === 'shop') {
             renderShop();
         } else if (tabName === 'achievements') {
@@ -6279,6 +6280,166 @@ function showCatImageInfo(imagePath, catName) {
                 img.style.transform = '';
             }, 600);
         }
+    }
+}
+
+// ==================== GLOBAL LEADERBOARD ====================
+let currentLeaderboardSort = 'score';
+
+function renderGlobalLeaderboard(sortBy = 'score') {
+    currentLeaderboardSort = sortBy;
+    const container = document.getElementById('global-leaderboard');
+    if (!container) return;
+    
+    try {
+        // Get all users
+        const users = getUsers();
+        const allPlayers = [];
+        
+        // Collect data from all users
+        Object.keys(users).forEach(username => {
+            const userData = safeLocalStorageGet(`miaumiauGame_${username}`);
+            if (userData) {
+                try {
+                    const userState = safeJSONParse(userData, {});
+                    const profile = userState.profile || {};
+                    const achievements = userState.achievements || {};
+                    const achievementCount = Object.keys(achievements).filter(key => achievements[key]).length;
+                    
+                    allPlayers.push({
+                        username: escapeHtml(username),
+                        score: userState.score || 0,
+                        level: userState.level || 1,
+                        coins: userState.coins || 0,
+                        achievements: achievementCount,
+                        badge: profile.badge || '🐱',
+                        avatar: profile.avatarImage,
+                        isCurrentUser: username === currentUser
+                    });
+                } catch (e) {
+                    log('error', 'Error parsing user data for leaderboard', { username, error: e.message });
+                }
+            }
+        });
+        
+        // Sort based on selected criteria
+        if (sortBy === 'score') {
+            allPlayers.sort((a, b) => b.score - a.score);
+        } else if (sortBy === 'level') {
+            allPlayers.sort((a, b) => b.level - a.level || b.score - a.score);
+        } else if (sortBy === 'coins') {
+            allPlayers.sort((a, b) => b.coins - a.coins || b.score - a.score);
+        } else if (sortBy === 'achievements') {
+            allPlayers.sort((a, b) => b.achievements - a.achievements || b.score - a.score);
+        }
+        
+        // Update button states
+        document.querySelectorAll('.leaderboard-controls .action-btn').forEach(btn => {
+            btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        });
+        const activeBtn = document.getElementById(`leaderboard-btn-${sortBy}`);
+        if (activeBtn) {
+            activeBtn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+        }
+        
+        // Render leaderboard
+        if (allPlayers.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Ingen spillere funnet. Opprett en bruker for å komme med på rangeringen! 🎮</p>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Show top 50 players
+        const topPlayers = allPlayers.slice(0, 50);
+        
+        topPlayers.forEach((player, index) => {
+            const rank = index + 1;
+            const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+            
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'leaderboard-item';
+            if (player.isCurrentUser) {
+                playerDiv.classList.add('leaderboard-item-current');
+            }
+            
+            let valueDisplay = '';
+            if (sortBy === 'score') {
+                valueDisplay = `🏆 ${player.score.toLocaleString()} poeng`;
+            } else if (sortBy === 'level') {
+                valueDisplay = `⭐ Nivå ${player.level}`;
+            } else if (sortBy === 'coins') {
+                valueDisplay = `💰 ${player.coins.toLocaleString()} mynter`;
+            } else if (sortBy === 'achievements') {
+                valueDisplay = `🎖️ ${player.achievements} achievements`;
+            }
+            
+            playerDiv.innerHTML = `
+                <div class="leaderboard-rank">${rankEmoji}</div>
+                <div class="leaderboard-avatar">${player.badge}</div>
+                <div class="leaderboard-info">
+                    <div class="leaderboard-name">
+                        ${player.username}
+                        ${player.isCurrentUser ? '<span class="you-badge">(Deg)</span>' : ''}
+                    </div>
+                    <div class="leaderboard-stats">
+                        ${valueDisplay}
+                        ${sortBy !== 'level' ? `<span>⭐ Nivå ${player.level}</span>` : ''}
+                        ${sortBy !== 'score' ? `<span>🏆 ${player.score.toLocaleString()} poeng</span>` : ''}
+                        ${sortBy !== 'coins' ? `<span>💰 ${player.coins.toLocaleString()} mynter</span>` : ''}
+                    </div>
+                </div>
+            `;
+            container.appendChild(playerDiv);
+        });
+        
+        // Show current user's rank if not in top 50
+        const currentUserIndex = allPlayers.findIndex(p => p.isCurrentUser);
+        if (currentUserIndex >= 50 && currentUser) {
+            const currentPlayer = allPlayers[currentUserIndex];
+            const rank = currentUserIndex + 1;
+            
+            const separator = document.createElement('div');
+            separator.style.cssText = 'text-align: center; padding: 20px; color: #999; font-weight: bold;';
+            separator.textContent = '...';
+            container.appendChild(separator);
+            
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'leaderboard-item leaderboard-item-current';
+            
+            let valueDisplay = '';
+            if (sortBy === 'score') {
+                valueDisplay = `🏆 ${currentPlayer.score.toLocaleString()} poeng`;
+            } else if (sortBy === 'level') {
+                valueDisplay = `⭐ Nivå ${currentPlayer.level}`;
+            } else if (sortBy === 'coins') {
+                valueDisplay = `💰 ${currentPlayer.coins.toLocaleString()} mynter`;
+            } else if (sortBy === 'achievements') {
+                valueDisplay = `🎖️ ${currentPlayer.achievements} achievements`;
+            }
+            
+            playerDiv.innerHTML = `
+                <div class="leaderboard-rank">${rank}.</div>
+                <div class="leaderboard-avatar">${currentPlayer.badge}</div>
+                <div class="leaderboard-info">
+                    <div class="leaderboard-name">
+                        ${currentPlayer.username}
+                        <span class="you-badge">(Deg)</span>
+                    </div>
+                    <div class="leaderboard-stats">
+                        ${valueDisplay}
+                        ${sortBy !== 'level' ? `<span>⭐ Nivå ${currentPlayer.level}</span>` : ''}
+                        ${sortBy !== 'score' ? `<span>🏆 ${currentPlayer.score.toLocaleString()} poeng</span>` : ''}
+                        ${sortBy !== 'coins' ? `<span>💰 ${currentPlayer.coins.toLocaleString()} mynter</span>` : ''}
+                    </div>
+                </div>
+            `;
+            container.appendChild(playerDiv);
+        }
+        
+    } catch (error) {
+        log('error', 'Error rendering global leaderboard', error);
+        container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 20px;">Feil ved lasting av rangering. Prøv igjen senere.</p>';
     }
 }
 

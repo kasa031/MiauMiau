@@ -452,6 +452,20 @@
             <div class="stats-container">
                 <h1>Statistikk 📊</h1>
                 <div class="stats-grid" id="stats-grid"></div>
+                
+                <!-- Global Leaderboard Section -->
+                <div class="leaderboard-section" style="margin-top: 40px; padding-top: 30px; border-top: 3px solid #667eea;">
+                    <h2 style="text-align: center; color: #667eea; font-size: 28px; margin-bottom: 20px;">🏆 Global Rangering 🏆</h2>
+                    <div class="leaderboard-controls" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="action-btn" onclick="renderGlobalLeaderboard('score')" id="leaderboard-btn-score">🏆 Poeng</button>
+                        <button class="action-btn" onclick="renderGlobalLeaderboard('level')" id="leaderboard-btn-level">⭐ Nivå</button>
+                        <button class="action-btn" onclick="renderGlobalLeaderboard('coins')" id="leaderboard-btn-coins">💰 Mynter</button>
+                        <button class="action-btn" onclick="renderGlobalLeaderboard('achievements')" id="leaderboard-btn-achievements">🎖️ Achievements</button>
+                    </div>
+                    <div id="global-leaderboard" class="global-leaderboard">
+                        <p style="text-align: center; color: #999; padding: 20px;">Laster rangering...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
