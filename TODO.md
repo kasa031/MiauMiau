@@ -30,7 +30,9 @@
 - [x] Oppdrag/quest-system med flere oppdrag (utvidet fra 8 til 30+ oppdragstyper)
 - [x] Kattefakta quiz i katteskolen
 - [x] Memory og Jump minispill
+- [x] Kattelabyrint minispill (nytt!)
 - [x] Eksport/import av spilldata
+- [x] Progressive Web App (PWA) - Installerbar webapp med offline-støtte
 - [x] Katterelatert ikon på musikkspillerens lukkeknapp
 - [x] 70+ achievements
 - [x] Stat-oppdateringer for alle achievements
@@ -40,6 +42,9 @@
 - [x] Animasjoner og visuell feedback
 - [x] Progress bars for oppdrag og utfordringer
 - [x] Styling for notifikasjoner og quest-kort
+- [x] Temaer - Flere bakgrunnstemaer å velge mellom (lys, mørk, automatisk)
+- [x] Lys/natt-modus - Automatisk skifte basert på tid på dagen
+- [x] Offline-støtte - Service worker for offline-spilling (PWA implementert)
 
 ### Teknisk
 - [x] Forbedre error handling (lagt til log() funksjon og try-catch blokker)
