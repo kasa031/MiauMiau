@@ -241,6 +241,7 @@ const translations = {
         allPairsFound: '🎉 Alle par funnet! Bonus: +50 poeng! 🎉',
         readingTimeUp: 'Tid er ute! Du fikk {score} poeng! +{coins} mynter! Bra jobbet med lesingen! 📚',
         jumpTimeUp: 'Tid er ute! Du fikk {score} poeng! +{coins} mynter! 🦘',
+        mazeTimeUp: 'Tid er ute! Du fikk {score} poeng! +{coins} mynter! 🧩',
         notEnoughCoinsForSkip: 'Du har ikke nok mynter! Trenger {cost} mynter. 💰',
         skipCooldownBought: '💰 Kjøpt deg fri! -{cost} mynter',
         giftReceivedMessage: '🎁 Du mottok {amount} mynter fra {from}!',
@@ -478,6 +479,7 @@ const translations = {
         allPairsFound: '🎉 All pairs found! Bonus: +50 points! 🎉',
         readingTimeUp: 'Time\'s up! You got {score} points! +{coins} coins! Great reading work! 📚',
         jumpTimeUp: 'Time\'s up! You got {score} points! +{coins} coins! 🦘',
+        mazeTimeUp: 'Time\'s up! You got {score} points! +{coins} coins! 🧩',
         notEnoughCoinsForSkip: 'You don\'t have enough coins! Need {cost} coins. 💰',
         skipCooldownBought: '💰 Bought your way out! -{cost} coins',
         giftReceivedMessage: '🎁 You received {amount} coins from {from}!',
@@ -5419,6 +5421,13 @@ function flipCard(card, index) {
 
 // ==================== JUMP GAME ====================
 let jumpGameInterval = null;
+let mazeGameInterval = null;
+let mazeGameTimer = null;
+let mazeGameScore = 0;
+let mazeGameTime = 60;
+let mazePlayerPos = { row: 0, col: 0 };
+let mazeExitPos = { row: 7, col: 7 };
+let currentMaze = null;
 let jumpGameTime = 45;
 let jumpGameScore = 0;
 let jumpCatPosition = 50; // Bottom position in %
@@ -5555,6 +5564,228 @@ function startJumpGame() {
         log('error', 'Error starting jump game', error);
         showMessage(t('error') + ': ' + (error.message || 'Failed to start game'));
     }
+}
+
+// ==================== MAZE GAME ====================
+function startMazeGame() {
+    try {
+        // Clean up any existing game
+        if (mazeGameInterval) {
+            clearInterval(mazeGameInterval);
+            mazeGameInterval = null;
+        }
+        if (mazeGameTimer) {
+            clearInterval(mazeGameTimer);
+            mazeGameTimer = null;
+        }
+        
+        const gameArea = document.getElementById('maze-game-area');
+        const container = document.getElementById('maze-container');
+        if (!gameArea || !container) {
+            log('error', 'Maze game elements not found');
+            return;
+        }
+        
+        gameArea.style.display = 'block';
+        mazeGameScore = 0;
+        mazeGameTime = 60;
+        mazePlayerPos = { row: 0, col: 0 };
+        mazeExitPos = { row: 7, col: 7 };
+        
+        // Generate simple maze (8x8 grid)
+        currentMaze = generateMaze(8, 8);
+        
+        const scoreEl = document.getElementById('maze-score');
+        const timeEl = document.getElementById('maze-time');
+        if (scoreEl) scoreEl.textContent = '0';
+        if (timeEl) timeEl.textContent = '60';
+        
+        renderMaze(container);
+        
+        // Keyboard controls
+        const handleKeyPress = (e) => {
+            if (mazeGameTime <= 0) return;
+            
+            let newRow = mazePlayerPos.row;
+            let newCol = mazePlayerPos.col;
+            
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                newRow = Math.max(0, mazePlayerPos.row - 1);
+            } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                newRow = Math.min(7, mazePlayerPos.row + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                newCol = Math.max(0, mazePlayerPos.col - 1);
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                newCol = Math.min(7, mazePlayerPos.col + 1);
+            } else {
+                return;
+            }
+            
+            // Check if move is valid (not a wall)
+            if (currentMaze[newRow][newCol] !== 1) {
+                mazePlayerPos.row = newRow;
+                mazePlayerPos.col = newCol;
+                mazeGameScore += 1;
+                document.getElementById('maze-score').textContent = mazeGameScore;
+                renderMaze(container);
+                
+                // Check if reached exit
+                if (mazePlayerPos.row === mazeExitPos.row && mazePlayerPos.col === mazeExitPos.col) {
+                    mazeGameScore += 50; // Bonus for completing
+                    document.getElementById('maze-score').textContent = mazeGameScore;
+                    // Generate new maze
+                    currentMaze = generateMaze(8, 8);
+                    mazePlayerPos = { row: 0, col: 0 };
+                    mazeExitPos = { row: 7, col: 7 };
+                    renderMaze(container);
+                    playSuccessSound();
+                }
+            }
+        };
+        
+        document.addEventListener('keydown', handleKeyPress);
+        
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        container.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        container.addEventListener('touchend', (e) => {
+            if (mazeGameTime <= 0) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+            
+            let newRow = mazePlayerPos.row;
+            let newCol = mazePlayerPos.col;
+            
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal swipe
+                if (diffX > 30) {
+                    newCol = Math.max(0, mazePlayerPos.col - 1);
+                } else if (diffX < -30) {
+                    newCol = Math.min(7, mazePlayerPos.col + 1);
+                }
+            } else {
+                // Vertical swipe
+                if (diffY > 30) {
+                    newRow = Math.max(0, mazePlayerPos.row - 1);
+                } else if (diffY < -30) {
+                    newRow = Math.min(7, mazePlayerPos.row + 1);
+                }
+            }
+            
+            // Check if move is valid
+            if (currentMaze[newRow][newCol] !== 1) {
+                mazePlayerPos.row = newRow;
+                mazePlayerPos.col = newCol;
+                mazeGameScore += 1;
+                document.getElementById('maze-score').textContent = mazeGameScore;
+                renderMaze(container);
+                
+                // Check if reached exit
+                if (mazePlayerPos.row === mazeExitPos.row && mazePlayerPos.col === mazeExitPos.col) {
+                    mazeGameScore += 50;
+                    document.getElementById('maze-score').textContent = mazeGameScore;
+                    currentMaze = generateMaze(8, 8);
+                    mazePlayerPos = { row: 0, col: 0 };
+                    mazeExitPos = { row: 7, col: 7 };
+                    renderMaze(container);
+                    playSuccessSound();
+                }
+            }
+        });
+        
+        // Timer
+        mazeGameTimer = setInterval(() => {
+            mazeGameTime--;
+            document.getElementById('maze-time').textContent = mazeGameTime;
+            if (mazeGameTime <= 0) {
+                clearInterval(mazeGameTimer);
+                document.removeEventListener('keydown', handleKeyPress);
+                gameState.coins += Math.floor(mazeGameScore / 10);
+                gameState.stats.minigameScore += mazeGameScore;
+                gameState.score += mazeGameScore;
+                checkAchievements();
+                updateDailyChallengeProgress('minigame');
+                showMessage(t('mazeTimeUp', { score: mazeGameScore, coins: Math.floor(mazeGameScore/10) }) || `Tid er ute! Du fikk ${mazeGameScore} poeng! +${Math.floor(mazeGameScore/10)} mynter! 🧩`);
+                container.innerHTML = `<button class="action-btn" onclick="startMazeGame()">${t('playAgain') || 'Spill igjen'}</button>`;
+                updateStats();
+                renderStats();
+                saveGame();
+            }
+        }, 1000);
+        
+    } catch (error) {
+        log('error', 'Error starting maze game', error);
+        showMessage(t('error') + ': ' + (error.message || 'Failed to start game'));
+    }
+}
+
+function generateMaze(rows, cols) {
+    // Simple maze generation - creates a grid with some walls
+    const maze = [];
+    for (let i = 0; i < rows; i++) {
+        maze[i] = [];
+        for (let j = 0; j < cols; j++) {
+            // Create walls around edges (except start and exit)
+            if ((i === 0 && j === 0) || (i === rows - 1 && j === cols - 1)) {
+                maze[i][j] = 0; // Start and exit are open
+            } else if (i === 0 || i === rows - 1 || j === 0 || j === cols - 1) {
+                maze[i][j] = 1; // Walls on edges
+            } else {
+                // Random walls inside (30% chance)
+                maze[i][j] = Math.random() < 0.3 ? 1 : 0;
+            }
+        }
+    }
+    
+    // Ensure there's a path from start to exit (simple path)
+    for (let i = 0; i < rows; i++) {
+        maze[i][0] = 0; // Left column open
+    }
+    for (let j = 0; j < cols; j++) {
+        maze[rows - 1][j] = 0; // Bottom row open
+    }
+    
+    return maze;
+}
+
+function renderMaze(container) {
+    if (!currentMaze) return;
+    
+    let html = '<div class="maze-grid">';
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            let cellClass = 'maze-cell';
+            let content = '';
+            
+            if (currentMaze[i][j] === 1) {
+                cellClass += ' maze-wall';
+                content = '🧱';
+            } else if (i === mazePlayerPos.row && j === mazePlayerPos.col) {
+                cellClass += ' maze-player';
+                content = '🐱';
+            } else if (i === mazeExitPos.row && j === mazeExitPos.col) {
+                cellClass += ' maze-exit';
+                content = '🏁';
+            } else {
+                content = '⬜';
+            }
+            
+            html += `<div class="${cellClass}">${content}</div>`;
+        }
+    }
+    html += '</div>';
+    html += '<p style="text-align: center; margin-top: 15px; font-size: 16px;">Bruk piltastene eller swipe for å bevege katten til målet 🏁</p>';
+    
+    container.innerHTML = html;
 }
 
 // ==================== KATTESKOLE ====================
