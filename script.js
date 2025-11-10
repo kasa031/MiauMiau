@@ -1335,10 +1335,10 @@ function handleSignup() {
     saveGame();
     // Apply theme for new user
     applyTheme('auto');
-    updateAllDisplays();
     updateThemeButtons();
-    playSuccessSound();
-    showMessage(t('welcomeNewUser', { username }));
+    
+    // Show cat selection for new user
+    showCatSelection();
     } catch (error) {
         log('error', 'Error during signup', error);
         const errorElement = document.getElementById('login-error');
@@ -6345,6 +6345,86 @@ function formatTime(ms) {
     const hours = Math.floor(minutes / 60);
     if (hours > 0) return `${hours}t ${minutes % 60}m`;
     return `${minutes}m`;
+}
+
+// ==================== CAT SELECTION ON STARTUP ====================
+function showCatSelection() {
+    const overlay = document.getElementById('cat-selection-overlay');
+    const grid = document.getElementById('cat-selection-grid');
+    
+    if (!overlay || !grid) {
+        log('error', 'Cat selection elements not found');
+        // Fallback: continue without selection
+        finishNewUserSetup();
+        return;
+    }
+    
+    // Show only unlocked cats (first 3 are always unlocked)
+    const availableCats = gameState.cats.filter((cat, index) => index < 3 || cat.unlocked);
+    
+    grid.innerHTML = '';
+    
+    availableCats.forEach((cat, index) => {
+        const card = document.createElement('div');
+        card.className = 'cat-selection-card';
+        card.dataset.catIndex = gameState.cats.indexOf(cat);
+        
+        const descriptions = [
+            'Glad og energisk katt! 😸',
+            'Morsom og lekende katt! 😺',
+            'Kjærlig og kosete katt! 😻'
+        ];
+        
+        card.innerHTML = `
+            <span class="cat-emoji">${cat.emoji}</span>
+            <div class="cat-name">${cat.name}</div>
+            <div class="cat-description">${descriptions[index] || 'Din nye katt!'}</div>
+        `;
+        
+        card.addEventListener('click', () => {
+            // Remove selected class from all cards
+            document.querySelectorAll('.cat-selection-card').forEach(c => c.classList.remove('selected'));
+            // Add selected class to clicked card
+            card.classList.add('selected');
+            
+            // Select this cat after a short delay
+            setTimeout(() => {
+                selectCatOnStartup(parseInt(card.dataset.catIndex));
+            }, 300);
+        });
+        
+        grid.appendChild(card);
+    });
+    
+    overlay.style.display = 'flex';
+}
+
+function selectCatOnStartup(catIndex) {
+    if (catIndex >= 0 && catIndex < gameState.cats.length) {
+        gameState.currentCat = catIndex;
+        saveGame();
+        
+        const overlay = document.getElementById('cat-selection-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+        
+        finishNewUserSetup();
+    }
+}
+
+function finishNewUserSetup() {
+    updateAllDisplays();
+    playSuccessSound();
+    showMessage(t('welcomeNewUser', { username: currentUser }));
+    
+    // Show welcome guide after a short delay
+    setTimeout(() => {
+        const welcomeOverlay = document.getElementById('welcome-overlay');
+        if (welcomeOverlay && !localStorage.getItem('miaumiau_hasSeenWelcome')) {
+            welcomeOverlay.style.display = 'flex';
+        }
+    }, 1000);
 }
 
 // ==================== ALBUM/CAT SELECTION ====================
