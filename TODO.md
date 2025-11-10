@@ -69,7 +69,7 @@
 - [ ] **Kattevenner** - Støtte for flere katter samtidig i spillet
 - [x] **Kattelege/helse-system** - Legg til helsebar og sykdommer som må behandles (implementert med helsebar, sykdommer og behandlingsknapp)
 - [ ] **Flere minispill** - Utvid med 3-5 nye minispill (f.eks. kattelabyrint, kattematch-3, kattetapet)
-- [ ] **Sesongbaserte events** - Spesielle events ved jul, påske, sommer, etc.
+- [x] **Sesongbaserte events** - Spesielle events ved jul, påske, sommer, etc. (implementert med sesongoppdrag, spesielle items og temaer)
 - [ ] **Kattekonkurranser** - Ukentlige konkurranser mellom grupper eller venner
 - [ ] **Kattehus/dekorasjon-system** - La brukere dekorere kattens miljø
 
