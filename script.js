@@ -8195,13 +8195,29 @@ window.addEventListener('beforeinstallprompt', (e) => {
     console.log('[PWA] Install prompt available');
 });
 
-// Detect iOS/Brave browser
+// Detect iOS/Brave/Windows browser
 function isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
+function isWindows() {
+    return /Windows/.test(navigator.platform) || /Win32|Win64/.test(navigator.userAgent);
+}
+
 function isBrave() {
     return navigator.brave && navigator.brave.isBrave instanceof Function;
+}
+
+function isChrome() {
+    return /Chrome/.test(navigator.userAgent) && !/Edge|Opera/.test(navigator.userAgent);
+}
+
+function isEdge() {
+    return /Edge/.test(navigator.userAgent);
+}
+
+function isFirefox() {
+    return /Firefox/.test(navigator.userAgent);
 }
 
 function isStandalone() {
@@ -8220,8 +8236,8 @@ function checkAndShowInstallButton() {
         return;
     }
     
-    // Show for iOS or if install prompt is available
-    if (isIOS() || deferredPrompt) {
+    // Show for iOS, Windows, or if install prompt is available
+    if (isIOS() || isWindows() || deferredPrompt) {
         installSection.style.display = 'block';
     }
     
@@ -8233,6 +8249,17 @@ function checkAndShowInstallButton() {
                 showIOSInstallInstructions();
                 localStorage.setItem('hasSeenIOSInstallPrompt', 'true');
             }, 3000); // Show after 3 seconds
+        }
+    }
+    
+    // Auto-show instructions for Windows users on first visit (if no install prompt)
+    if (isWindows() && !isStandalone() && !deferredPrompt) {
+        const hasSeenWindowsPrompt = localStorage.getItem('hasSeenWindowsInstallPrompt');
+        if (!hasSeenWindowsPrompt) {
+            setTimeout(() => {
+                showWindowsInstallInstructions();
+                localStorage.setItem('hasSeenWindowsInstallPrompt', 'true');
+            }, 5000); // Show after 5 seconds
         }
     }
 }
@@ -8264,6 +8291,78 @@ function showIOSInstallInstructions() {
     document.body.appendChild(overlay);
 }
 
+// Show Windows install instructions
+function showWindowsInstallInstructions() {
+    const isBraveBrowser = isBrave();
+    const isChromeBrowser = isChrome();
+    const isEdgeBrowser = isEdge();
+    const isFirefoxBrowser = isFirefox();
+    
+    let browserName = 'nettleseren';
+    let method = '';
+    
+    if (isBraveBrowser) {
+        browserName = 'Brave';
+        method = `
+            <li>Se etter install-ikonet (➕) i adresselinjen til høyre</li>
+            <li>Eller trykk på meny-ikonet (tre prikker) øverst til høyre</li>
+            <li>Velg "Install MiauMiau" eller "Installer MiauMiau"</li>
+            <li>Trykk "Install" i popup-vinduet</li>
+        `;
+    } else if (isChromeBrowser) {
+        browserName = 'Chrome';
+        method = `
+            <li>Se etter install-ikonet (➕) i adresselinjen til høyre</li>
+            <li>Eller trykk på meny-ikonet (tre prikker) øverst til høyre</li>
+            <li>Velg "Install MiauMiau" eller "Installer MiauMiau"</li>
+            <li>Trykk "Install" i popup-vinduet</li>
+        `;
+    } else if (isEdgeBrowser) {
+        browserName = 'Microsoft Edge';
+        method = `
+            <li>Se etter install-ikonet (➕) i adresselinjen til høyre</li>
+            <li>Eller trykk på meny-ikonet (tre prikker) øverst til høyre</li>
+            <li>Velg "Apps" → "Install this site as an app"</li>
+            <li>Trykk "Install" i popup-vinduet</li>
+        `;
+    } else if (isFirefoxBrowser) {
+        browserName = 'Firefox';
+        method = `
+            <li>Firefox støtter ikke PWA-installasjon direkte</li>
+            <li>Bruk Chrome, Edge eller Brave for best opplevelse</li>
+            <li>Alternativt: Lag et skrivebordsikon manuelt</li>
+        `;
+    } else {
+        method = `
+            <li>Se etter install-ikonet i adresselinjen</li>
+            <li>Eller sjekk nettleserens meny for "Install app" eller lignende</li>
+            <li>Følg instruksjonene som vises</li>
+        `;
+    }
+    
+    const instructions = `
+        <div style="padding: 20px; background: white; border-radius: 15px; max-width: 500px; margin: 20px auto;">
+            <h2 style="color: #667eea; margin-bottom: 15px;">💻 Installer MiauMiau på Windows</h2>
+            <p style="color: #666; margin-bottom: 15px;">Instruksjoner for ${browserName}:</p>
+            <ol style="text-align: left; line-height: 1.8; color: #333;">
+                ${method}
+            </ol>
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                Etter installasjon vil appen vises i Start-menyen og kan åpnes som en vanlig app!
+            </p>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                Lukk
+            </button>
+        </div>
+    `;
+    
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+    overlay.innerHTML = instructions;
+    document.body.appendChild(overlay);
+}
+
 function installPWA() {
     // Check if already installed
     if (isStandalone()) {
@@ -8271,13 +8370,36 @@ function installPWA() {
         return;
     }
     
-    // iOS/Brave handling
+    // iOS handling
     if (isIOS()) {
         showIOSInstallInstructions();
         return;
     }
     
-    // Android/Chrome handling
+    // Windows handling
+    if (isWindows()) {
+        // If install prompt is available (Chrome/Edge/Brave), use it
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('[PWA] User accepted install');
+                    showMessage('Appen installeres nå! 🎉');
+                } else {
+                    console.log('[PWA] User dismissed install');
+                    // Show instructions as fallback
+                    showWindowsInstallInstructions();
+                }
+                deferredPrompt = null;
+            });
+        } else {
+            // Show manual instructions
+            showWindowsInstallInstructions();
+        }
+        return;
+    }
+    
+    // Android/Other handling
     if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
@@ -8288,6 +8410,8 @@ function installPWA() {
             }
             deferredPrompt = null;
         });
+    } else {
+        showMessage('Install-funksjonen er ikke tilgjengelig i denne nettleseren. Prøv Chrome, Edge eller Brave!');
     }
 }
 
