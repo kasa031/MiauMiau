@@ -8200,8 +8200,16 @@ function isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
+function isAndroid() {
+    return /Android/.test(navigator.userAgent);
+}
+
 function isWindows() {
-    return /Windows/.test(navigator.platform) || /Win32|Win64/.test(navigator.userAgent);
+    return /Windows/.test(navigator.userAgent) || /Win32|Win64/.test(navigator.userAgent);
+}
+
+function isMac() {
+    return /Macintosh|Mac OS X/.test(navigator.userAgent);
 }
 
 function isBrave() {
@@ -8209,7 +8217,16 @@ function isBrave() {
 }
 
 function isChrome() {
-    return /Chrome/.test(navigator.userAgent) && !/Edge|Opera/.test(navigator.userAgent);
+    return /Chrome/.test(navigator.userAgent) && !isBrave() && !/Edg/.test(navigator.userAgent);
+}
+
+function getBrowserName() {
+    if (isBrave()) return 'Brave';
+    if (isEdge()) return 'Edge';
+    if (isChrome()) return 'Chrome';
+    if (isFirefox()) return 'Firefox';
+    if (isIOS()) return 'Safari';
+    return 'Nettleseren din';
 }
 
 function isEdge() {
