@@ -7424,6 +7424,7 @@ if (isLoggedIn) {
     initAudio();
     initBackgroundMusic();
     loadGame();
+    registerServiceWorker();
     playTimeStart = Date.now(); // Start tracking play time from now
     updateStats();
     checkSeasonalEvents();
@@ -7500,4 +7501,81 @@ document.querySelectorAll('.floating-cat').forEach(cat => {
         }, 500);
     });
 });
+
+// ==================== PWA SERVICE WORKER ====================
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then((registration) => {
+                    console.log('[PWA] Service Worker registered successfully:', registration.scope);
+                    
+                    // Sjekk for oppdateringer
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Ny versjon tilgjengelig
+                                if (confirm('Ny versjon av MiauMiau er tilgjengelig! Vil du oppdatere nå?')) {
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.log('[PWA] Service Worker registration failed:', error);
+                });
+        });
+        
+        // Håndter service worker controller change (ny versjon aktivert)
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                window.location.reload();
+            }
+        });
+    }
+}
+
+// Install prompt for PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Forhindre standard prompt
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Vis egen install-knapp hvis ønskelig
+    // Du kan legge til en knapp i UI som kaller installPWA()
+    console.log('[PWA] Install prompt available');
+});
+
+function installPWA() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('[PWA] User accepted install');
+            } else {
+                console.log('[PWA] User dismissed install');
+            }
+            deferredPrompt = null;
+        });
+    }
+}
+
+// Detekter om appen er installert
+function isPWAInstalled() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true ||
+           document.referrer.includes('android-app://');
+}
+
+// Vis install-knapp hvis ikke installert
+if (!isPWAInstalled() && 'serviceWorker' in navigator) {
+    // Du kan legge til en install-knapp i UI her
+    console.log('[PWA] App can be installed');
+}
 

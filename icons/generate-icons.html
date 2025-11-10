@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generer Ikoner for MiauMiau</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 10px;
+            display: block;
+        }
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .sizes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .size-item {
+            text-align: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐱 Generer App Ikoner for MiauMiau</h1>
+        <p>Dette verktøyet genererer PNG-ikoner i alle nødvendige størrelser basert på en katt-emoji.</p>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <canvas id="preview" width="512" height="512" style="max-width: 200px; height: auto;"></canvas>
+        </div>
+        
+        <div style="text-align: center;">
+            <button onclick="generateAllIcons()">Generer alle ikoner</button>
+            <button onclick="downloadAll()">Last ned alle ikoner</button>
+        </div>
+        
+        <div class="sizes" id="sizes"></div>
+    </div>
+
+    <script>
+        const sizes = [16, 32, 72, 96, 128, 144, 152, 192, 384, 512];
+        const canvases = {};
+        
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Bakgrunnsfarge (lilla/blå gradient)
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Runde hjørner
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            const radius = size * 0.2;
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Reset composite operation
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Tegn katt-emoji (stor tekst)
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🐱', size / 2, size / 2);
+        }
+        
+        function generateAllIcons() {
+            const sizesDiv = document.getElementById('sizes');
+            sizesDiv.innerHTML = '';
+            
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.id = `canvas-${size}`;
+                canvas.width = size;
+                canvas.height = size;
+                canvas.style.maxWidth = '100px';
+                canvas.style.height = 'auto';
+                drawIcon(canvas, size);
+                
+                canvases[size] = canvas;
+                
+                const div = document.createElement('div');
+                div.className = 'size-item';
+                div.innerHTML = `
+                    <canvas id="canvas-${size}" width="${size}" height="${size}"></canvas>
+                    <p>${size}x${size}</p>
+                    <button onclick="downloadIcon(${size})">Last ned</button>
+                `;
+                sizesDiv.appendChild(div);
+                
+                // Tegn på nytt i riktig canvas
+                const newCanvas = div.querySelector(`#canvas-${size}`);
+                drawIcon(newCanvas, size);
+            });
+            
+            // Oppdater preview
+            const preview = document.getElementById('preview');
+            drawIcon(preview, 512);
+        }
+        
+        function downloadIcon(size) {
+            const canvas = canvases[size] || document.getElementById(`canvas-${size}`);
+            if (!canvas) return;
+            
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon-${size}x${size}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        function downloadAll() {
+            sizes.forEach((size, index) => {
+                setTimeout(() => {
+                    downloadIcon(size);
+                }, index * 200);
+            });
+        }
+        
+        // Generer ved oppstart
+        window.addEventListener('load', () => {
+            generateAllIcons();
+        });
+    </script>
+</body>
+</html>
+
