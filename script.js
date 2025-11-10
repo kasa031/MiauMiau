@@ -5894,6 +5894,471 @@ function startMazeGame() {
     }
 }
 
+// ==================== MATCH-3 GAME ====================
+let match3GameScore = 0;
+let match3GameTime = 60;
+let match3Grid = [];
+let match3Selected = null;
+let match3GameTimer = null;
+const catEmojisMatch3 = ['😸', '😺', '😻', '😽', '🙀', '😼'];
+
+function startMatch3Game() {
+    try {
+        // Clean up
+        if (match3GameTimer) clearInterval(match3GameTimer);
+        
+        const gameArea = document.getElementById('match3-game-area');
+        const container = document.getElementById('match3-container');
+        if (!gameArea || !container) return;
+        
+        gameArea.style.display = 'block';
+        match3GameScore = 0;
+        match3GameTime = 60;
+        match3Selected = null;
+        
+        // Create 8x8 grid
+        match3Grid = [];
+        for (let i = 0; i < 8; i++) {
+            match3Grid[i] = [];
+            for (let j = 0; j < 8; j++) {
+                match3Grid[i][j] = catEmojisMatch3[Math.floor(Math.random() * catEmojisMatch3.length)];
+            }
+        }
+        
+        // Remove initial matches
+        while (findMatch3Matches().length > 0) {
+            removeMatch3Matches();
+            fillMatch3Gaps();
+        }
+        
+        renderMatch3(container);
+        
+        // Timer
+        match3GameTimer = setInterval(() => {
+            match3GameTime--;
+            document.getElementById('match3-time').textContent = match3GameTime;
+            if (match3GameTime <= 0) {
+                endMatch3Game();
+            }
+        }, 1000);
+        
+        updateMatch3Score();
+    } catch (error) {
+        log('error', 'Error starting match-3 game', error);
+        showMessage(t('error') + ': ' + (error.message || 'Failed to start game'));
+    }
+}
+
+function renderMatch3(container) {
+    container.innerHTML = '<div class="match3-grid"></div>';
+    const grid = container.querySelector('.match3-grid');
+    
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'match3-cell';
+            cell.dataset.row = i;
+            cell.dataset.col = j;
+            cell.textContent = match3Grid[i][j];
+            cell.onclick = () => selectMatch3Cell(i, j);
+            if (match3Selected && match3Selected.row === i && match3Selected.col === j) {
+                cell.classList.add('selected');
+            }
+            grid.appendChild(cell);
+        }
+    }
+}
+
+function selectMatch3Cell(row, col) {
+    if (match3GameTime <= 0) return;
+    
+    if (!match3Selected) {
+        match3Selected = { row, col };
+        renderMatch3(document.getElementById('match3-container'));
+        return;
+    }
+    
+    // Check if adjacent
+    const rowDiff = Math.abs(match3Selected.row - row);
+    const colDiff = Math.abs(match3Selected.col - col);
+    if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+        // Swap
+        const temp = match3Grid[match3Selected.row][match3Selected.col];
+        match3Grid[match3Selected.row][match3Selected.col] = match3Grid[row][col];
+        match3Grid[row][col] = temp;
+        
+        // Check for matches
+        const matches = findMatch3Matches();
+        if (matches.length > 0) {
+            playSuccessSound();
+            removeMatch3Matches();
+            fillMatch3Gaps();
+            checkMatch3Matches();
+        } else {
+            // Swap back
+            const temp2 = match3Grid[match3Selected.row][match3Selected.col];
+            match3Grid[match3Selected.row][match3Selected.col] = match3Grid[row][col];
+            match3Grid[row][col] = temp2;
+            playErrorSound();
+        }
+    }
+    
+    match3Selected = null;
+    renderMatch3(document.getElementById('match3-container'));
+}
+
+function findMatch3Matches() {
+    const matches = [];
+    
+    // Horizontal matches
+    for (let i = 0; i < 8; i++) {
+        let count = 1;
+        let emoji = match3Grid[i][0];
+        for (let j = 1; j < 8; j++) {
+            if (match3Grid[i][j] === emoji) {
+                count++;
+            } else {
+                if (count >= 3) {
+                    for (let k = j - count; k < j; k++) {
+                        matches.push({ row: i, col: k });
+                    }
+                }
+                count = 1;
+                emoji = match3Grid[i][j];
+            }
+        }
+        if (count >= 3) {
+            for (let k = 8 - count; k < 8; k++) {
+                matches.push({ row: i, col: k });
+            }
+        }
+    }
+    
+    // Vertical matches
+    for (let j = 0; j < 8; j++) {
+        let count = 1;
+        let emoji = match3Grid[0][j];
+        for (let i = 1; i < 8; i++) {
+            if (match3Grid[i][j] === emoji) {
+                count++;
+            } else {
+                if (count >= 3) {
+                    for (let k = i - count; k < i; k++) {
+                        matches.push({ row: k, col: j });
+                    }
+                }
+                count = 1;
+                emoji = match3Grid[i][j];
+            }
+        }
+        if (count >= 3) {
+            for (let k = 8 - count; k < 8; k++) {
+                matches.push({ row: k, col: j });
+            }
+        }
+    }
+    
+    return matches;
+}
+
+function removeMatch3Matches() {
+    const matches = findMatch3Matches();
+    const uniqueMatches = [...new Set(matches.map(m => `${m.row},${m.col}`))];
+    match3GameScore += uniqueMatches.length * 10;
+    updateMatch3Score();
+    
+    uniqueMatches.forEach(match => {
+        const [row, col] = match.split(',').map(Number);
+        match3Grid[row][col] = null;
+    });
+}
+
+function fillMatch3Gaps() {
+    // Drop cells down
+    for (let j = 0; j < 8; j++) {
+        let writeIndex = 7;
+        for (let i = 7; i >= 0; i--) {
+            if (match3Grid[i][j] !== null) {
+                match3Grid[writeIndex][j] = match3Grid[i][j];
+                if (writeIndex !== i) match3Grid[i][j] = null;
+                writeIndex--;
+            }
+        }
+        // Fill top with new emojis
+        for (let i = writeIndex; i >= 0; i--) {
+            match3Grid[i][j] = catEmojisMatch3[Math.floor(Math.random() * catEmojisMatch3.length)];
+        }
+    }
+}
+
+function checkMatch3Matches() {
+    setTimeout(() => {
+        const matches = findMatch3Matches();
+        if (matches.length > 0) {
+            removeMatch3Matches();
+            fillMatch3Gaps();
+            renderMatch3(document.getElementById('match3-container'));
+            checkMatch3Matches();
+        } else {
+            renderMatch3(document.getElementById('match3-container'));
+        }
+    }, 300);
+}
+
+function updateMatch3Score() {
+    const scoreEl = document.getElementById('match3-score');
+    if (scoreEl) scoreEl.textContent = match3GameScore;
+}
+
+function endMatch3Game() {
+    if (match3GameTimer) clearInterval(match3GameTimer);
+    const container = document.getElementById('match3-container');
+    const coinsEarned = Math.floor(match3GameScore / 10);
+    gameState.coins += coinsEarned;
+    gameState.stats.minigameScore += match3GameScore;
+    gameState.score += match3GameScore;
+    checkAchievements();
+    updateDailyChallengeProgress('minigame');
+    showMessage(t('timeUp', { score: match3GameScore, coins: coinsEarned }) || `Tid er ute! Du fikk ${match3GameScore} poeng! +${coinsEarned} mynter! 🎯`);
+    container.innerHTML = `<button class="action-btn" onclick="startMatch3Game()">${t('playAgain') || 'Spill igjen'}</button>`;
+    updateStats();
+    saveGame();
+}
+
+// ==================== TAP GAME ====================
+let tapGameScore = 0;
+let tapGameTime = 30;
+let tapGameTimer = null;
+let tapGameInterval = null;
+
+function startTapGame() {
+    try {
+        // Clean up
+        if (tapGameTimer) clearInterval(tapGameTimer);
+        if (tapGameInterval) clearInterval(tapGameInterval);
+        
+        const gameArea = document.getElementById('tap-game-area');
+        const container = document.getElementById('tap-container');
+        if (!gameArea || !container) return;
+        
+        gameArea.style.display = 'block';
+        tapGameScore = 0;
+        tapGameTime = 30;
+        
+        container.innerHTML = '<div class="tap-game-area"></div>';
+        const tapArea = container.querySelector('.tap-game-area');
+        
+        updateTapScore();
+        updateTapTime();
+        
+        // Spawn cats randomly
+        tapGameInterval = setInterval(() => {
+            if (tapGameTime <= 0) return;
+            spawnTapCat(tapArea);
+        }, 800);
+        
+        // Timer
+        tapGameTimer = setInterval(() => {
+            tapGameTime--;
+            updateTapTime();
+            if (tapGameTime <= 0) {
+                endTapGame();
+            }
+        }, 1000);
+    } catch (error) {
+        log('error', 'Error starting tap game', error);
+        showMessage(t('error') + ': ' + (error.message || 'Failed to start game'));
+    }
+}
+
+function spawnTapCat(container) {
+    const cat = document.createElement('div');
+    cat.className = 'tap-cat';
+    cat.textContent = catEmojisMatch3[Math.floor(Math.random() * catEmojisMatch3.length)];
+    
+    const size = 50 + Math.random() * 30;
+    cat.style.width = size + 'px';
+    cat.style.height = size + 'px';
+    cat.style.fontSize = size * 0.6 + 'px';
+    cat.style.left = Math.random() * (container.offsetWidth - size) + 'px';
+    cat.style.top = Math.random() * (container.offsetHeight - size) + 'px';
+    
+    const points = Math.floor(size / 10);
+    cat.dataset.points = points;
+    
+    cat.onclick = function() {
+        tapGameScore += parseInt(this.dataset.points);
+        updateTapScore();
+        playClickSound();
+        createParticles(this, 'success');
+        this.remove();
+    };
+    
+    container.appendChild(cat);
+    
+    // Remove after 2 seconds if not clicked
+    setTimeout(() => {
+        if (cat.parentNode) {
+            cat.remove();
+        }
+    }, 2000);
+}
+
+function updateTapScore() {
+    const scoreEl = document.getElementById('tap-score');
+    if (scoreEl) scoreEl.textContent = tapGameScore;
+}
+
+function updateTapTime() {
+    const timeEl = document.getElementById('tap-time');
+    if (timeEl) timeEl.textContent = tapGameTime;
+}
+
+function endTapGame() {
+    if (tapGameTimer) clearInterval(tapGameTimer);
+    if (tapGameInterval) clearInterval(tapGameInterval);
+    const container = document.getElementById('tap-container');
+    const coinsEarned = Math.floor(tapGameScore / 5);
+    gameState.coins += coinsEarned;
+    gameState.stats.minigameScore += tapGameScore;
+    gameState.score += tapGameScore;
+    checkAchievements();
+    updateDailyChallengeProgress('minigame');
+    showMessage(t('timeUp', { score: tapGameScore, coins: coinsEarned }) || `Tid er ute! Du fikk ${tapGameScore} poeng! +${coinsEarned} mynter! 👆`);
+    container.innerHTML = `<button class="action-btn" onclick="startTapGame()">${t('playAgain') || 'Spill igjen'}</button>`;
+    updateStats();
+    saveGame();
+}
+
+// ==================== CAT QUIZ GAME (NEW) ====================
+let catQuizGameScore = 0;
+let catQuizCurrentQuestion = 0;
+const catQuizQuestions = [
+    {
+        question: 'Hvor mange liv har en katt ifølge myten?',
+        options: ['7', '9', '5', '3'],
+        correct: 1,
+        fact: 'Katter har faktisk bare ett liv, men myten sier 9!'
+    },
+    {
+        question: 'Hva er den vanligste kattens favorittaktivitet?',
+        options: ['Spise', 'Sove', 'Leke', 'Kose'],
+        correct: 1,
+        fact: 'Katter sover i gjennomsnitt 12-16 timer per dag!'
+    },
+    {
+        question: 'Hvor mange smaksløker har en katt?',
+        options: ['470', '473', '475', '480'],
+        correct: 1,
+        fact: 'Katter har 473 smaksløker, mens mennesker har rundt 9000!'
+    },
+    {
+        question: 'Hva kalles en gruppe katter?',
+        options: ['Flokk', 'Klovn', 'Prat', 'Horde'],
+        correct: 2,
+        fact: 'En gruppe katter kalles en "prat" eller "clowder" på engelsk!'
+    },
+    {
+        question: 'Hvor raskt kan en katt løpe?',
+        options: ['30 km/t', '40 km/t', '48 km/t', '55 km/t'],
+        correct: 2,
+        fact: 'Katter kan løpe opptil 48 km/t i korte sprinter!'
+    }
+];
+
+function startCatQuiz() {
+    try {
+        const gameArea = document.getElementById('cat-quiz-game-area');
+        const container = document.getElementById('cat-quiz-container');
+        if (!gameArea || !container) return;
+        
+        gameArea.style.display = 'block';
+        catQuizGameScore = 0;
+        catQuizCurrentQuestion = 0;
+        
+        showNextCatQuizQuestion();
+    } catch (error) {
+        log('error', 'Error starting cat quiz game', error);
+        showMessage(t('error') + ': ' + (error.message || 'Failed to start game'));
+    }
+}
+
+function showNextCatQuizQuestion() {
+    const container = document.getElementById('cat-quiz-container');
+    if (!container) return;
+    
+    if (catQuizCurrentQuestion >= catQuizQuestions.length) {
+        const finalScore = Math.floor((catQuizGameScore / catQuizQuestions.length) * 100);
+        const coinsEarned = Math.floor(finalScore / 5);
+        gameState.coins += coinsEarned;
+        gameState.score += coinsEarned * 2;
+        gameState.stats.quizCompleted = (gameState.stats.quizCompleted || 0) + 1;
+        if (catQuizGameScore === catQuizQuestions.length) {
+            gameState.stats.quizPerfect = (gameState.stats.quizPerfect || 0) + 1;
+        }
+        checkAchievements();
+        saveGame();
+        
+        container.innerHTML = `
+            <div class="quiz-result">
+                <h2>🎉 Quiz ferdig!</h2>
+                <p style="font-size: 24px; margin: 20px 0;">Du fikk ${catQuizGameScore} av ${catQuizQuestions.length} riktig!</p>
+                <p style="font-size: 20px; color: #667eea; font-weight: 700;">Poeng: ${finalScore}%</p>
+                <p style="font-size: 18px; margin: 15px 0;">💰 Du tjente ${coinsEarned} mynter!</p>
+                <button class="action-btn" onclick="startCatQuiz()" style="margin-top: 20px;">Spill igjen</button>
+            </div>
+        `;
+        playSuccessSound();
+        updateAllDisplays();
+        return;
+    }
+    
+    const question = catQuizQuestions[catQuizCurrentQuestion];
+    
+    container.innerHTML = `
+        <div class="quiz-container">
+            <h2>🧠 Kattetest</h2>
+            <div class="quiz-progress">Spørsmål ${catQuizCurrentQuestion + 1} av ${catQuizQuestions.length}</div>
+            <div class="quiz-question">
+                <h3>${question.question}</h3>
+            </div>
+            <div class="quiz-options" id="cat-quiz-options">
+                ${question.options.map((option, index) => `
+                    <button class="quiz-option-btn" onclick="selectCatQuizAnswer(${index})">${option}</button>
+                `).join('')}
+            </div>
+            <div id="cat-quiz-feedback" class="quiz-feedback"></div>
+        </div>
+    `;
+}
+
+function selectCatQuizAnswer(selectedIndex) {
+    const question = catQuizQuestions[catQuizCurrentQuestion];
+    const feedback = document.getElementById('cat-quiz-feedback');
+    const options = document.querySelectorAll('#cat-quiz-options .quiz-option-btn');
+    
+    options.forEach(btn => btn.disabled = true);
+    
+    if (selectedIndex === question.correct) {
+        catQuizGameScore++;
+        feedback.innerHTML = `<div style="color: #27ae60; font-size: 20px; font-weight: 700; margin: 15px 0;">✅ Riktig! ${question.fact}</div>`;
+        playSuccessSound();
+    } else {
+        feedback.innerHTML = `<div style="color: #e74c3c; font-size: 20px; font-weight: 700; margin: 15px 0;">❌ Feil! Riktig svar: ${question.options[question.correct]}<br><span style="font-size: 16px; color: #667eea;">${question.fact}</span></div>`;
+        playErrorSound();
+    }
+    
+    options[question.correct].style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+    if (selectedIndex !== question.correct) {
+        options[selectedIndex].style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+    }
+    
+    setTimeout(() => {
+        catQuizCurrentQuestion++;
+        showNextCatQuizQuestion();
+    }, 2500);
+}
+
 function generateMaze(rows, cols) {
     // Simple maze generation - creates a grid with some walls
     const maze = [];
