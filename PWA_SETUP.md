@@ -47,7 +47,7 @@
 - [x] Offline-funksjonalitet (caching)
 - [x] Installerbarhet (beforeinstallprompt)
 - [x] Ikon-generator verktøy (icons/generate-icons.html)
-- [ ] App-ikoner generert (bruk generate-icons.html for å lage ikoner)
+- [x] App-ikoner generert (alle 10 størrelser er på plass i icons-mappen)
 
 ---
 

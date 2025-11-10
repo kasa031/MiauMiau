@@ -159,11 +159,17 @@
         }
         
         function downloadAll() {
+            // Last ned alle ikoner med litt forsinkelse mellom hver
             sizes.forEach((size, index) => {
                 setTimeout(() => {
                     downloadIcon(size);
-                }, index * 200);
+                }, index * 300);
             });
+            
+            // Gi brukeren beskjed
+            setTimeout(() => {
+                alert('Alle ikoner er lastet ned! Sjekk nedlastingsmappen din og flytt PNG-filene til icons-mappen i prosjektet.');
+            }, sizes.length * 300 + 500);
         }
         
         // Generer ved oppstart
