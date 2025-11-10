@@ -8241,49 +8241,119 @@ function checkAndShowInstallButton() {
         installSection.style.display = 'block';
     }
     
-    // Auto-show instructions for iOS users on first visit
-    if (isIOS() && !isStandalone()) {
-        const hasSeenIOSPrompt = localStorage.getItem('hasSeenIOSInstallPrompt');
-        if (!hasSeenIOSPrompt) {
-            setTimeout(() => {
-                showIOSInstallInstructions();
-                localStorage.setItem('hasSeenIOSInstallPrompt', 'true');
-            }, 3000); // Show after 3 seconds
+    // Auto-show instructions for users on first visit (iOS, Windows, Mac, Android)
+    if (!isStandalone()) {
+        const platform = isIOS() ? 'ios' : isWindows() ? 'windows' : isMac() ? 'mac' : isAndroid() ? 'android' : null;
+        if (platform) {
+            const promptKey = `hasSeen${platform}InstallPrompt`;
+            const hasSeenPrompt = localStorage.getItem(promptKey);
+            if (!hasSeenPrompt) {
+                setTimeout(() => {
+                    showInstallInstructions();
+                    localStorage.setItem(promptKey, 'true');
+                }, 3000); // Show after 3 seconds
+            }
         }
     }
     
-    // Auto-show instructions for Windows users on first visit (if no install prompt)
-    if (isWindows() && !isStandalone() && !deferredPrompt) {
-        const hasSeenWindowsPrompt = localStorage.getItem('hasSeenWindowsInstallPrompt');
-        if (!hasSeenWindowsPrompt) {
-            setTimeout(() => {
-                showWindowsInstallInstructions();
-                localStorage.setItem('hasSeenWindowsInstallPrompt', 'true');
-            }, 5000); // Show after 5 seconds
-        }
-    }
 }
 
-// Show iOS install instructions
-function showIOSInstallInstructions() {
-    const isBraveBrowser = isBrave();
-    const browserName = isBraveBrowser ? 'Brave' : 'Safari';
+// Show install instructions based on platform
+function showInstallInstructions() {
+    const platform = isIOS() ? 'ios' : isAndroid() ? 'android' : isWindows() ? 'windows' : isMac() ? 'mac' : 'other';
+    const browserName = getBrowserName();
+    let instructions = '';
     
-    const instructions = `
-        <div style="padding: 20px; background: white; border-radius: 15px; max-width: 400px; margin: 20px auto;">
-            <h2 style="color: #667eea; margin-bottom: 15px;">📱 Installer MiauMiau på hjemmeskjerm</h2>
-            <ol style="text-align: left; line-height: 1.8; color: #333;">
-                <li>Trykk på ${isBraveBrowser ? 'meny-ikonet (tre prikker)' : 'del-ikonet'} nederst i ${browserName}</li>
-                <li>Velg "Legg til på hjemmeskjerm" ${isBraveBrowser ? 'eller "Add to Home Screen"' : ''}</li>
-                <li>Trykk "Legg til" for å bekrefte</li>
-                <li>Åpne appen fra hjemmeskjermen!</li>
-            </ol>
-            <button onclick="this.parentElement.parentElement.remove()" 
-                    style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                Lukk
-            </button>
-        </div>
-    `;
+    if (platform === 'ios') {
+        const isBraveBrowser = isBrave();
+        instructions = `
+            <div style="padding: 20px; background: white; border-radius: 15px; max-width: 450px; margin: 20px auto;">
+                <h2 style="color: #667eea; margin-bottom: 15px;">📱 Installer MiauMiau på hjemmeskjerm</h2>
+                <ol style="text-align: left; line-height: 1.8; color: #333; padding-left: 20px;">
+                    <li>Trykk på ${isBraveBrowser ? 'meny-ikonet (tre prikker)' : 'del-ikonet'} nederst i ${browserName}</li>
+                    <li>Velg "Legg til på hjemmeskjerm" ${isBraveBrowser ? 'eller "Add to Home Screen"' : ''}</li>
+                    <li>Trykk "Legg til" for å bekrefte</li>
+                    <li>Åpne appen fra hjemmeskjermen!</li>
+                </ol>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                    Lukk
+                </button>
+            </div>
+        `;
+    } else if (platform === 'windows' || platform === 'mac') {
+        // Windows/Mac desktop instructions
+        let browserSteps = '';
+        if (isBrave() || isChrome()) {
+            browserSteps = `
+                <li>Se etter install-ikonet (➕) i adresselinjen til høyre</li>
+                <li>Eller trykk på meny-ikonet (tre prikker) → "Installer app"</li>
+                <li>Trykk "Installer" i popup-vinduet</li>
+            `;
+        } else if (isEdge()) {
+            browserSteps = `
+                <li>Se etter install-ikonet (➕) i adresselinjen til høyre</li>
+                <li>Eller trykk på meny-ikonet (tre prikker) → "Apper" → "Installer denne siden som en app"</li>
+                <li>Trykk "Installer" i popup-vinduet</li>
+            `;
+        } else if (isFirefox()) {
+            browserSteps = `
+                <li>Trykk på meny-ikonet (tre linjer) → "Mer verktøy"</li>
+                <li>Velg "Installer nettleserutvidelse" eller "Legg til på skrivebord"</li>
+                <li>Følg instruksjonene for å installere</li>
+            `;
+        } else {
+            browserSteps = `
+                <li>Se etter install-ikonet i adresselinjen</li>
+                <li>Eller sjekk nettleserens meny for "Installer app" eller lignende</li>
+            `;
+        }
+        
+        instructions = `
+            <div style="padding: 25px; background: white; border-radius: 15px; max-width: 500px; margin: 20px auto;">
+                <h2 style="color: #667eea; margin-bottom: 15px;">💻 Installer MiauMiau på ${platform === 'windows' ? 'Windows' : 'Mac'}</h2>
+                <p style="color: #666; margin-bottom: 15px;">Følg disse trinnene i ${browserName}:</p>
+                <ol style="text-align: left; line-height: 1.8; color: #333; padding-left: 20px;">
+                    ${browserSteps}
+                    <li>Appen vil vises som et eget vindu uten nettleser-grensesnitt!</li>
+                </ol>
+                <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <strong>💡 Tips:</strong> Du kan også trykke <kbd style="background: #e0e0e0; padding: 3px 8px; border-radius: 4px;">Ctrl+Shift+A</kbd> (Windows) eller <kbd style="background: #e0e0e0; padding: 3px 8px; border-radius: 4px;">Cmd+Shift+A</kbd> (Mac) for å åpne app-menyen!
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                    Lukk
+                </button>
+            </div>
+        `;
+    } else if (platform === 'android') {
+        instructions = `
+            <div style="padding: 20px; background: white; border-radius: 15px; max-width: 450px; margin: 20px auto;">
+                <h2 style="color: #667eea; margin-bottom: 15px;">📱 Installer MiauMiau på Android</h2>
+                <ol style="text-align: left; line-height: 1.8; color: #333; padding-left: 20px;">
+                    <li>Trykk på meny-ikonet (tre prikker) i ${browserName}</li>
+                    <li>Velg "Legg til på hjemmeskjerm" eller "Install app"</li>
+                    <li>Trykk "Legg til" eller "Installer"</li>
+                    <li>Åpne appen fra hjemmeskjermen!</li>
+                </ol>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                    Lukk
+                </button>
+            </div>
+        `;
+    } else {
+        instructions = `
+            <div style="padding: 20px; background: white; border-radius: 15px; max-width: 450px; margin: 20px auto;">
+                <h2 style="color: #667eea; margin-bottom: 15px;">📱 Installer MiauMiau</h2>
+                <p style="color: #666; line-height: 1.8;">Se etter install-ikonet i adresselinjen eller sjekk nettleserens meny for installasjonsalternativer.</p>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%;">
+                    Lukk
+                </button>
+            </div>
+        `;
+    }
     
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;';
@@ -8370,48 +8440,23 @@ function installPWA() {
         return;
     }
     
-    // iOS handling
-    if (isIOS()) {
-        showIOSInstallInstructions();
-        return;
-    }
-    
-    // Windows handling
-    if (isWindows()) {
-        // If install prompt is available (Chrome/Edge/Brave), use it
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('[PWA] User accepted install');
-                    showMessage('Appen installeres nå! 🎉');
-                } else {
-                    console.log('[PWA] User dismissed install');
-                    // Show instructions as fallback
-                    showWindowsInstallInstructions();
-                }
-                deferredPrompt = null;
-            });
-        } else {
-            // Show manual instructions
-            showWindowsInstallInstructions();
-        }
-        return;
-    }
-    
-    // Android/Other handling
-    if (deferredPrompt) {
+    // If install prompt is available (Chrome/Edge/Brave on desktop), use it
+    if (deferredPrompt && (isWindows() || isMac())) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
                 console.log('[PWA] User accepted install');
+                showMessage('Appen installeres nå! 🎉');
             } else {
                 console.log('[PWA] User dismissed install');
+                // Show instructions as fallback
+                showInstallInstructions();
             }
             deferredPrompt = null;
         });
     } else {
-        showMessage('Install-funksjonen er ikke tilgjengelig i denne nettleseren. Prøv Chrome, Edge eller Brave!');
+        // Show platform-specific instructions (iOS, Android, or manual for Windows/Mac)
+        showInstallInstructions();
     }
 }
 
