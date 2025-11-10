@@ -662,6 +662,23 @@
                     <p class="settings-info" id="settings-info">Velg språk for spillet. All tekst vil endres til valgt språk.</p>
                 </div>
                 
+                <!-- Theme Section -->
+                <div class="settings-section">
+                    <h2 id="theme-title">🎨 Tema / Theme</h2>
+                    <div class="theme-selector">
+                        <button class="action-btn theme-btn" id="theme-light-btn" onclick="setTheme('light')" data-theme="light">
+                            <span class="theme-icon">☀️</span> <span id="theme-light-text">Lys</span>
+                        </button>
+                        <button class="action-btn theme-btn" id="theme-dark-btn" onclick="setTheme('dark')" data-theme="dark">
+                            <span class="theme-icon">🌙</span> <span id="theme-dark-text">Mørk</span>
+                        </button>
+                        <button class="action-btn theme-btn" id="theme-auto-btn" onclick="setTheme('auto')" data-theme="auto">
+                            <span class="theme-icon">🔄</span> <span id="theme-auto-text">Automatisk</span>
+                        </button>
+                    </div>
+                    <p class="settings-info" id="theme-info">Velg tema for spillet. Automatisk endrer seg basert på tid på dagen.</p>
+                </div>
+                
                 <!-- Data Management Section -->
                 <div class="settings-section">
                     <h2>💾 Data</h2>

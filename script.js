@@ -33,6 +33,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             });
         } else if (tabName === 'settings') {
             updateLanguageButtons();
+            updateThemeButtons();
             updateProfileDisplay();
         } else if (tabName === 'friends') {
             updateFriendsDisplay();
@@ -281,6 +282,14 @@ const translations = {
         invalidMessage: 'Meldingen inneholder ugyldige tegn.',
         invalidAmount: 'Ugyldig beløp!',
         rateLimitExceeded: 'Du har gjort for mange handlinger nylig. Vent litt før du prøver igjen.',
+        
+        // Theme messages
+        themeTitle: '🎨 Tema / Theme',
+        themeLight: 'Lys',
+        themeDark: 'Mørk',
+        themeAuto: 'Automatisk',
+        themeInfo: 'Velg tema for spillet. Automatisk endrer seg basert på tid på dagen.',
+        themeChanged: 'Tema endret! 🎨',
     },
     en: {
         // Navigation
@@ -502,6 +511,22 @@ const translations = {
         error: 'Error',
         saveError: 'Could not save data. Please try again.',
         loadError: 'Could not load data. Please refresh the page.',
+        
+        // Validation messages
+        invalidUsername: 'Invalid username! Use only letters, numbers, dash and underscore (3-20 characters).',
+        invalidPassword: 'Password must be between 4 and 100 characters!',
+        invalidGroupName: 'Invalid group name! Use only letters, numbers, spaces, dash and underscore (3-30 characters).',
+        invalidMessage: 'Message contains invalid characters.',
+        invalidAmount: 'Invalid amount!',
+        rateLimitExceeded: 'You have made too many actions recently. Wait a bit before trying again.',
+        
+        // Theme messages
+        themeTitle: '🎨 Theme',
+        themeLight: 'Light',
+        themeDark: 'Dark',
+        themeAuto: 'Auto',
+        themeInfo: 'Choose a theme for the game. Auto changes based on time of day.',
+        themeChanged: 'Theme changed! 🎨',
     }
 };
 
@@ -540,6 +565,65 @@ function updateLanguageButtons() {
         } else {
             noBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             enBtn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+        }
+    }
+}
+
+// Set theme
+function setTheme(theme) {
+    if (theme !== 'light' && theme !== 'dark' && theme !== 'auto') return;
+    
+    if (currentUser) {
+        gameState.theme = theme;
+        saveGame();
+    }
+    safeLocalStorageSet('miaumiau_theme', theme);
+    applyTheme(theme);
+    updateThemeButtons();
+    showMessage(t('themeChanged'));
+}
+
+// Apply theme to body
+function applyTheme(theme) {
+    const body = document.body;
+    body.classList.remove('theme-light', 'theme-dark', 'theme-auto');
+    
+    if (theme === 'auto') {
+        body.classList.add('theme-auto');
+        // Check time of day for auto theme
+        const hour = new Date().getHours();
+        if (hour >= 20 || hour < 6) {
+            // Night time (8 PM - 6 AM) - use dark theme
+            body.classList.add('theme-dark');
+        } else {
+            // Day time - use light theme
+            body.classList.add('theme-light');
+        }
+    } else {
+        body.classList.add(`theme-${theme}`);
+    }
+}
+
+// Update theme button states
+function updateThemeButtons() {
+    const lightBtn = document.getElementById('theme-light-btn');
+    const darkBtn = document.getElementById('theme-dark-btn');
+    const autoBtn = document.getElementById('theme-auto-btn');
+    const currentTheme = gameState.theme || 'auto';
+    
+    if (lightBtn && darkBtn && autoBtn) {
+        // Reset all buttons
+        lightBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        darkBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        autoBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        
+        // Highlight active button
+        if (currentTheme === 'light') {
+            lightBtn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+        } else if (currentTheme === 'dark') {
+            darkBtn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+        } else {
+            autoBtn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
         }
     }
 }
@@ -675,10 +759,26 @@ function updateAllTexts() {
     
     const settingsInfo = document.querySelector('#settings-info');
     if (settingsInfo) {
-        settingsInfo.textContent = currentLanguage === 'no' 
+        settingsInfo.textContent = t('settingsInfo') || (currentLanguage === 'no' 
             ? 'Velg språk for spillet. All tekst vil endres til valgt språk.'
-            : 'Choose language for the game. All text will change to the selected language.';
+            : 'Choose language for the game. All text will change to the selected language.');
     }
+    
+    // Update theme texts
+    const themeTitle = document.querySelector('#theme-title');
+    if (themeTitle) themeTitle.textContent = t('themeTitle');
+    
+    const themeLightText = document.querySelector('#theme-light-text');
+    if (themeLightText) themeLightText.textContent = t('themeLight');
+    
+    const themeDarkText = document.querySelector('#theme-dark-text');
+    if (themeDarkText) themeDarkText.textContent = t('themeDark');
+    
+    const themeAutoText = document.querySelector('#theme-auto-text');
+    if (themeAutoText) themeAutoText.textContent = t('themeAuto');
+    
+    const themeInfo = document.querySelector('#theme-info');
+    if (themeInfo) themeInfo.textContent = t('themeInfo');
     
     // Update buttons
     updateGameButtons();
@@ -688,6 +788,7 @@ function updateAllTexts() {
     updateStatsDisplay();
     updateSchoolDisplay();
     updateMinigamesDisplay();
+    updateThemeButtons();
 }
 
 // Game state - extended with all new features
@@ -747,6 +848,7 @@ let gameState = {
     quests: [], // Active quests
     completedQuests: [], // Completed quest IDs
     language: 'no', // Language preference: 'no' or 'en'
+    theme: 'auto', // Theme preference: 'light', 'dark', or 'auto'
     profile: {
         bio: '',
         avatarImage: null, // Base64 image data
@@ -839,6 +941,19 @@ function loadGame() {
             if (savedLang) {
                 currentLanguage = savedLang;
                 gameState.language = savedLang;
+            }
+        }
+        
+        // Load theme preference
+        if (gameState.theme) {
+            applyTheme(gameState.theme);
+        } else {
+            const savedTheme = safeLocalStorageGet('miaumiau_theme');
+            if (savedTheme) {
+                gameState.theme = savedTheme;
+                applyTheme(savedTheme);
+            } else {
+                applyTheme('auto');
             }
         }
         
@@ -1080,6 +1195,7 @@ function handleLogin() {
         // Update all texts after loading game (to apply language)
         updateAllTexts();
         updateLanguageButtons();
+        updateThemeButtons();
         updateProfileDisplay();
         updateGroupDisplay();
         playClickSound();
@@ -1205,6 +1321,7 @@ function handleSignup() {
         quests: [],
         completedQuests: [],
         language: 'no',
+        theme: 'auto',
         profile: {
             bio: '',
             avatarImage: null,
@@ -1214,7 +1331,10 @@ function handleSignup() {
         groupRole: null
     };
     saveGame();
+    // Apply theme for new user
+    applyTheme('auto');
     updateAllDisplays();
+    updateThemeButtons();
     playSuccessSound();
     showMessage(t('welcomeNewUser', { username }));
     } catch (error) {
