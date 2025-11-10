@@ -384,6 +384,35 @@
                                 <div class="maze-game-container" id="maze-container"></div>
                             </div>
                         </div>
+                        <div class="minigame-card" id="match3-game">
+                            <h2>Kattematch-3 🎯</h2>
+                            <p>Match 3 eller flere like katter for å få poeng!</p>
+                            <button class="action-btn" onclick="startMatch3Game()">Start spill</button>
+                            <div class="minigame-area" id="match3-game-area" style="display:none;">
+                                <div class="score-mini">Poeng: <span id="match3-score">0</span></div>
+                                <div class="time-left">Tid igjen: <span id="match3-time">60</span>s</div>
+                                <div class="match3-game-container" id="match3-container"></div>
+                            </div>
+                        </div>
+                        <div class="minigame-card" id="tap-game">
+                            <h2>Kattetapet 👆</h2>
+                            <p>Trykk på kattene så raskt som mulig! Hvor mange kan du fange?</p>
+                            <button class="action-btn" onclick="startTapGame()">Start spill</button>
+                            <div class="minigame-area" id="tap-game-area" style="display:none;">
+                                <div class="score-mini">Poeng: <span id="tap-score">0</span></div>
+                                <div class="time-left">Tid igjen: <span id="tap-time">30</span>s</div>
+                                <div class="tap-game-container" id="tap-container"></div>
+                            </div>
+                        </div>
+                        <div class="minigame-card" id="cat-quiz-game">
+                            <h2>Kattetest 🧠</h2>
+                            <p>Test kunnskapen din om katter! Svar på spørsmålene!</p>
+                            <button class="action-btn" onclick="startCatQuiz()">Start spill</button>
+                            <div class="minigame-area" id="cat-quiz-game-area" style="display:none;">
+                                <div class="score-mini">Poeng: <span id="cat-quiz-score">0</span></div>
+                                <div class="cat-quiz-container" id="cat-quiz-container"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
