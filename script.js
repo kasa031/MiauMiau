@@ -249,6 +249,13 @@ const translations = {
         dailyChallengeCompleted: '🎉 Daglig utfordring fullført! +{reward} mynter! 🎉',
         drawingSaved: '🎨 Tegningen er lagret! +20 poeng og +10 mynter!',
         
+        // Shop messages
+        itemNotFound: 'Item ikke funnet!',
+        itemAlreadyOwned: 'Du eier allerede dette itemet!',
+        
+        // Seasonal event messages
+        seasonalEventActive: '{event} aktivert! Spesielle oppdrag og items tilgjengelig!',
+        
         // Trick messages
         trickLearned: '🎉 Fantastisk! Katten lærte trikset "{name}"! +50 poeng og +25 mynter! {emoji}',
         trickAlreadyKnown: 'Katten kan allerede "{name}"! Den gjør det perfekt! {emoji}',
@@ -498,6 +505,13 @@ const translations = {
         giftReceivedMessage: '🎁 You received {amount} coins from {from}!',
         dailyChallengeCompleted: '🎉 Daily challenge completed! +{reward} coins! 🎉',
         drawingSaved: '🎨 Drawing saved! +20 points and +10 coins!',
+        
+        // Shop messages
+        itemNotFound: 'Item not found!',
+        itemAlreadyOwned: 'You already own this item!',
+        
+        // Seasonal event messages
+        seasonalEventActive: '{event} activated! Special quests and items available!',
         
         // Trick messages
         trickLearned: '🎉 Amazing! The cat learned the trick "{name}"! +50 points and +25 coins! {emoji}',
@@ -3909,18 +3923,40 @@ function renderShop() {
     
     container.innerHTML = '';
     
-    const totalPages = Math.ceil(shopItems.length / itemsPerPage);
+    // Get all items including seasonal items
+    const seasonalItems = getSeasonalItems();
+    const allItems = [...shopItems, ...seasonalItems];
+    
+    // Show seasonal items header if available
+    if (seasonalItems.length > 0 && currentSeasonalEvent) {
+        const seasonalHeader = document.createElement('div');
+        seasonalHeader.className = 'shop-seasonal-header';
+        seasonalHeader.style.gridColumn = '1 / -1';
+        seasonalHeader.style.padding = '15px';
+        seasonalHeader.style.marginBottom = '10px';
+        seasonalHeader.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        seasonalHeader.style.borderRadius = '10px';
+        seasonalHeader.style.color = 'white';
+        seasonalHeader.style.textAlign = 'center';
+        seasonalHeader.style.fontWeight = 'bold';
+        seasonalHeader.innerHTML = `🎉 ${getSeasonalEventName()} - Spesielle items tilgjengelig! 🎉`;
+        container.appendChild(seasonalHeader);
+    }
+    
+    const totalPages = Math.ceil(allItems.length / itemsPerPage);
     const startIndex = currentShopPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const itemsToShow = shopItems.slice(startIndex, endIndex);
+    const itemsToShow = allItems.slice(startIndex, endIndex);
     
     itemsToShow.forEach(item => {
         const owned = gameState.ownedItems.includes(item.id);
+        const isSeasonal = item.seasonal || false;
         const div = document.createElement('div');
-        div.className = `shop-item ${owned ? 'owned' : ''}`;
+        div.className = `shop-item ${owned ? 'owned' : ''} ${isSeasonal ? 'seasonal-item' : ''}`;
         div.innerHTML = `
             <div class="shop-item-emoji">${item.emoji}</div>
-            <div class="shop-item-name">${item.name}</div>
+            <div class="shop-item-name">${item.name} ${isSeasonal ? '⭐' : ''}</div>
+            ${item.description ? `<div class="shop-item-desc" style="font-size: 0.85em; color: #666; margin: 5px 0;">${item.description}</div>` : ''}
             <div class="shop-item-price">💰 ${item.price}</div>
             <button class="action-btn shop-btn" ${owned ? 'disabled' : ''} onclick="buyItem('${item.id}')">
                 ${owned ? 'Eid ✓' : 'Kjøp'}
@@ -3938,10 +3974,29 @@ function renderShop() {
     } else {
         pagination.style.display = 'none';
     }
+    
+    // Reset to first page if current page is out of bounds
+    if (currentShopPage >= totalPages && totalPages > 0) {
+        currentShopPage = 0;
+        renderShop();
+    }
+}
+
+function getSeasonalEventName() {
+    const names = {
+        christmas: 'Juleevent',
+        halloween: 'Halloween-event',
+        easter: 'Påske-event',
+        summer: 'Sommer-event',
+        winter: 'Vinter-event'
+    };
+    return names[currentSeasonalEvent] || 'Sesong-event';
 }
 
 function changeShopPage(direction) {
-    const totalPages = Math.ceil(shopItems.length / itemsPerPage);
+    const seasonalItems = getSeasonalItems();
+    const allItems = [...shopItems, ...seasonalItems];
+    const totalPages = Math.ceil(allItems.length / itemsPerPage);
     const newPage = currentShopPage + direction;
     
     if (newPage >= 0 && newPage < totalPages) {
@@ -3953,24 +4008,42 @@ function changeShopPage(direction) {
 }
 
 function buyItem(itemId) {
-    const item = shopItems.find(i => i.id === itemId);
-    if (!item) return;
+    // Check both regular shop items and seasonal items
+    const seasonalItems = getSeasonalItems();
+    const allItems = [...shopItems, ...seasonalItems];
+    const item = allItems.find(i => i.id === itemId);
+    
+    if (!item) {
+        showMessage(t('itemNotFound') || 'Item ikke funnet!');
+        return;
+    }
+    
     if (gameState.coins >= item.price && !gameState.ownedItems.includes(itemId)) {
         gameState.coins -= item.price;
         gameState.ownedItems.push(itemId);
-        if (item.effect.startsWith('happiness')) {
-            gameState.happiness = Math.min(100, gameState.happiness + parseInt(item.effect.split('+')[1]));
-        } else if (item.effect.startsWith('energy')) {
-            gameState.energy = Math.min(100, gameState.energy + parseInt(item.effect.split('+')[1]));
-        } else if (item.effect === 'background') {
-            applyBackground(itemId);
+        
+        // Apply item effects if they exist
+        if (item.effect) {
+            if (item.effect.startsWith('happiness')) {
+                gameState.happiness = Math.min(100, gameState.happiness + parseInt(item.effect.split('+')[1]));
+            } else if (item.effect.startsWith('energy')) {
+                gameState.energy = Math.min(100, gameState.energy + parseInt(item.effect.split('+')[1]));
+            } else if (item.effect === 'background') {
+                applyBackground(itemId);
+            } else if (item.effect === 'style') {
+                // Cosmetic items don't have gameplay effects
+            }
         }
+        
         playBuySound();
-        showMessage(`Du kjøpte ${item.name}! 🎉`);
+        const seasonalMsg = item.seasonal ? ' 🎉⭐' : ' 🎉';
+        showMessage(`Du kjøpte ${item.name}!${seasonalMsg}`);
         renderShop();
         renderOwnedItemsInGame();
         updateAllDisplays();
         saveGame();
+    } else if (gameState.ownedItems.includes(itemId)) {
+        showMessage(t('itemAlreadyOwned') || 'Du eier allerede dette itemet!');
     } else {
         showMessage(t('notEnoughCoinsGeneral'));
     }
@@ -6725,23 +6798,140 @@ document.querySelectorAll('.cat-select-btn').forEach(btn => {
 });
 
 // ==================== SEASONAL EVENTS ====================
+let currentSeasonalEvent = null;
+
 function checkSeasonalEvents() {
     const now = new Date();
-    const month = now.getMonth();
+    const month = now.getMonth(); // 0-11 (0 = January)
     const date = now.getDate();
     
-    // Christmas
+    // Remove all seasonal classes first
+    document.body.classList.remove('christmas', 'halloween', 'easter', 'summer', 'winter');
+    currentSeasonalEvent = null;
+    
+    // Christmas (December 1-25)
     if (month === 11 && date >= 1 && date <= 25) {
         document.body.classList.add('christmas');
+        currentSeasonalEvent = 'christmas';
+        showSeasonalEventNotification('🎄 Juleevent aktivert! Spesielle oppdrag og items tilgjengelig! 🎄');
     }
-    // Halloween
-    if (month === 9 && date >= 25) {
+    // Halloween (October 25-31)
+    else if (month === 9 && date >= 25) {
         document.body.classList.add('halloween');
+        currentSeasonalEvent = 'halloween';
+        showSeasonalEventNotification('🎃 Halloween-event aktivert! Spesielle oppdrag og items tilgjengelig! 🎃');
     }
-    // Easter
-    if (month === 2 && date >= 15 && date <= 30) {
+    // Easter (March 15-30, approximate)
+    else if (month === 2 && date >= 15 && date <= 30) {
         document.body.classList.add('easter');
+        currentSeasonalEvent = 'easter';
+        showSeasonalEventNotification('🐰 Påske-event aktivert! Spesielle oppdrag og items tilgjengelig! 🐰');
     }
+    // Summer (June-August)
+    else if (month >= 5 && month <= 7) {
+        document.body.classList.add('summer');
+        currentSeasonalEvent = 'summer';
+    }
+    // Winter (December 26-31, January, February)
+    else if (month === 11 && date >= 26 || month === 0 || month === 1) {
+        document.body.classList.add('winter');
+        currentSeasonalEvent = 'winter';
+    }
+    
+    // Add seasonal quests if event is active
+    if (currentSeasonalEvent) {
+        addSeasonalQuests();
+    }
+}
+
+function showSeasonalEventNotification(message) {
+    // Only show once per day
+    const today = new Date().toDateString();
+    const lastShown = localStorage.getItem(`seasonalEventShown_${currentSeasonalEvent}_${today}`);
+    if (!lastShown) {
+        showMessage(message);
+        localStorage.setItem(`seasonalEventShown_${currentSeasonalEvent}_${today}`, 'true');
+    }
+}
+
+function addSeasonalQuests() {
+    if (!currentSeasonalEvent) return;
+    
+    const seasonalQuests = {
+        christmas: [
+            { id: 'christmas_feed10', name: '🎄 Juleoppdrag: Mat katten 10 ganger', target: 10, type: 'feed', reward: 100, icon: '🎄' },
+            { id: 'christmas_play5', name: '🎄 Juleoppdrag: Lek med katten 5 ganger', target: 5, type: 'play', reward: 80, icon: '🎄' },
+            { id: 'christmas_minigame3', name: '🎄 Juleoppdrag: Spill 3 minispill', target: 3, type: 'minigame', reward: 150, icon: '🎄' }
+        ],
+        halloween: [
+            { id: 'halloween_feed8', name: '🎃 Halloween-oppdrag: Mat katten 8 ganger', target: 8, type: 'feed', reward: 90, icon: '🎃' },
+            { id: 'halloween_play7', name: '🎃 Halloween-oppdrag: Lek med katten 7 ganger', target: 7, type: 'play', reward: 100, icon: '🎃' },
+            { id: 'halloween_minigame2', name: '🎃 Halloween-oppdrag: Spill 2 minispill', target: 2, type: 'minigame', reward: 120, icon: '🎃' }
+        ],
+        easter: [
+            { id: 'easter_feed6', name: '🐰 Påskeoppdrag: Mat katten 6 ganger', target: 6, type: 'feed', reward: 85, icon: '🐰' },
+            { id: 'easter_pet12', name: '🐰 Påskeoppdrag: Kos katten 12 ganger', target: 12, type: 'pet', reward: 95, icon: '🐰' },
+            { id: 'easter_minigame2', name: '🐰 Påskeoppdrag: Spill 2 minispill', target: 2, type: 'minigame', reward: 110, icon: '🐰' }
+        ],
+        summer: [
+            { id: 'summer_feed7', name: '☀️ Sommeroppdrag: Mat katten 7 ganger', target: 7, type: 'feed', reward: 75, icon: '☀️' },
+            { id: 'summer_play6', name: '☀️ Sommeroppdrag: Lek med katten 6 ganger', target: 6, type: 'play', reward: 85, icon: '☀️' }
+        ],
+        winter: [
+            { id: 'winter_feed9', name: '❄️ Vinteroppdrag: Mat katten 9 ganger', target: 9, type: 'feed', reward: 90, icon: '❄️' },
+            { id: 'winter_sleep4', name: '❄️ Vinteroppdrag: La katten sove 4 ganger', target: 4, type: 'sleep', reward: 80, icon: '❄️' }
+        ]
+    };
+    
+    const quests = seasonalQuests[currentSeasonalEvent] || [];
+    
+    // Add seasonal quests if not already added
+    quests.forEach(quest => {
+        const exists = gameState.quests.find(q => q.id === quest.id);
+        if (!exists && !gameState.completedQuests.includes(quest.id)) {
+            gameState.quests.push({
+                ...quest,
+                progress: 0
+            });
+        }
+    });
+    
+    if (quests.length > 0) {
+        updateQuests();
+        saveGame();
+    }
+}
+
+function getSeasonalItems() {
+    if (!currentSeasonalEvent) return [];
+    
+    const seasonalItems = {
+        christmas: [
+            { id: 'santa_hat', name: '🎅 Julelue', emoji: '🎅', price: 200, description: 'Julelue for katten!', seasonal: true },
+            { id: 'christmas_bow', name: '🎀 Jule-sløyfe', emoji: '🎀', price: 150, description: 'Rød jule-sløyfe', seasonal: true },
+            { id: 'reindeer_antlers', name: '🦌 Reinsdyr-horn', emoji: '🦌', price: 250, description: 'Reinsdyr-horn for katten!', seasonal: true }
+        ],
+        halloween: [
+            { id: 'witch_hat', name: '🧙 Hekselue', emoji: '🧙', price: 180, description: 'Hekselue for katten!', seasonal: true },
+            { id: 'pumpkin_costume', name: '🎃 Gresskar-kostyme', emoji: '🎃', price: 220, description: 'Gresskar-kostyme!', seasonal: true },
+            { id: 'bat_wings', name: '🦇 Flaggermus-vinger', emoji: '🦇', price: 200, description: 'Flaggermus-vinger!', seasonal: true }
+        ],
+        easter: [
+            { id: 'bunny_ears', name: '🐰 Kanin-ører', emoji: '🐰', price: 160, description: 'Kanin-ører for katten!', seasonal: true },
+            { id: 'easter_basket', name: '🧺 Påske-kurv', emoji: '🧺', price: 140, description: 'Påske-kurv!', seasonal: true },
+            { id: 'flower_crown', name: '🌸 Blomsterkrans', emoji: '🌸', price: 170, description: 'Blomsterkrans!', seasonal: true }
+        ],
+        summer: [
+            { id: 'sunglasses', name: '🕶️ Solbriller', emoji: '🕶️', price: 120, description: 'Solbriller for katten!', seasonal: true },
+            { id: 'sun_hat', name: '👒 Solhatt', emoji: '👒', price: 130, description: 'Solhatt!', seasonal: true }
+        ],
+        winter: [
+            { id: 'winter_scarf', name: '🧣 Vinterskjerf', emoji: '🧣', price: 140, description: 'Vinterskjerf for katten!', seasonal: true },
+            { id: 'snowflake_bow', name: '❄️ Snøfnugg-sløyfe', emoji: '❄️', price: 150, description: 'Snøfnugg-sløyfe!', seasonal: true }
+        ]
+    };
+    
+    return seasonalItems[currentSeasonalEvent] || [];
 }
 
 // ==================== RENDER OWNED ITEMS IN GAME ====================
@@ -7283,7 +7473,15 @@ function updateQuests() {
                 quest.progress = gameState.score;
                 break;
             case 'minigame':
-                quest.progress = gameState.stats.minigameScore > 0 ? Math.floor(gameState.stats.minigameScore / 100) : 0;
+                // Count total minigames played from various stats
+                const minigamesPlayed = (gameState.stats.mouseHuntWins || 0) + 
+                                       (gameState.stats.foodCatchWins || 0) + 
+                                       (gameState.stats.catBattleWins || 0) + 
+                                       (gameState.stats.memoryWins || 0) + 
+                                       (gameState.stats.jumpScore > 0 ? 1 : 0) + 
+                                       (gameState.stats.quizCompleted || 0) +
+                                       (gameState.stats.mathSolved || 0);
+                quest.progress = minigamesPlayed;
                 break;
             case 'memory':
                 quest.progress = gameState.stats.memoryWins || 0;

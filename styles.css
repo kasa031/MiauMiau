@@ -3219,6 +3219,39 @@ body.easter {
     background: linear-gradient(135deg, #ffb3ba 0%, #ffdfba 25%, #ffffba 50%, #baffc9 75%, #bae1ff 100%);
 }
 
+body.summer {
+    background: linear-gradient(135deg, #ffd89b 0%, #19547b 25%, #ffd89b 50%, #19547b 75%, #ffd89b 100%);
+}
+
+body.winter {
+    background: linear-gradient(135deg, #e0e0e0 0%, #ffffff 25%, #b3d9ff 50%, #ffffff 75%, #e0e0e0 100%);
+}
+
+/* Seasonal shop items */
+.shop-item.seasonal-item {
+    border: 2px solid #ffd700;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    background: linear-gradient(135deg, #fff9e6 0%, #fffacd 100%);
+}
+
+.shop-item.seasonal-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
+
+.shop-seasonal-header {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
 /* Interactive Cat Images */
 .interactive-cat-images {
     display: flex;
