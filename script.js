@@ -292,6 +292,18 @@ const translations = {
         themeAuto: 'Automatisk',
         themeInfo: 'Velg tema for spillet. Automatisk endrer seg basert på tid på dagen.',
         themeChanged: 'Tema endret! 🎨',
+        
+        // Health system messages
+        catGotSick: 'Katten har blitt {sickness}! Ta den til legen! 🏥',
+        catHealed: 'Katten har blitt frisk igjen! 🎉',
+        catTreated: 'Katten er behandlet! Helse: +30% 🏥',
+        catNotSick: 'Katten er ikke syk! 😊',
+        catNeedsTreatment: 'Katten er syk! Ta den til legen!',
+        catLowHealth: 'Katten har dårlig helse!',
+        notEnoughCoinsForTreatment: 'Du trenger {cost} mynter for behandling! 💰',
+        sickness_cold: 'forkjølet',
+        sickness_fleas: 'loper',
+        sickness_injury: 'skadet',
     },
     en: {
         // Navigation
@@ -530,6 +542,18 @@ const translations = {
         themeAuto: 'Auto',
         themeInfo: 'Choose a theme for the game. Auto changes based on time of day.',
         themeChanged: 'Theme changed! 🎨',
+        
+        // Health system messages
+        catGotSick: 'The cat has become {sickness}! Take it to the vet! 🏥',
+        catHealed: 'The cat has recovered! 🎉',
+        catTreated: 'The cat has been treated! Health: +30% 🏥',
+        catNotSick: 'The cat is not sick! 😊',
+        catNeedsTreatment: 'The cat is sick! Take it to the vet!',
+        catLowHealth: 'The cat has poor health!',
+        notEnoughCoinsForTreatment: 'You need {cost} coins for treatment! 💰',
+        sickness_cold: 'sick with a cold',
+        sickness_fleas: 'has fleas',
+        sickness_injury: 'injured',
     }
 };
 
@@ -799,6 +823,9 @@ let gameState = {
     happiness: 50,
     hunger: 50,
     energy: 50,
+    health: 100, // New health stat
+    sickness: null, // Current sickness: null, 'cold', 'fleas', 'injury', etc.
+    sicknessStartTime: null, // When sickness started
     score: 0,
     level: 1,
     coins: 0,
@@ -1272,6 +1299,9 @@ function handleSignup() {
         happiness: 50,
         hunger: 50,
         energy: 50,
+        health: 100,
+        sickness: null,
+        sicknessStartTime: null,
         score: 0,
         level: 1,
         coins: 0,
@@ -3122,6 +3152,9 @@ setInterval(() => {
     gameState.stats.totalPlayTime += elapsed;
     playTimeStart = now;
     
+    // Update health system
+    checkAndUpdateHealth();
+    
     // Update stats display if stats tab is open
     if (document.getElementById('stats-tab') && document.getElementById('stats-tab').classList.contains('active')) {
         renderStats();
@@ -3138,6 +3171,40 @@ function updateStats() {
     document.getElementById('happiness').textContent = gameState.happiness;
     document.getElementById('hunger').textContent = gameState.hunger;
     document.getElementById('energy').textContent = gameState.energy;
+    
+    // Update health if element exists
+    const healthEl = document.getElementById('health');
+    const healthBarEl = document.getElementById('health-bar');
+    if (healthEl) healthEl.textContent = gameState.health || 100;
+    if (healthBarEl) {
+        const health = gameState.health || 100;
+        healthBarEl.style.width = health + '%';
+        // Change color based on health
+        if (health > 70) {
+            healthBarEl.style.background = 'linear-gradient(90deg, #00b894, #00cec9)';
+        } else if (health > 40) {
+            healthBarEl.style.background = 'linear-gradient(90deg, #f39c12, #e67e22)';
+        } else {
+            healthBarEl.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+        }
+    }
+    
+    // Update sickness indicator
+    const sicknessIndicator = document.getElementById('sickness-indicator');
+    if (sicknessIndicator) {
+        if (gameState.sickness) {
+            const sicknessNames = {
+                'cold': '🤧 Forkjølet',
+                'fleas': '🪲 Lopper',
+                'injury': '🩹 Skade',
+                'tired': '😴 Sliten'
+            };
+            sicknessIndicator.textContent = sicknessNames[gameState.sickness] || '🤒 Syk';
+            sicknessIndicator.style.display = 'inline';
+        } else {
+            sicknessIndicator.style.display = 'none';
+        }
+    }
     
     // Update progress bars
     document.getElementById('happiness-bar').style.width = gameState.happiness + '%';
@@ -3761,6 +3828,14 @@ document.getElementById('hand-btn').addEventListener('click', () => {
     createParticles(document.getElementById('hand-btn'));
     updateStats();
 });
+
+// Treat cat action
+const treatBtn = document.getElementById('treat-btn');
+if (treatBtn) {
+    treatBtn.addEventListener('click', () => {
+        treatCat();
+    });
+}
 
 // Cat click interaction
 document.getElementById('game-cat').addEventListener('click', () => {
@@ -6958,6 +7033,105 @@ async function callOpenRouterAPI(messages, model = 'openai/gpt-3.5-turbo') {
     }
 }
 
+// ==================== CAT HEALTH SYSTEM ====================
+function checkAndUpdateHealth() {
+    // Initialize health if not set
+    if (typeof gameState.health === 'undefined') {
+        gameState.health = 100;
+    }
+    
+    // Health decreases if other stats are low
+    if (gameState.hunger > 80 || gameState.happiness < 20 || gameState.energy < 10) {
+        gameState.health = Math.max(0, gameState.health - 0.1);
+    }
+    
+    // Health slowly regenerates if all stats are good
+    if (gameState.hunger < 50 && gameState.happiness > 50 && gameState.energy > 50 && !gameState.sickness) {
+        gameState.health = Math.min(100, gameState.health + 0.05);
+    }
+    
+    // Check for sickness
+    checkForSickness();
+    
+    // Update sickness effects
+    if (gameState.sickness) {
+        applySicknessEffects();
+    }
+    
+    // Ensure health doesn't go below 0
+    gameState.health = Math.max(0, Math.min(100, gameState.health));
+}
+
+function checkForSickness() {
+    // Random chance of getting sick if health is low
+    if (!gameState.sickness && gameState.health < 50 && Math.random() < 0.001) {
+        const sicknesses = ['cold', 'fleas', 'injury'];
+        gameState.sickness = sicknesses[Math.floor(Math.random() * sicknesses.length)];
+        gameState.sicknessStartTime = Date.now();
+        showMessage(t('catGotSick', { sickness: t(`sickness_${gameState.sickness}`) }) || `Katten har blitt ${gameState.sickness === 'cold' ? 'forkjølet' : gameState.sickness === 'fleas' ? 'loper' : 'skadet'}! Ta den til legen! 🏥`);
+        playErrorSound();
+    }
+    
+    // Sickness can heal naturally after some time
+    if (gameState.sickness && gameState.sicknessStartTime) {
+        const sicknessDuration = Date.now() - gameState.sicknessStartTime;
+        const healTime = 300000; // 5 minutes in milliseconds
+        
+        if (sicknessDuration > healTime && Math.random() < 0.01) {
+            gameState.sickness = null;
+            gameState.sicknessStartTime = null;
+            showMessage(t('catHealed') || 'Katten har blitt frisk igjen! 🎉');
+            playSuccessSound();
+        }
+    }
+}
+
+function applySicknessEffects() {
+    if (!gameState.sickness) return;
+    
+    // Different sicknesses have different effects
+    switch (gameState.sickness) {
+        case 'cold':
+            gameState.health = Math.max(0, gameState.health - 0.2);
+            gameState.happiness = Math.max(0, gameState.happiness - 0.1);
+            break;
+        case 'fleas':
+            gameState.health = Math.max(0, gameState.health - 0.15);
+            gameState.happiness = Math.max(0, gameState.happiness - 0.15);
+            break;
+        case 'injury':
+            gameState.health = Math.max(0, gameState.health - 0.3);
+            gameState.energy = Math.max(0, gameState.energy - 0.1);
+            break;
+    }
+}
+
+function treatCat() {
+    if (!gameState.sickness) {
+        showMessage(t('catNotSick') || 'Katten er ikke syk! 😊');
+        return;
+    }
+    
+    // Treatment costs coins
+    const treatmentCost = 50;
+    if (gameState.coins < treatmentCost) {
+        showMessage(t('notEnoughCoinsForTreatment', { cost: treatmentCost }) || `Du trenger ${treatmentCost} mynter for behandling! 💰`);
+        return;
+    }
+    
+    gameState.coins -= treatmentCost;
+    gameState.sickness = null;
+    gameState.sicknessStartTime = null;
+    gameState.health = Math.min(100, gameState.health + 30);
+    
+    showMessage(t('catTreated') || `Katten er behandlet! Helse: +30% 🏥`);
+    playSuccessSound();
+    createParticles(document.getElementById('health-bar'), 'success');
+    updateStats();
+    updateAllDisplays();
+    saveGame();
+}
+
 // ==================== CAT NOTIFICATIONS ====================
 function checkCatNeeds() {
     const notifications = document.getElementById('cat-notifications');
@@ -6965,6 +7139,15 @@ function checkCatNeeds() {
     
     notifications.innerHTML = '';
     const needs = [];
+    
+    // Priority 0: Sickness (highest priority)
+    if (gameState.sickness) {
+        needs.push({ icon: '🏥', text: t('catNeedsTreatment') || 'Katten er syk! Ta den til legen!', priority: 0 });
+    }
+    
+    if (gameState.health < 30) {
+        needs.push({ icon: '💊', text: t('catLowHealth') || 'Katten har dårlig helse!', priority: 0 });
+    }
     
     if (gameState.hunger > 70) {
         needs.push({ icon: '🍖', text: 'Katten er sulten! Mat den!', priority: 1 });
