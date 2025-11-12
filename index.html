@@ -176,12 +176,12 @@
                 </div>
                 <!-- Interactive cat images -->
                 <div class="interactive-cat-images">
-                    <img src="Bilder/babycat.jpg" alt="Babykatt" class="interactive-cat-img" id="cat-img-1" onclick="showCatImageInfo('babycat.jpg', 'Babykatt')">
-                    <img src="Bilder/brindle.jpg" alt="Brindle katt" class="interactive-cat-img" id="cat-img-2" onclick="showCatImageInfo('brindle.jpg', 'Brindle katt')">
-                    <img src="Bilder/redcat.jpg" alt="Rød katt" class="interactive-cat-img" id="cat-img-3" onclick="showCatImageInfo('redcat.jpg', 'Rød katt')">
-                    <img src="Bilder/Cat Pink GIF.gif" alt="Rosa katt" class="interactive-cat-img gif-img" id="cat-img-4" onclick="showCatImageInfo('Cat Pink GIF.gif', 'Rosa katt')">
-                    <img src="Bilder/Bored Cat GIF.gif" alt="Kjedelig katt" class="interactive-cat-img gif-img" id="cat-img-5" onclick="showCatImageInfo('Bored Cat GIF.gif', 'Kjedelig katt')">
-                    <img src="Bilder/Cat Battle GIF.gif" alt="Kattkamp" class="interactive-cat-img gif-img" id="cat-img-6" onclick="showCatImageInfo('Cat Battle GIF.gif', 'Kattkamp')">
+                    <img src="Bilder/babycat.jpg" alt="Babykatt" class="interactive-cat-img" id="cat-img-1" onclick="showCatVideo('babycat.jpg', 'Babykatt')">
+                    <img src="Bilder/brindle.jpg" alt="Brindle katt" class="interactive-cat-img" id="cat-img-2" onclick="showCatVideo('brindle.jpg', 'Brindle katt')">
+                    <img src="Bilder/redcat.jpg" alt="Rød katt" class="interactive-cat-img" id="cat-img-3" onclick="showCatVideo('redcat.jpg', 'Rød katt')">
+                    <img src="Bilder/Cat Pink GIF.gif" alt="Rosa katt" class="interactive-cat-img gif-img" id="cat-img-4" onclick="showCatVideo('Cat Pink GIF.gif', 'Rosa katt')">
+                    <img src="Bilder/Bored Cat GIF.gif" alt="Kjedelig katt" class="interactive-cat-img gif-img" id="cat-img-5" onclick="showCatVideo('Bored Cat GIF.gif', 'Kjedelig katt')">
+                    <img src="Bilder/Cat Battle GIF.gif" alt="Kattkamp" class="interactive-cat-img gif-img" id="cat-img-6" onclick="showCatVideo('Cat Battle GIF.gif', 'Kattkamp')">
                 </div>
             </div>
         </div>
@@ -191,9 +191,11 @@
             <div class="game-container">
                 <h1>Spill 🎮</h1>
                 
-                <div class="game-cat-area">
+                <div class="game-cat-area" id="game-cat-area">
                     <div id="bed" class="bed">🛏️</div>
                     <div id="food-item" class="food-item"></div>
+                    <!-- Decoration items will be rendered here -->
+                    <div id="decoration-container" class="decoration-container"></div>
                     <div id="game-cat" class="game-cat">
                         <span class="cat-bow">🎀</span>
                         <img id="game-cat-gif" src="" alt="Katt" style="display: none; max-width: 200px; max-height: 200px; border-radius: 15px;">
@@ -254,6 +256,36 @@
                     <button class="action-btn" id="hand-btn">👋 Kosehånd</button>
                     <button class="action-btn" id="treat-btn" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">🏥 Behandle</button>
                     <button class="action-btn" id="manage-cats-btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">🐱 Kattevenner</button>
+                    <button class="action-btn" id="decorate-btn" onclick="openDecorationMode()" style="background: linear-gradient(135deg, #16a085, #27ae60);">🏠 Dekorer</button>
+                </div>
+                
+                <!-- Decoration Mode Overlay -->
+                <div id="decoration-overlay" class="overlay" style="display: none;">
+                    <div class="overlay-content decoration-modal">
+                        <div class="decoration-header">
+                            <h2>🏠 Dekorer kattens hjem</h2>
+                            <button class="close-btn" onclick="closeDecorationMode()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer;">✕</button>
+                        </div>
+                        <div class="decoration-content">
+                            <div class="decoration-inventory">
+                                <h3>📦 Mine dekorasjoner</h3>
+                                <div id="decoration-items-list" class="decoration-items-grid"></div>
+                            </div>
+                            <div class="decoration-preview">
+                                <h3>🏡 Forhåndsvisning</h3>
+                                <div id="decoration-room" class="decoration-room">
+                                    <div id="game-cat-decoration" class="game-cat-decoration">
+                                        <span id="cat-emoji-decoration">😸</span>
+                                    </div>
+                                    <!-- Decorations will be added here dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="decoration-actions">
+                            <button class="action-btn" onclick="saveDecorations()" style="background: linear-gradient(135deg, #16a085, #27ae60);">💾 Lagre dekorasjoner</button>
+                            <button class="action-btn" onclick="clearAllDecorations()" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">🗑️ Fjern alle</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Active Cats Display -->
@@ -609,6 +641,7 @@
                             <button class="action-btn" onclick="viewGroupStats()">📊 Se gruppestatistikk</button>
                             <button class="action-btn" onclick="openGroupChat()">💬 Gruppechat</button>
                             <button class="action-btn" onclick="viewGroupMembers()">👥 Se medlemmer</button>
+                            <button class="action-btn" onclick="openCompetitions()" style="background: linear-gradient(135deg, #f39c12, #e67e22);">🏆 Konkurranser</button>
                             <button class="action-btn" onclick="leaveGroup()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-top: 10px;">Forlat gruppe</button>
                         </div>
                     </div>
@@ -712,6 +745,53 @@
                             </div>
                         </div>
                         <button class="action-btn" onclick="closeChallengeManager()" style="margin-top: 20px; background: linear-gradient(135deg, #95a5a6, #7f8c8d);">Lukk</button>
+                    </div>
+                </div>
+                
+                <!-- Competitions Section -->
+                <div id="competitions-section" class="group-section" style="display: none;">
+                    <h2>🏆 Kattekonkurranser</h2>
+                    <div class="competitions-container">
+                        <div class="competitions-tabs">
+                            <button class="competition-tab-btn active" onclick="showCompetitionTab('active')" id="comp-tab-active">Aktive konkurranser</button>
+                            <button class="competition-tab-btn" onclick="showCompetitionTab('create')" id="comp-tab-create">Opprett konkurranse</button>
+                            <button class="competition-tab-btn" onclick="showCompetitionTab('history')" id="comp-tab-history">Historikk</button>
+                        </div>
+                        
+                        <!-- Active Competitions -->
+                        <div id="competitions-active-tab" class="competition-tab-content active">
+                            <div id="active-competitions-list" class="competitions-list"></div>
+                        </div>
+                        
+                        <!-- Create Competition -->
+                        <div id="competitions-create-tab" class="competition-tab-content">
+                            <div class="competition-form">
+                                <label class="settings-label">Konkurransenavn:</label>
+                                <input type="text" id="competition-name" class="group-input" placeholder="F.eks. Ukentlig poengkonkurranse" maxlength="40">
+                                <label class="settings-label">Type:</label>
+                                <select id="competition-type" class="group-input">
+                                    <option value="score">Poeng</option>
+                                    <option value="level">Nivå</option>
+                                    <option value="coins">Mynter</option>
+                                    <option value="achievements">Achievements</option>
+                                    <option value="minigames">Minispill spilt</option>
+                                </select>
+                                <label class="settings-label">Varighet (dager):</label>
+                                <select id="competition-duration" class="group-input">
+                                    <option value="7">1 uke</option>
+                                    <option value="14">2 uker</option>
+                                    <option value="30">1 måned</option>
+                                </select>
+                                <label class="settings-label">Deltakere (venner eller grupper):</label>
+                                <div id="competition-participants" class="competition-participants"></div>
+                                <button class="action-btn" onclick="createCompetition()" style="margin-top: 15px;">🎉 Opprett konkurranse</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Competition History -->
+                        <div id="competitions-history-tab" class="competition-tab-content">
+                            <div id="competitions-history-list" class="competitions-list"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -864,6 +944,19 @@
 
     <!-- Music Mini Button (when closed) -->
     <button id="music-mini-btn" class="music-mini-btn" title="Åpne musikkspiller" style="display: none;">🎵</button>
+
+    <!-- Cat Video Overlay -->
+    <div id="cat-video-overlay" class="overlay" style="display: none;">
+        <div class="overlay-content cat-video-modal">
+            <button class="close-btn" onclick="closeCatVideo()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer;">✕</button>
+            <h2 id="cat-video-title" style="margin-bottom: 20px; color: #333;">🐱 Kattevideo</h2>
+            <div id="cat-video-container" style="width: 100%; max-width: 800px; margin: 0 auto;">
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <iframe id="cat-video-iframe" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- API Configuration - Loaded from config.js (not committed to git) -->
     <script src="config.js"></script>

@@ -2212,6 +2212,662 @@ function closeChallengeManager() {
     if (modal) modal.style.display = 'none';
 }
 
+// ==================== COMPETITIONS SYSTEM ====================
+
+function openCompetitions() {
+    if (!gameState.groupId) {
+        showMessage('Du må være medlem av en gruppe for å delta i konkurranser! 👥');
+        return;
+    }
+    
+    // Hide other sections
+    document.getElementById('my-group-section').style.display = 'none';
+    document.getElementById('group-stats-section').style.display = 'none';
+    document.getElementById('group-chat-section').style.display = 'none';
+    document.getElementById('group-members-section').style.display = 'none';
+    
+    // Show competitions section
+    const compSection = document.getElementById('competitions-section');
+    if (compSection) {
+        compSection.style.display = 'block';
+        showCompetitionTab('active');
+    }
+}
+
+function showCompetitionTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.competition-tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.competition-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    const tabContent = document.getElementById(`competitions-${tabName}-tab`);
+    const tabBtn = document.getElementById(`comp-tab-${tabName}`);
+    
+    if (tabContent) tabContent.classList.add('active');
+    if (tabBtn) tabBtn.classList.add('active');
+    
+    // Load content based on tab
+    if (tabName === 'active') {
+        loadActiveCompetitions();
+    } else if (tabName === 'create') {
+        loadCompetitionParticipants();
+    } else if (tabName === 'history') {
+        loadCompetitionHistory();
+    }
+}
+
+function loadActiveCompetitions() {
+    const container = document.getElementById('active-competitions-list');
+    if (!container) return;
+    
+    const competitions = getAllCompetitions();
+    const activeCompetitions = competitions.filter(comp => {
+        const endTime = comp.startTime + (comp.duration * 24 * 60 * 60 * 1000);
+        return Date.now() < endTime && !comp.finished;
+    });
+    
+    if (activeCompetitions.length === 0) {
+        container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Ingen aktive konkurranser. Opprett en ny konkurranse! 🏆</p>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    activeCompetitions.forEach(comp => {
+        const compCard = document.createElement('div');
+        compCard.className = 'competition-card';
+        
+        const participants = getCompetitionParticipants(comp);
+        const sortedParticipants = participants.sort((a, b) => b.score - a.score);
+        
+        const timeLeft = comp.startTime + (comp.duration * 24 * 60 * 60 * 1000) - Date.now();
+        const daysLeft = Math.ceil(timeLeft / (24 * 60 * 60 * 1000));
+        
+        compCard.innerHTML = `
+            <div class="competition-header">
+                <h3>${comp.name}</h3>
+                <span class="competition-type">${getCompetitionTypeLabel(comp.type)}</span>
+            </div>
+            <div class="competition-info">
+                <p><strong>Varighet:</strong> ${comp.duration} dager</p>
+                <p><strong>Tid igjen:</strong> ${daysLeft} dager</p>
+                <p><strong>Deltakere:</strong> ${comp.participants.length}</p>
+            </div>
+            <div class="competition-leaderboard">
+                <h4>🏆 Rangering:</h4>
+                ${sortedParticipants.slice(0, 5).map((p, idx) => `
+                    <div class="competition-rank-item ${p.isCurrentUser ? 'current-user' : ''}">
+                        <span class="rank-number">${idx + 1}</span>
+                        <span class="rank-name">${p.name}</span>
+                        <span class="rank-score">${formatNumber(p.score)}</span>
+                    </div>
+                `).join('')}
+            </div>
+            ${comp.createdBy === currentUser ? `
+                <button class="action-btn" onclick="endCompetition('${comp.id}')" style="margin-top: 10px; background: linear-gradient(135deg, #e74c3c, #c0392b);">Avslutt konkurranse</button>
+            ` : ''}
+        `;
+        
+        container.appendChild(compCard);
+    });
+    
+    // Update competition scores
+    updateCompetitionScores();
+}
+
+function loadCompetitionParticipants() {
+    const container = document.getElementById('competition-participants');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Add current group
+    if (gameState.groupId) {
+        const groups = getGroups();
+        const group = groups[gameState.groupId];
+        if (group) {
+            const groupCheckbox = document.createElement('div');
+            groupCheckbox.className = 'participant-option';
+            groupCheckbox.innerHTML = `
+                <input type="checkbox" id="comp-participant-group-${gameState.groupId}" value="group:${gameState.groupId}" checked>
+                <label for="comp-participant-group-${gameState.groupId}">👥 ${group.name} (Gruppe)</label>
+            `;
+            container.appendChild(groupCheckbox);
+        }
+    }
+    
+    // Add friends
+    const friends = getFriends();
+    friends.forEach(friend => {
+        const friendCheckbox = document.createElement('div');
+        friendCheckbox.className = 'participant-option';
+        friendCheckbox.innerHTML = `
+            <input type="checkbox" id="comp-participant-friend-${friend}" value="friend:${friend}">
+            <label for="comp-participant-friend-${friend}">👤 ${friend}</label>
+        `;
+        container.appendChild(friendCheckbox);
+    });
+    
+    if (friends.length === 0 && !gameState.groupId) {
+        container.innerHTML = '<p style="color: #999;">Du må ha venner eller være i en gruppe for å opprette konkurranser.</p>';
+    }
+}
+
+function createCompetition() {
+    if (!gameState.groupId) {
+        showMessage('Du må være medlem av en gruppe for å opprette konkurranser! 👥');
+        return;
+    }
+    
+    const name = document.getElementById('competition-name').value.trim();
+    const type = document.getElementById('competition-type').value;
+    const duration = parseInt(document.getElementById('competition-duration').value);
+    
+    if (!name) {
+        showMessage('Vennligst skriv inn et navn for konkurransen! 📝');
+        return;
+    }
+    
+    // Get selected participants
+    const selectedParticipants = [];
+    document.querySelectorAll('#competition-participants input[type="checkbox"]:checked').forEach(checkbox => {
+        selectedParticipants.push(checkbox.value);
+    });
+    
+    if (selectedParticipants.length < 2) {
+        showMessage('Du må velge minst 2 deltakere for en konkurranse! 👥');
+        return;
+    }
+    
+    const competition = {
+        id: 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        name: name,
+        type: type,
+        duration: duration,
+        startTime: Date.now(),
+        participants: selectedParticipants,
+        createdBy: currentUser,
+        finished: false,
+        winner: null
+    };
+    
+    // Save competition
+    const competitions = getAllCompetitions();
+    competitions.push(competition);
+    localStorage.setItem('miaumiauCompetitions', JSON.stringify(competitions));
+    
+    // Clear form
+    document.getElementById('competition-name').value = '';
+    document.getElementById('competition-type').value = 'score';
+    document.getElementById('competition-duration').value = '7';
+    document.querySelectorAll('#competition-participants input[type="checkbox"]').forEach(cb => cb.checked = false);
+    
+    showMessage('Konkurranse opprettet! 🎉');
+    playSuccessSound();
+    showCompetitionTab('active');
+}
+
+function getAllCompetitions() {
+    return JSON.parse(localStorage.getItem('miaumiauCompetitions') || '[]');
+}
+
+function getCompetitionParticipants(competition) {
+    const participants = [];
+    
+    competition.participants.forEach(participant => {
+        const [type, id] = participant.split(':');
+        
+        if (type === 'group') {
+            const groups = getGroups();
+            const group = groups[id];
+            if (group) {
+                let totalScore = 0;
+                group.members.forEach(member => {
+                    const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+                    if (memberData) {
+                        const memberState = JSON.parse(memberData);
+                        totalScore += getCompetitionScore(memberState, competition.type);
+                    }
+                });
+                participants.push({
+                    id: id,
+                    name: group.name,
+                    type: 'group',
+                    score: totalScore,
+                    isCurrentUser: id === gameState.groupId
+                });
+            }
+        } else if (type === 'friend') {
+            const friendData = localStorage.getItem(`miaumiauGame_${id}`);
+            if (friendData) {
+                const friendState = JSON.parse(friendData);
+                participants.push({
+                    id: id,
+                    name: id,
+                    type: 'friend',
+                    score: getCompetitionScore(friendState, competition.type),
+                    isCurrentUser: id === currentUser
+                });
+            }
+        }
+    });
+    
+    return participants;
+}
+
+function getCompetitionScore(gameState, type) {
+    switch (type) {
+        case 'score':
+            return gameState.score || 0;
+        case 'level':
+            return gameState.level || 1;
+        case 'coins':
+            return gameState.coins || 0;
+        case 'achievements':
+            return Object.keys(gameState.achievements || {}).length;
+        case 'minigames':
+            return gameState.stats?.minigameScore || 0;
+        default:
+            return 0;
+    }
+}
+
+function getCompetitionTypeLabel(type) {
+    const labels = {
+        'score': '🏆 Poeng',
+        'level': '⭐ Nivå',
+        'coins': '💰 Mynter',
+        'achievements': '🎖️ Achievements',
+        'minigames': '🎯 Minispill'
+    };
+    return labels[type] || type;
+}
+
+function updateCompetitionScores() {
+    const competitions = getAllCompetitions();
+    competitions.forEach(comp => {
+        if (!comp.finished) {
+            const endTime = comp.startTime + (comp.duration * 24 * 60 * 60 * 1000);
+            if (Date.now() >= endTime) {
+                endCompetition(comp.id);
+            }
+        }
+    });
+}
+
+function endCompetition(competitionId) {
+    const competitions = getAllCompetitions();
+    const competition = competitions.find(c => c.id === competitionId);
+    
+    if (!competition) return;
+    if (competition.createdBy !== currentUser && !gameState.groupId) {
+        showMessage('Bare oppretteren kan avslutte konkurransen! 🔒');
+        return;
+    }
+    
+    const participants = getCompetitionParticipants(competition);
+    const sortedParticipants = participants.sort((a, b) => b.score - a.score);
+    const winner = sortedParticipants[0];
+    
+    competition.finished = true;
+    competition.winner = winner;
+    competition.endTime = Date.now();
+    
+    // Reward winner
+    if (winner.type === 'group') {
+        const groups = getGroups();
+        const group = groups[winner.id];
+        if (group) {
+            group.members.forEach(member => {
+                const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+                if (memberData) {
+                    const memberState = JSON.parse(memberData);
+                    memberState.coins = (memberState.coins || 0) + 100;
+                    memberState.score = (memberState.score || 0) + 200;
+                    localStorage.setItem(`miaumiauGame_${member}`, JSON.stringify(memberState));
+                }
+            });
+        }
+    } else if (winner.type === 'friend') {
+        const winnerData = localStorage.getItem(`miaumiauGame_${winner.id}`);
+        if (winnerData) {
+            const winnerState = JSON.parse(winnerData);
+            winnerState.coins = (winnerState.coins || 0) + 100;
+            winnerState.score = (winnerState.score || 0) + 200;
+            localStorage.setItem(`miaumiauGame_${winner.id}`, JSON.stringify(winnerState));
+        }
+    }
+    
+    // Update current user if they won
+    if (winner.isCurrentUser || (winner.type === 'group' && winner.id === gameState.groupId)) {
+        gameState.coins = (gameState.coins || 0) + 100;
+        gameState.score = (gameState.score || 0) + 200;
+        saveGame();
+        showMessage(`🎉 Gratulerer! Du/deres gruppe vant konkurransen "${competition.name}"! 🏆`);
+        playSuccessSound();
+    }
+    
+    localStorage.setItem('miaumiauCompetitions', JSON.stringify(competitions));
+    loadActiveCompetitions();
+}
+
+function loadCompetitionHistory() {
+    const container = document.getElementById('competitions-history-list');
+    if (!container) return;
+    
+    const competitions = getAllCompetitions();
+    const finishedCompetitions = competitions.filter(comp => comp.finished);
+    
+    if (finishedCompetitions.length === 0) {
+        container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Ingen fullførte konkurranser ennå. 📜</p>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    finishedCompetitions.sort((a, b) => (b.endTime || b.startTime) - (a.endTime || a.startTime)).forEach(comp => {
+        const compCard = document.createElement('div');
+        compCard.className = 'competition-card finished';
+        
+        const winner = comp.winner;
+        const endDate = new Date(comp.endTime || comp.startTime).toLocaleDateString('no-NO');
+        
+        compCard.innerHTML = `
+            <div class="competition-header">
+                <h3>${comp.name}</h3>
+                <span class="competition-status finished">Fullført</span>
+            </div>
+            <div class="competition-info">
+                <p><strong>Type:</strong> ${getCompetitionTypeLabel(comp.type)}</p>
+                <p><strong>Fullført:</strong> ${endDate}</p>
+            </div>
+            <div class="competition-winner">
+                <h4>🏆 Vinner:</h4>
+                <div class="winner-info">
+                    <span class="winner-name">${winner ? winner.name : 'Ukjent'}</span>
+                    <span class="winner-score">${winner ? formatNumber(winner.score) : 0}</span>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(compCard);
+    });
+}
+
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+// ==================== DECORATION SYSTEM ====================
+
+// Decoration items available in shop
+const DECORATION_ITEMS = [
+    { id: 'plant', name: 'Plante 🌿', emoji: '🌿', price: 50, category: 'nature' },
+    { id: 'ball', name: 'Ball 🎾', emoji: '🎾', price: 30, category: 'toy' },
+    { id: 'toy', name: 'Leiketøy 🧸', emoji: '🧸', price: 40, category: 'toy' },
+    { id: 'pillow', name: 'Pute 🛋️', emoji: '🛋️', price: 60, category: 'furniture' },
+    { id: 'carpet', name: 'Teppe 🧵', emoji: '🧵', price: 80, category: 'furniture' },
+    { id: 'lamp', name: 'Lampe 💡', emoji: '💡', price: 70, category: 'furniture' },
+    { id: 'window', name: 'Vindu 🪟', emoji: '🪟', price: 100, category: 'furniture' },
+    { id: 'picture', name: 'Bilde 🖼️', emoji: '🖼️', price: 90, category: 'decoration' },
+    { id: 'fishbowl', name: 'Fiskebol 🐠', emoji: '🐠', price: 120, category: 'decoration' },
+    { id: 'tree', name: 'Klatretre 🌳', emoji: '🌳', price: 150, category: 'furniture' },
+    { id: 'box', name: 'Kasse 📦', emoji: '📦', price: 25, category: 'toy' },
+    { id: 'bowl', name: 'Skål 🥣', emoji: '🥣', price: 35, category: 'furniture' }
+];
+
+// Initialize decorations in gameState
+if (!gameState.decorations) {
+    gameState.decorations = [];
+}
+
+let draggedDecoration = null;
+let decorationModeActive = false;
+
+function openDecorationMode() {
+    const overlay = document.getElementById('decoration-overlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+        decorationModeActive = true;
+        loadDecorationInventory();
+        renderDecorationRoom();
+    }
+}
+
+function closeDecorationMode() {
+    const overlay = document.getElementById('decoration-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        decorationModeActive = false;
+    }
+}
+
+function loadDecorationInventory() {
+    const container = document.getElementById('decoration-items-list');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Get owned decorations
+    const ownedDecorations = gameState.ownedItems?.filter(item => 
+        DECORATION_ITEMS.some(dec => dec.id === item)
+    ) || [];
+    
+    if (ownedDecorations.length === 0) {
+        container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Du har ingen dekorasjoner ennå. Kjøp noen i butikken! 🛒</p>';
+        return;
+    }
+    
+    ownedDecorations.forEach(itemId => {
+        const decoration = DECORATION_ITEMS.find(dec => dec.id === itemId);
+        if (!decoration) return;
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'decoration-item';
+        itemDiv.draggable = true;
+        itemDiv.dataset.decorationId = decoration.id;
+        itemDiv.innerHTML = `
+            <div class="decoration-item-emoji">${decoration.emoji}</div>
+            <div class="decoration-item-name">${decoration.name}</div>
+        `;
+        
+        itemDiv.addEventListener('dragstart', (e) => {
+            draggedDecoration = decoration;
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        
+        itemDiv.addEventListener('dragend', () => {
+            draggedDecoration = null;
+        });
+        
+        container.appendChild(itemDiv);
+    });
+}
+
+function renderDecorationRoom() {
+    const room = document.getElementById('decoration-room');
+    if (!room) return;
+    
+    // Clear existing decorations (except cat)
+    const existingDecorations = room.querySelectorAll('.placed-decoration');
+    existingDecorations.forEach(dec => dec.remove());
+    
+    // Render saved decorations
+    if (gameState.decorations && gameState.decorations.length > 0) {
+        gameState.decorations.forEach(dec => {
+            const decoration = DECORATION_ITEMS.find(d => d.id === dec.id);
+            if (!decoration) return;
+            
+            const decElement = createDecorationElement(decoration, dec.x, dec.y);
+            room.appendChild(decElement);
+        });
+    }
+    
+    // Make room droppable
+    room.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+    
+    room.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (!draggedDecoration) return;
+        
+        const rect = room.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Check if decoration already exists
+        const existingIndex = gameState.decorations.findIndex(d => d.id === draggedDecoration.id);
+        if (existingIndex >= 0) {
+            // Update position
+            gameState.decorations[existingIndex].x = x;
+            gameState.decorations[existingIndex].y = y;
+        } else {
+            // Add new decoration
+            gameState.decorations.push({
+                id: draggedDecoration.id,
+                x: x,
+                y: y
+            });
+        }
+        
+        renderDecorationRoom();
+        saveGame();
+    });
+}
+
+function createDecorationElement(decoration, x, y) {
+    const element = document.createElement('div');
+    element.className = 'placed-decoration';
+    element.style.left = x + 'px';
+    element.style.top = y + 'px';
+    element.style.position = 'absolute';
+    element.style.cursor = 'move';
+    element.style.fontSize = '40px';
+    element.style.userSelect = 'none';
+    element.textContent = decoration.emoji;
+    element.dataset.decorationId = decoration.id;
+    
+    // Make draggable
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+    
+    element.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        const rect = element.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        element.style.zIndex = '1000';
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const room = document.getElementById('decoration-room');
+        if (!room) return;
+        
+        const rect = room.getBoundingClientRect();
+        const x = e.clientX - rect.left - offsetX;
+        const y = e.clientY - rect.top - offsetY;
+        
+        // Keep within bounds
+        const maxX = rect.width - 50;
+        const maxY = rect.height - 50;
+        element.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+        element.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            element.style.zIndex = '1';
+            
+            // Update position in gameState
+            const room = document.getElementById('decoration-room');
+            if (room) {
+                const rect = room.getBoundingClientRect();
+                const decRect = element.getBoundingClientRect();
+                const x = decRect.left - rect.left;
+                const y = decRect.top - rect.top;
+                
+                const decIndex = gameState.decorations.findIndex(d => d.id === decoration.id);
+                if (decIndex >= 0) {
+                    gameState.decorations[decIndex].x = x;
+                    gameState.decorations[decIndex].y = y;
+                    saveGame();
+                }
+            }
+        }
+    });
+    
+    // Delete on right-click
+    element.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (confirm(`Vil du fjerne ${decoration.name}?`)) {
+            gameState.decorations = gameState.decorations.filter(d => d.id !== decoration.id);
+            element.remove();
+            saveGame();
+        }
+    });
+    
+    return element;
+}
+
+function saveDecorations() {
+    saveGame();
+    renderGameDecorations();
+    showMessage('Dekorasjoner lagret! 🏠');
+    playSuccessSound();
+    closeDecorationMode();
+}
+
+function clearAllDecorations() {
+    if (confirm('Er du sikker på at du vil fjerne alle dekorasjoner?')) {
+        gameState.decorations = [];
+        saveGame();
+        renderDecorationRoom();
+        renderGameDecorations();
+        showMessage('Alle dekorasjoner fjernet! 🗑️');
+    }
+}
+
+function renderGameDecorations() {
+    const container = document.getElementById('decoration-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (!gameState.decorations || gameState.decorations.length === 0) {
+        return;
+    }
+    
+    const gameArea = document.getElementById('game-cat-area');
+    if (!gameArea) return;
+    
+    gameState.decorations.forEach(dec => {
+        const decoration = DECORATION_ITEMS.find(d => d.id === dec.id);
+        if (!decoration) return;
+        
+        const element = document.createElement('div');
+        element.className = 'game-decoration';
+        element.style.position = 'absolute';
+        element.style.left = dec.x + 'px';
+        element.style.top = dec.y + 'px';
+        element.style.fontSize = '30px';
+        element.style.pointerEvents = 'none';
+        element.style.zIndex = '1';
+        element.textContent = decoration.emoji;
+        
+        container.appendChild(element);
+    });
+}
+
+// Integrate decoration items into shop - add them to shopItems array
+// Decoration items are already defined in DECORATION_ITEMS constant above
+
 function loadExistingChallenges() {
     if (!gameState.groupId) return;
     
@@ -3913,7 +4569,20 @@ const shopItems = [
     { id: 'bg-pink', name: 'Rosa bakgrunn 🌸', price: 200, emoji: '🌸', effect: 'background', useType: 'cosmetic', useLabel: null },
     { id: 'bg-blue', name: 'Blå bakgrunn 💙', price: 200, emoji: '💙', effect: 'background', useType: 'cosmetic', useLabel: null },
     { id: 'bg-rainbow', name: 'Regnbue bakgrunn 🌈', price: 300, emoji: '🌈', effect: 'background', useType: 'cosmetic', useLabel: null },
-    { id: 'bg-space', name: 'Rom bakgrunn 🚀', price: 350, emoji: '🚀', effect: 'background', useType: 'cosmetic', useLabel: null }
+    { id: 'bg-space', name: 'Rom bakgrunn 🚀', price: 350, emoji: '🚀', effect: 'background', useType: 'cosmetic', useLabel: null },
+    // Decoration items
+    { id: 'plant', name: 'Plante 🌿', price: 50, emoji: '🌿', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'ball', name: 'Ball 🎾', price: 30, emoji: '🎾', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'toy', name: 'Leiketøy 🧸', price: 40, emoji: '🧸', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'pillow', name: 'Pute 🛋️', price: 60, emoji: '🛋️', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'carpet', name: 'Teppe 🧵', price: 80, emoji: '🧵', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'lamp', name: 'Lampe 💡', price: 70, emoji: '💡', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'window', name: 'Vindu 🪟', price: 100, emoji: '🪟', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'picture', name: 'Bilde 🖼️', price: 90, emoji: '🖼️', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'fishbowl', name: 'Fiskebol 🐠', price: 120, emoji: '🐠', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'tree', name: 'Klatretre 🌳', price: 150, emoji: '🌳', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'box', name: 'Kasse 📦', price: 25, emoji: '📦', effect: 'decoration', useType: 'decoration', useLabel: null },
+    { id: 'bowl', name: 'Skål 🥣', price: 35, emoji: '🥣', effect: 'decoration', useType: 'decoration', useLabel: null }
 ];
 
 // Shop pagination
@@ -6887,11 +7556,20 @@ function showArtDrawing() {
 }
 
 // ==================== INTERACTIVE CAT IMAGES ====================
-function showCatImageInfo(imagePath, catName) {
-    showMessage(`👆 Du klikket på ${catName}! 🐱`);
+// Map cat images to YouTube video IDs (søte kattevideoer)
+const catVideoMap = {
+    'babycat.jpg': 'jPuJGW7Nduo', // Søte kattunger
+    'brindle.jpg': 'XyNlqQIdoF8', // Brindle katter
+    'redcat.jpg': 'J---aiyznGQ', // Røde katter / Orange cats
+    'Cat Pink GIF.gif': 'kP9TfCWaQT4', // Søte katter
+    'Bored Cat GIF.gif': 'OjNpRbNdR7E', // Kjedelige katter / Bored cats
+    'Cat Battle GIF.gif': 'tpiyEe_CqB4' // Kattkamp / Cat battles
+};
+
+function showCatVideo(imagePath, catName) {
     playPurrSound();
     
-    // Special animation for all images
+    // Special animation for clicked image
     const imgMap = {
         'babycat.jpg': '1',
         'brindle.jpg': '2',
@@ -6905,13 +7583,55 @@ function showCatImageInfo(imagePath, catName) {
     if (imgId) {
         const img = document.getElementById(`cat-img-${imgId}`);
         if (img) {
-            img.style.transform = 'scale(1.3) rotate(360deg)';
+            img.style.transform = 'scale(1.1)';
             setTimeout(() => {
                 img.style.transform = '';
-            }, 600);
+            }, 200);
         }
     }
+    
+    // Get video ID from map
+    const videoId = catVideoMap[imagePath];
+    if (!videoId) {
+        showMessage(`🎥 Ingen video tilgjengelig for ${catName} ennå! 🐱`);
+        return;
+    }
+    
+    // Show video overlay
+    const overlay = document.getElementById('cat-video-overlay');
+    const title = document.getElementById('cat-video-title');
+    const iframe = document.getElementById('cat-video-iframe');
+    
+    if (overlay && title && iframe) {
+        title.textContent = `🐱 ${catName} - Kattevideo`;
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+        overlay.style.display = 'flex';
+    }
 }
+
+function closeCatVideo() {
+    const overlay = document.getElementById('cat-video-overlay');
+    const iframe = document.getElementById('cat-video-iframe');
+    
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    if (iframe) {
+        iframe.src = ''; // Stop video playback
+    }
+}
+
+// Close video overlay when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.getElementById('cat-video-overlay');
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeCatVideo();
+            }
+        });
+    }
+});
 
 // ==================== GLOBAL LEADERBOARD ====================
 let currentLeaderboardSort = 'score';
@@ -7594,9 +8314,17 @@ function updateAllDisplays() {
     renderShop();
     checkAchievements();
     updateDailyChallenge();
+    // Update competition scores if competitions section is visible
+    if (document.getElementById('competitions-section') && document.getElementById('competitions-section').style.display !== 'none') {
+        updateCompetitionScores();
+        if (document.getElementById('competitions-active-tab') && document.getElementById('competitions-active-tab').classList.contains('active')) {
+            loadActiveCompetitions();
+        }
+    }
     renderStats();
     renderAlbum();
     renderOwnedItemsInGame();
+    renderGameDecorations();
     updateCatGifDisplay();
     checkCatNeeds();
     updateQuests();
@@ -9105,10 +9833,18 @@ document.addEventListener('DOMContentLoaded', () => {
         manageCatsBtn.addEventListener('click', openCatFriendsOverlay);
     }
     
-    // Initialize activeCats if not present
-    if (!gameState.activeCats || gameState.activeCats.length === 0) {
-        gameState.activeCats = [0];
-    }
+        // Initialize activeCats if not present
+        if (!gameState.activeCats || gameState.activeCats.length === 0) {
+            gameState.activeCats = [0];
+        }
+        
+        // Initialize decorations if not present
+        if (!gameState.decorations) {
+            gameState.decorations = [];
+        }
+        
+        // Render decorations on load
+        renderGameDecorations();
 });
 
 // Detekter om appen er installert

@@ -8,6 +8,9 @@
 - [x] Opprett sikkerhetsdokumentasjon (README_SECURITY.md)
 - [x] Opprett oppsettsinstruksjoner (SETUP_INSTRUCTIONS.md)
 - [x] Sikkerhet for API-nøkler
+- [x] Input-validering - Bedre validering av brukerinput
+- [x] XSS-beskyttelse - Forbedret beskyttelse mot XSS
+- [x] Rate limiting - Begrens antall handlinger per tid
 
 ### Gruppefunksjoner
 - [x] Opprett grupper med navn og passord
@@ -22,42 +25,52 @@
 ### Vennsystem
 - [x] Vennsystem med gaver og meldinger
 
+### Kjernefunksjoner
+- [x] Flere katter ved oppstart - Kattvelger-overlay
+- [x] Kattevenner - Støtte for flere katter samtidig
+- [x] Kattelege/helse-system - Helsebar, sykdommer og behandling
+- [x] Flere minispill - Kattematch-3, Kattetapet, Kattetest, Kattelabyrint
+- [x] Sesongbaserte events - Spesielle events med oppdrag, items og temaer
+- [x] Sesongoppdrag - Spesielle oppdrag basert på sesong (jul, påske, sommer, halloween)
+- [x] Global leaderboard - Rangering av alle spillere med sortering
+- [x] Leaderboard/ranking-system - Flere sorteringsalternativer
+
 ### Nye funksjoner
 - [x] Innloggingsstreak-system med bonus
 - [x] Streak-system for daglig innlogging
 - [x] Notifikasjoner når katten trenger noe
-- [x] Oppdrag/quest-system med 8 oppdragstyper
-- [x] Oppdrag/quest-system med flere oppdrag (utvidet fra 8 til 30+ oppdragstyper)
+- [x] Oppdrag/quest-system med 30+ oppdragstyper
 - [x] Kattefakta quiz i katteskolen
 - [x] Memory og Jump minispill
-- [x] Kattelabyrint minispill (nytt!)
+- [x] Kattelabyrint minispill
 - [x] Eksport/import av spilldata
 - [x] Progressive Web App (PWA) - Installerbar webapp med offline-støtte
 - [x] Katterelatert ikon på musikkspillerens lukkeknapp
 - [x] 70+ achievements
 - [x] Stat-oppdateringer for alle achievements
+- [x] Klikkbare kattebilder med videoer - Kattebilder nederst på hjem-siden åpner kattevideoer
 
 ### UI/UX forbedringer
 - [x] Responsiv design for mobil og nettbrett
 - [x] Animasjoner og visuell feedback
 - [x] Progress bars for oppdrag og utfordringer
 - [x] Styling for notifikasjoner og quest-kort
-- [x] Temaer - Flere bakgrunnstemaer å velge mellom (lys, mørk, automatisk)
+- [x] Temaer - Flere bakgrunnstemaer (lys, mørk, automatisk)
 - [x] Lys/natt-modus - Automatisk skifte basert på tid på dagen
-- [x] Offline-støtte - Service worker for offline-spilling (PWA implementert)
+- [x] Offline-støtte - Service worker for offline-spilling (PWA)
 
 ### Teknisk
-- [x] Forbedre error handling (lagt til log() funksjon og try-catch blokker)
+- [x] Forbedre error handling (log() funksjon og try-catch blokker)
 - [x] Legg til logging for debugging (log() funksjon implementert)
 - [x] Performance-optimaliseringer (forbedret kode struktur)
 
 ### Språk og oversettelse
 - [x] Fullføre oversettelser til engelsk (hovedfunksjoner oversatt)
 - [x] Oversettelsessystem (norsk/engelsk)
-- [x] Oversett alle hardkodede tekster til oversettelsessystemet (de fleste er nå oversatt)
+- [x] Oversett alle hardkodede tekster til oversettelsessystemet
 
 ### Dokumentasjon
-- [x] Oppdater README med alle nye funksjoner (oppdatert med achievements og funksjoner)
+- [x] Oppdater README med alle nye funksjoner
 - [x] Legg til API-dokumentasjon (SETUP_INSTRUCTIONS.md og README_SECURITY.md)
 
 ---
@@ -65,25 +78,17 @@
 ## 🎯 Høy prioritet - Funksjonalitet
 
 ### Kjernefunksjoner
-- [x] **Flere katter ved oppstart** - La brukere velge mellom flere katter når de starter (implementert med kattvelger-overlay)
-- [x] **Kattevenner** - Støtte for flere katter samtidig i spillet (implementert med aktiv katt-system, overlay for administrasjon og visning av alle aktive katter)
-- [x] **Kattelege/helse-system** - Legg til helsebar og sykdommer som må behandles (implementert med helsebar, sykdommer og behandlingsknapp)
-- [ ] **Flere minispill** - Utvid med 3-5 nye minispill (f.eks. kattelabyrint, kattematch-3, kattetapet)
-- [x] **Sesongbaserte events** - Spesielle events ved jul, påske, sommer, etc. (implementert med sesongoppdrag, spesielle items og temaer)
 - [ ] **Kattekonkurranser** - Ukentlige konkurranser mellom grupper eller venner
 - [ ] **Kattehus/dekorasjon-system** - La brukere dekorere kattens miljø
 
 ### Sosiale funksjoner
-- [x] **Global leaderboard** - Rangering av alle spillere (implementert i stats-tab med sortering)
-- [x] **Leaderboard/ranking-system** - Rangering av spillere (global leaderboard med flere sorteringsalternativer)
-- [ ] **Gruppe-konkurranser** - Konkurranser mellom grupper
+- [ ] **Gruppe-konkurranser** - Konkurranser mellom grupper (forskjellig fra ukentlige utfordringer)
 - [ ] **Venn-grupper** - La venner danne private grupper
 - [ ] **Gavebutikk** - Spesielle gaver som kan kjøpes og sendes
 - [ ] **Statusmeldinger** - La brukere sette statusmeldinger
 - [ ] **Brukerprofiler** - Utvidet profil med mer informasjon
 
 ### Oppdrag og utfordringer
-- [ ] **Sesongoppdrag** - Spesielle oppdrag basert på sesong
 - [ ] **Daglige gruppeutfordringer** - I tillegg til ukentlige
 - [ ] **Achievement-oppdrag** - Oppdrag basert på achievements
 - [ ] **Kjedeoppdrag** - Oppdrag som leder til hverandre
@@ -97,8 +102,6 @@
 - [ ] **Partikkeleffekter** - Flere typer partikler for ulike handlinger (delvis implementert)
 - [ ] **Bakgrunnsanimasjoner** - Animerte bakgrunner i spillet
 - [ ] **Kattemodeller** - 3D eller bedre 2D kattemodeller
-- [ ] **Temaer** - Flere bakgrunnstemaer å velge mellom
-- [ ] **Lys/natt-modus** - Automatisk skifte basert på tid på dagen
 
 ### Interaktivitet
 - [ ] **Drag & drop** - Dra items til katten
@@ -111,7 +114,6 @@
 - [ ] **Tablet-optimalisering** - Spesielle layouts for nettbrett
 - [ ] **Landscape-modus** - Optimalisert for liggende modus
 - [ ] **Touch-kontroller** - Bedre touch-kontroller for minispill
-- [ ] **Offline-støtte** - Service worker for offline-spilling
 
 ---
 
@@ -127,9 +129,6 @@
 - [ ] **Minifisering** - Minifiser CSS og JS for produksjon
 
 ### Sikkerhet
-- [x] **Input-validering** - Bedre validering av brukerinput (implementert med validateUsername, validatePassword, validateGroupName, sanitizeInput)
-- [x] **XSS-beskyttelse** - Forbedret beskyttelse mot XSS (escapeHtml brukes på all brukerinput)
-- [x] **Rate limiting** - Begrens antall handlinger per tid (implementert med checkRateLimit)
 - [ ] **Data-kryptering** - Krypter sensitive data i localStorage
 - [ ] **Backup-system** - Automatisk backup av spilldata
 
@@ -174,12 +173,10 @@
 
 ### Brukerveiledning
 - [ ] **Komplett brukerveiledning** - Detaljert guide for alle funksjoner
-- [ ] **Opprett brukerveiledning** - Opprett brukerveiledning
 - [ ] **Video-tutorials** - Video-guider for nye brukere
 - [ ] **FAQ-seksjon** - Ofte stilte spørsmål
 - [ ] **Tips og triks** - Tips for å få mest ut av spillet
 - [ ] **Skjermbilder** - Skjermbilder av alle funksjoner
-- [ ] **Legg til skjermbilder** - Legg til skjermbilder i dokumentasjonen
 
 ### Teknisk dokumentasjon
 - [ ] **API-dokumentasjon** - Dokumenter alle API-kall (delvis implementert)
@@ -242,17 +239,16 @@
 
 ### Integrasjoner
 - [ ] **Sosiale medier-deling** - Del achievements på sosiale medier
-- [ ] **Deling av achievements** - Del achievements på sosiale medier
 - [ ] **QR-kode-deling** - Del spilldata via QR-kode
 - [ ] **Cloud backup** - Automatisk backup til skyen (krever backend)
 - [ ] **Multi-device sync** - Synkroniser mellom enheter
 - [ ] **API for tredjepart** - API for utviklere
 
 ### Spesielle events
-- [ ] **Juleevent** - Spesielt juleevent med unike items
-- [ ] **Påske-event** - Spesielt påske-event
-- [ ] **Sommer-event** - Spesielt sommer-event
-- [ ] **Halloween-event** - Spesielt halloween-event
+- [ ] **Juleevent** - Spesielt juleevent med unike items (delvis implementert - kan utvides)
+- [ ] **Påske-event** - Spesielt påske-event (delvis implementert - kan utvides)
+- [ ] **Sommer-event** - Spesielt sommer-event (delvis implementert - kan utvides)
+- [ ] **Halloween-event** - Spesielt halloween-event (delvis implementert - kan utvides)
 - [ ] **Fødselsdags-event** - Spesielt event på brukerens fødselsdag
 
 ### Premium features
@@ -315,7 +311,7 @@
 ### Mobile app
 - [ ] **iOS-app** - Native iOS-app
 - [ ] **Android-app** - Native Android-app
-- [ ] **PWA** - Progressive Web App
+- [x] **PWA** - Progressive Web App (✅ Fullført)
 - [ ] **App Store** - Publiser på App Store
 - [ ] **Google Play** - Publiser på Google Play
 
@@ -346,7 +342,6 @@
 - Vurder å bruke Firebase for backend
 - Vurder å bruke MongoDB for database
 - Vurder å bruke WebSockets for real-time features
-- Vurder å bruke Service Workers for offline-støtte
 - Store bilder kan forårsake langsom lasting - vurder komprimering
 
 ### Generelle notater
@@ -360,12 +355,11 @@
 
 1. **Testing og bug-fiksing** - Test alle funksjoner grundig
 2. **Performance-optimalisering** - Optimaliser bilde-størrelser og kode
-3. **Flere minispill** - Legg til 2-3 nye minispill
-4. **Forbedret UI** - Forbedre visuell design og animasjoner
-5. **Dokumentasjon** - Fullfør brukerveiledning og teknisk dokumentasjon
-6. ~~**Input-validering** - Forbedre validering av brukerinput~~ ✅
-7. ~~**XSS-beskyttelse** - Forbedre beskyttelse mot XSS~~ ✅
+3. **Forbedret UI** - Forbedre visuell design og animasjoner
+4. **Dokumentasjon** - Fullfør brukerveiledning og teknisk dokumentasjon
+5. **Kattekonkurranser** - Implementer ukentlige konkurranser mellom grupper
+6. **Kattehus/dekorasjon-system** - La brukere dekorere kattens miljø
 
 ---
 
-*Sist oppdatert: Etter sammenslåing av TODO-lister og utvidelse av oppdragssystemet til 30+ oppdragstyper*
+*Sist oppdatert: Etter gjennomgang og opprydding av TODO-listen. Alle fullførte oppgaver er bekreftet og fjernet fra "ikke fullførte" seksjoner.*

@@ -4619,3 +4619,454 @@ body.winter {
     padding: 8px;
 }
 
+/* Cat Video Overlay */
+.cat-video-modal {
+    max-width: 900px;
+    width: 90%;
+    padding: 30px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.cat-video-modal h2 {
+    color: #667eea;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.cat-video-modal .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.cat-video-modal .close-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .cat-video-modal {
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .cat-video-modal h2 {
+        font-size: 1.2em;
+    }
+}
+
+/* Competitions Styles */
+.competitions-container {
+    margin-top: 20px;
+}
+
+.competitions-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+    flex-wrap: wrap;
+}
+
+.competition-tab-btn {
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666;
+    transition: all 0.3s ease;
+    margin-bottom: -2px;
+}
+
+.competition-tab-btn:hover {
+    color: #667eea;
+}
+
+.competition-tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    font-weight: bold;
+}
+
+.competition-tab-content {
+    display: none;
+    padding: 20px 0;
+}
+
+.competition-tab-content.active {
+    display: block;
+}
+
+.competitions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.competition-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.competition-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.competition-card.finished {
+    opacity: 0.8;
+    background: #f9f9f9;
+}
+
+.competition-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.competition-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3em;
+}
+
+.competition-type,
+.competition-status {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.competition-type {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.competition-status.finished {
+    background: #95a5a6;
+    color: white;
+}
+
+.competition-info {
+    margin: 15px 0;
+    color: #666;
+}
+
+.competition-info p {
+    margin: 5px 0;
+}
+
+.competition-leaderboard {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.competition-leaderboard h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.competition-rank-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    background: #f5f5f5;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.competition-rank-item:hover {
+    background: #e8e8e8;
+}
+
+.competition-rank-item.current-user {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: bold;
+}
+
+.rank-number {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.rank-name {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.rank-score {
+    font-weight: bold;
+    color: #667eea;
+}
+
+.competition-rank-item.current-user .rank-score {
+    color: white;
+}
+
+.competition-winner {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.competition-winner h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.winner-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.winner-name {
+    font-size: 1.2em;
+}
+
+.winner-score {
+    font-size: 1.3em;
+}
+
+.competition-form {
+    max-width: 500px;
+}
+
+.participant-option {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    background: #f5f5f5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.participant-option:hover {
+    background: #e8e8e8;
+}
+
+.participant-option input[type="checkbox"] {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.participant-option label {
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .competitions-tabs {
+        flex-direction: column;
+    }
+    
+    .competition-tab-btn {
+        width: 100%;
+        text-align: left;
+    }
+    
+    .competition-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* Decoration System Styles */
+.decoration-modal {
+    max-width: 1200px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 30px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.decoration-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+    position: relative;
+}
+
+.decoration-header h2 {
+    color: #667eea;
+    margin: 0;
+}
+
+.decoration-content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.decoration-inventory {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.decoration-inventory h3 {
+    margin-top: 0;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.decoration-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+}
+
+.decoration-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    cursor: grab;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.decoration-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-color: #667eea;
+}
+
+.decoration-item:active {
+    cursor: grabbing;
+}
+
+.decoration-item-emoji {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.decoration-item-name {
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+.decoration-preview {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.decoration-preview h3 {
+    margin-top: 0;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.decoration-room {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-radius: 15px;
+    border: 3px solid #4caf50;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.game-cat-decoration {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.placed-decoration {
+    position: absolute;
+    cursor: move;
+    transition: transform 0.1s ease;
+    z-index: 5;
+}
+
+.placed-decoration:hover {
+    transform: scale(1.2);
+}
+
+.decoration-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    padding-top: 20px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.decoration-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.game-decoration {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@media (max-width: 968px) {
+    .decoration-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .decoration-room {
+        height: 300px;
+    }
+}
+
