@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Et morsomt og lærerikt spill hvor du tar vare på din egen katt! Spill minispill, lær om katter, samle achievements og mye mer.">
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -49,18 +49,23 @@
             <h1>🐱 Velkommen til MiauMiau! 🐱</h1>
             <div id="login-form" class="login-form">
                 <h2>Logg inn</h2>
-                <input type="text" id="login-username" placeholder="Brukernavn" autocomplete="username" onkeypress="if(event.key === 'Enter') handleLogin()">
-                <input type="password" id="login-password" placeholder="Passord" autocomplete="current-password" onkeypress="if(event.key === 'Enter') handleLogin()">
-                <button class="action-btn" onclick="handleLogin()">Logg inn</button>
-                <p class="login-switch">Har du ikke en bruker? <a href="#" onclick="showSignup()">Opprett ny bruker</a></p>
+                <label for="login-username" class="sr-only">Brukernavn</label>
+                <input type="text" id="login-username" placeholder="Brukernavn" autocomplete="username" aria-label="Brukernavn" title="Brukernavn">
+                <label for="login-password" class="sr-only">Passord</label>
+                <input type="password" id="login-password" placeholder="Passord" autocomplete="current-password" aria-label="Passord" title="Passord">
+                <button class="action-btn" id="login-btn" aria-label="Logg inn">Logg inn</button>
+                <p class="login-switch">Har du ikke en bruker? <a href="#" id="show-signup-link" aria-label="Opprett ny bruker">Opprett ny bruker</a></p>
             </div>
             <div id="signup-form" class="login-form" style="display: none;">
                 <h2>Opprett ny bruker</h2>
-                <input type="text" id="signup-username" placeholder="Brukernavn (minst 3 tegn)" autocomplete="username" onkeypress="if(event.key === 'Enter') handleSignup()">
-                <input type="password" id="signup-password" placeholder="Passord (minst 4 tegn)" autocomplete="new-password" onkeypress="if(event.key === 'Enter') handleSignup()">
-                <input type="password" id="signup-password-confirm" placeholder="Bekreft passord" autocomplete="new-password" onkeypress="if(event.key === 'Enter') handleSignup()">
-                <button class="action-btn" onclick="handleSignup()">Opprett bruker</button>
-                <p class="login-switch">Har du allerede en bruker? <a href="#" onclick="showLogin()">Logg inn</a></p>
+                <label for="signup-username" class="sr-only">Brukernavn</label>
+                <input type="text" id="signup-username" placeholder="Brukernavn (minst 3 tegn)" autocomplete="username" aria-label="Brukernavn (minst 3 tegn)" title="Brukernavn (minst 3 tegn)">
+                <label for="signup-password" class="sr-only">Passord</label>
+                <input type="password" id="signup-password" placeholder="Passord (minst 4 tegn)" autocomplete="new-password" aria-label="Passord (minst 4 tegn)" title="Passord (minst 4 tegn)">
+                <label for="signup-password-confirm" class="sr-only">Bekreft passord</label>
+                <input type="password" id="signup-password-confirm" placeholder="Bekreft passord" autocomplete="new-password" aria-label="Bekreft passord" title="Bekreft passord">
+                <button class="action-btn" id="signup-btn" aria-label="Opprett bruker">Opprett bruker</button>
+                <p class="login-switch">Har du allerede en bruker? <a href="#" id="show-login-link" aria-label="Logg inn">Logg inn</a></p>
             </div>
             <div id="login-error" class="login-error"></div>
         </div>
@@ -257,6 +262,7 @@
                     <button class="action-btn" id="treat-btn" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">🏥 Behandle</button>
                     <button class="action-btn" id="manage-cats-btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">🐱 Kattevenner</button>
                     <button class="action-btn" id="decorate-btn" onclick="openDecorationMode()" style="background: linear-gradient(135deg, #16a085, #27ae60);">🏠 Dekorer</button>
+                    <button class="action-btn" id="ai-cat-chat-btn" onclick="openAICatChat()" style="background: linear-gradient(135deg, #667eea, #764ba2);">💬 Snakk med katten</button>
                 </div>
                 
                 <!-- Decoration Mode Overlay -->
@@ -578,7 +584,8 @@
                     <h2>➕ Legg til venn</h2>
                     <div class="friend-form">
                         <label class="settings-label">Brukernavn:</label>
-                        <input type="text" id="friend-username-input" class="group-input" placeholder="Skriv brukernavnet" maxlength="30">
+                        <label for="friend-username-input" class="sr-only">Brukernavn</label>
+                        <input type="text" id="friend-username-input" class="group-input" placeholder="Skriv brukernavnet" maxlength="30" aria-label="Skriv brukernavnet" title="Skriv brukernavnet">
                         <button class="action-btn" onclick="sendFriendRequest()">📤 Send vennforespørsel</button>
                     </div>
                 </div>
@@ -601,7 +608,8 @@
                     <div class="friend-messages-container">
                         <div id="friend-messages-list" class="friend-messages-list"></div>
                         <div class="friend-messages-input-container">
-                            <input type="text" id="friend-message-input" class="group-chat-input" placeholder="Skriv en melding..." maxlength="200" onkeypress="if(event.key === 'Enter') sendFriendMessage()">
+                            <label for="friend-message-input" class="sr-only">Melding</label>
+                            <input type="text" id="friend-message-input" class="group-chat-input" placeholder="Skriv en melding..." maxlength="200" aria-label="Skriv en melding" title="Skriv en melding">
                             <button class="action-btn" onclick="sendFriendMessage()">Send</button>
                         </div>
                     </div>
@@ -637,6 +645,19 @@
                                 <span id="group-challenge-progress-text">0/0</span>
                             </div>
                         </div>
+                        <div id="daily-group-challenge-section" class="group-challenge-box daily-challenge-box" style="display: none;">
+                            <div class="challenge-header">
+                                <h4>📅 Gruppens daglige utfordring:</h4>
+                            </div>
+                            <div id="daily-challenges-list" class="challenges-list"></div>
+                            <p id="daily-group-challenge-text"></p>
+                            <div class="group-challenge-progress">
+                                <div class="progress-bar-mini" style="background: #e0e0e0;">
+                                    <div id="daily-group-challenge-progress-bar" class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                                <span id="daily-group-challenge-progress-text">0/0</span>
+                            </div>
+                        </div>
                         <div class="group-actions">
                             <button class="action-btn" onclick="viewGroupStats()">📊 Se gruppestatistikk</button>
                             <button class="action-btn" onclick="openGroupChat()">💬 Gruppechat</button>
@@ -652,9 +673,9 @@
                     <h2>➕ Opprett ny gruppe</h2>
                     <div class="group-form">
                         <label class="settings-label">Gruppenavn:</label>
-                        <input type="text" id="new-group-name" class="group-input" placeholder="F.eks. Kattelag2024" maxlength="30">
-                        <label class="settings-label">Passord (for å joine gruppen):</label>
-                        <input type="password" id="new-group-password" class="group-input" placeholder="Velg et passord" maxlength="20">
+                        <input type="text" id="new-group-name" class="group-input" placeholder="F.eks. Kattelag2024" maxlength="30" aria-label="Gruppenavn" title="Gruppenavn">
+                        <label class="settings-label" for="new-group-password">Passord (for å joine gruppen):</label>
+                        <input type="password" id="new-group-password" class="group-input" placeholder="Velg et passord" maxlength="20" aria-label="Passord for gruppen" title="Passord for gruppen">
                         <button class="action-btn" onclick="createGroup()">🎉 Opprett gruppe</button>
                     </div>
                 </div>
@@ -664,9 +685,9 @@
                     <h2>🔍 Bli med i gruppe</h2>
                     <div class="group-form">
                         <label class="settings-label">Gruppenavn:</label>
-                        <input type="text" id="join-group-name" class="group-input" placeholder="Skriv gruppenavnet" maxlength="30">
-                        <label class="settings-label">Passord:</label>
-                        <input type="password" id="join-group-password" class="group-input" placeholder="Skriv gruppepassordet">
+                        <input type="text" id="join-group-name" class="group-input" placeholder="Skriv gruppenavnet" maxlength="30" aria-label="Gruppenavn" title="Gruppenavn">
+                        <label class="settings-label" for="join-group-password">Passord:</label>
+                        <input type="password" id="join-group-password" class="group-input" placeholder="Skriv gruppepassordet" aria-label="Gruppepassord" title="Gruppepassord">
                         <button class="action-btn" onclick="joinGroup()">✅ Bli med</button>
                     </div>
                     <div class="invite-friends-section" style="margin-top: 15px;">
@@ -706,7 +727,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <input type="text" id="group-chat-input" class="group-chat-input" placeholder="Skriv en melding..." maxlength="200" onkeypress="if(event.key === 'Enter') sendGroupMessage()">
+                            <label for="group-chat-input" class="sr-only">Gruppemelding</label>
+                            <input type="text" id="group-chat-input" class="group-chat-input" placeholder="Skriv en melding..." maxlength="200" aria-label="Skriv en melding" title="Skriv en melding">
                             <button class="action-btn" onclick="sendGroupMessage()">Send</button>
                         </div>
                     </div>
@@ -729,18 +751,18 @@
                             </div>
                             <div class="add-challenge">
                                 <h3>Legg til ny utfordring:</h3>
-                                <label class="settings-label">Type:</label>
-                                <select id="new-challenge-type" class="group-input">
+                                <label class="settings-label" for="new-challenge-type">Type:</label>
+                                <select id="new-challenge-type" class="group-input" aria-label="Type utfordring" title="Type utfordring">
                                     <option value="score">Poeng</option>
                                     <option value="minigame">Minispill</option>
                                     <option value="feed">Mat</option>
                                     <option value="play">Lek</option>
                                     <option value="level">Nivå</option>
                                 </select>
-                                <label class="settings-label">Beskrivelse:</label>
-                                <input type="text" id="new-challenge-desc" class="group-input" placeholder="F.eks. Samle 1000 poeng til sammen" maxlength="50">
-                                <label class="settings-label">Mål:</label>
-                                <input type="number" id="new-challenge-target" class="group-input" placeholder="1000" min="1">
+                                <label class="settings-label" for="new-challenge-desc">Beskrivelse:</label>
+                                <input type="text" id="new-challenge-desc" class="group-input" placeholder="F.eks. Samle 1000 poeng til sammen" maxlength="50" aria-label="Beskrivelse av utfordring" title="Beskrivelse av utfordring">
+                                <label class="settings-label" for="new-challenge-target">Mål:</label>
+                                <input type="number" id="new-challenge-target" class="group-input" placeholder="1000" min="1" aria-label="Mål for utfordring" title="Mål for utfordring">
                                 <button class="action-btn" onclick="addGroupChallenge()">➕ Legg til utfordring</button>
                             </div>
                         </div>
@@ -766,18 +788,18 @@
                         <!-- Create Competition -->
                         <div id="competitions-create-tab" class="competition-tab-content">
                             <div class="competition-form">
-                                <label class="settings-label">Konkurransenavn:</label>
-                                <input type="text" id="competition-name" class="group-input" placeholder="F.eks. Ukentlig poengkonkurranse" maxlength="40">
-                                <label class="settings-label">Type:</label>
-                                <select id="competition-type" class="group-input">
+                                <label class="settings-label" for="competition-name">Konkurransenavn:</label>
+                                <input type="text" id="competition-name" class="group-input" placeholder="F.eks. Ukentlig poengkonkurranse" maxlength="40" aria-label="Konkurransenavn" title="Konkurransenavn">
+                                <label class="settings-label" for="competition-type">Type:</label>
+                                <select id="competition-type" class="group-input" aria-label="Type konkurranse" title="Type konkurranse">
                                     <option value="score">Poeng</option>
                                     <option value="level">Nivå</option>
                                     <option value="coins">Mynter</option>
                                     <option value="achievements">Achievements</option>
                                     <option value="minigames">Minispill spilt</option>
                                 </select>
-                                <label class="settings-label">Varighet (dager):</label>
-                                <select id="competition-duration" class="group-input">
+                                <label class="settings-label" for="competition-duration">Varighet (dager):</label>
+                                <select id="competition-duration" class="group-input" aria-label="Varighet konkurranse" title="Varighet konkurranse">
                                     <option value="7">1 uke</option>
                                     <option value="14">2 uker</option>
                                     <option value="30">1 måned</option>
@@ -817,12 +839,14 @@
                         </div>
                         <div class="profile-edit">
                             <label class="settings-label">Bio:</label>
-                            <textarea id="profile-bio" class="profile-bio" placeholder="Skriv litt om deg selv..."></textarea>
+                            <label for="profile-bio" class="sr-only">Profilbio</label>
+                            <textarea id="profile-bio" class="profile-bio" placeholder="Skriv litt om deg selv..." aria-label="Skriv litt om deg selv" title="Skriv litt om deg selv"></textarea>
                             
                             <label class="settings-label">Profilbilde:</label>
                             <div class="profile-image-options">
                                 <button class="action-btn" onclick="document.getElementById('profile-image-upload').click()">📷 Last opp bilde</button>
-                                <input type="file" id="profile-image-upload" accept="image/*" style="display: none;" onchange="handleProfileImageUpload(event)">
+                                <label for="profile-image-upload" class="sr-only">Last opp profilbilde</label>
+                                <input type="file" id="profile-image-upload" accept="image/*" style="display: none;" aria-label="Last opp profilbilde" title="Last opp profilbilde">
                                 
                                 <label class="settings-label" style="margin-top: 15px;">Eller velg badge:</label>
                                 <div class="badge-selector">
@@ -888,7 +912,8 @@
                     <div class="data-management">
                         <button class="action-btn" onclick="exportGameData()" style="margin: 5px; background: linear-gradient(135deg, #4ecdc4, #44a08d);">📥 Eksporter spilldata</button>
                         <button class="action-btn" onclick="document.getElementById('import-file').click()" style="margin: 5px; background: linear-gradient(135deg, #667eea, #764ba2);">📤 Importer spilldata</button>
-                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importGameData(event)">
+                        <label for="import-file" class="sr-only">Importer spilldata</label>
+                        <input type="file" id="import-file" accept=".json" style="display: none;" aria-label="Importer spilldata" title="Importer spilldata">
                     </div>
                     <p class="settings-info">Eksporter spilldata for å lagre en sikkerhetskopi, eller importer for å gjenopprette data.</p>
                 </div>
@@ -905,7 +930,7 @@
     <!-- Game Finished Screen -->
     <div id="game-finished-screen" class="game-finished-screen">
         <h2>🎉 Gratulerer! Du har rundet spillet! 🎉</h2>
-        <img src="cat_finished.jpg" alt="Søt kattunge som har rundet spillet" class="finished-cat-image">
+        <div class="finished-cat-image" style="font-size: 120px; margin: 20px 0;">🎉🐱🎉</div>
         <p>Takk for at du tok så godt vare på katten din! Du er en ekte kattemester! 🏆</p>
         <button id="restart-game-btn" class="action-btn restart-btn">Start på nytt! 🐱</button>
     </div>
@@ -938,7 +963,8 @@
         </div>
         <div class="music-volume-control">
             <span>🔊</span>
-            <input type="range" id="music-volume" min="0" max="100" value="20" title="Volumnivå">
+            <label for="music-volume" class="sr-only">Musikkvolum</label>
+            <input type="range" id="music-volume" min="0" max="100" value="20" aria-label="Musikkvolum" title="Musikkvolum">
         </div>
     </div>
 
@@ -952,14 +978,49 @@
             <h2 id="cat-video-title" style="margin-bottom: 20px; color: #333;">🐱 Kattevideo</h2>
             <div id="cat-video-container" style="width: 100%; max-width: 800px; margin: 0 auto;">
                 <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                    <iframe id="cat-video-iframe" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe id="cat-video-iframe" title="Kattevideo" aria-label="Kattevideo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- AI Cat Chat Overlay -->
+    <div id="ai-cat-chat-overlay" class="overlay" style="display: none;">
+        <div class="overlay-content ai-cat-chat-modal">
+            <div class="ai-cat-chat-header">
+                <h2 id="ai-cat-chat-title">💬 Snakk med katten</h2>
+                <button class="close-btn" onclick="closeAICatChat()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer;">✕</button>
+            </div>
+            <div id="ai-cat-chat-messages" class="ai-cat-chat-messages">
+                <div class="ai-cat-message ai-message">
+                    <div class="ai-cat-avatar">🐱</div>
+                    <div class="ai-cat-text">
+                        <p id="ai-cat-welcome-message">Hei! Jeg er katten din! Snakk med meg, og jeg skal svare basert på hvordan jeg har det! 😸</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-cat-chat-input-container">
+                <label for="ai-cat-chat-input" class="sr-only">Skriv til katten</label>
+                <input type="text" id="ai-cat-chat-input" class="ai-cat-chat-input" placeholder="Skriv til katten..." maxlength="200" aria-label="Skriv til katten" title="Skriv til katten">
+                <button class="action-btn" onclick="sendAICatMessage()" id="ai-cat-send-btn">Send</button>
+                <button class="action-btn" onclick="generateAICatMessage()" id="ai-cat-auto-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);">✨ La katten snakke</button>
+            </div>
+            <div id="ai-cat-loading" class="ai-cat-loading" style="display: none;">
+                <p>Katten tenker... 🤔</p>
+            </div>
+        </div>
+    </div>
+
     <!-- API Configuration - Loaded from config.js (not committed to git) -->
-    <script src="config.js"></script>
+    <script>
+        // Try to load config.js, but don't show error if it doesn't exist
+        const configScript = document.createElement('script');
+        configScript.src = 'config.js';
+        configScript.onerror = function() {
+            console.warn('⚠️ config.js ikke funnet. Dette er normalt hvis du ikke har satt opp API-nøkkel lokalt.');
+        };
+        document.head.appendChild(configScript);
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

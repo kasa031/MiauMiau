@@ -78,8 +78,8 @@
 ## 🎯 Høy prioritet - Funksjonalitet
 
 ### Kjernefunksjoner
-- [ ] **Kattekonkurranser** - Ukentlige konkurranser mellom grupper eller venner
-- [ ] **Kattehus/dekorasjon-system** - La brukere dekorere kattens miljø
+- [x] **Kattekonkurranser** - Ukentlige konkurranser mellom grupper eller venner (implementert med konkurransesystem, rangering og belønninger)
+- [x] **Kattehus/dekorasjon-system** - La brukere dekorere kattens miljø (implementert med drag & drop, 13 dekorasjonsitems)
 
 ### Sosiale funksjoner
 - [ ] **Gruppe-konkurranser** - Konkurranser mellom grupper (forskjellig fra ukentlige utfordringer)
@@ -89,7 +89,7 @@
 - [ ] **Brukerprofiler** - Utvidet profil med mer informasjon
 
 ### Oppdrag og utfordringer
-- [ ] **Daglige gruppeutfordringer** - I tillegg til ukentlige
+- [x] **Daglige gruppeutfordringer** - I tillegg til ukentlige (implementert med daglige utfordringer som resetter hver dag, belønninger og progress tracking)
 - [ ] **Achievement-oppdrag** - Oppdrag basert på achievements
 - [ ] **Kjedeoppdrag** - Oppdrag som leder til hverandre
 
@@ -351,14 +351,41 @@
 
 ---
 
+## 🔧 Ufullstendig kode som må fikses
+
+### Tekniske mangler
+- [x] **OpenRouter API-status verifisert** - API er fortsatt gyldig og operativ (status.openrouter.ai bekreftet)
+- [ ] **Gjennomgå alle funksjonskall** - Verifiser at alle funksjoner som kalles fra HTML faktisk er fullstendig implementert og fungerer som forventet.
+
+## 🤖 AI-integrasjon med OpenRouter API
+
+### Eksisterende funksjoner som kan utvides med AI
+- [ ] **AI-forbedret gruppechat** - Legg til AI-assistent i gruppechat som kan svare på spørsmål om spillet, gi tips, eller hjelpe med oppdrag
+- [x] **AI-drevet katt-personlighet** - La katten "snakke" med spilleren basert på kattens humør, helse og handlinger. AI genererer dynamiske meldinger fra katten (✅ Implementert med chat-modal, OpenRouter API-integrasjon, og dynamiske meldinger basert på kattens tilstand)
+- [ ] **AI-assistent i katteskolen** - Legg til en AI-lærer i katteskolen som kan svare på spørsmål om katter, gi forklaringer og hjelpe med quiz
+- [ ] **Dynamiske AI-genererte oppdrag** - Utvid `generateQuests()` til å bruke AI for å generere unike, personlige oppdrag basert på spillerens fremgang og preferanser
+- [ ] **AI-genererte kattetips** - Legg til en "Kattetips"-seksjon som bruker AI til å generere daglige tips om kattstell, spilltips eller generelle råd
+
+### Nye AI-funksjoner (forslag)
+- [ ] **AI-kattens dagbok** - La AI generere daglige oppføringer i kattens "dagbok" basert på hva som har skjedd i spillet
+- [ ] **AI-genererte kattestatistikk** - AI analyserer spillerens data og gir personlige innsikter og forbedringsforslag
+- [ ] **AI-hjelpemiddel for nye spillere** - En AI-guide som hjelper nye spillere med å lære spillet, svarer på spørsmål og gir veiledning
+- [ ] **AI-genererte gruppeutfordringer** - La AI foreslå kreative gruppeutfordringer basert på gruppens aktivitet og preferanser
+- [ ] **AI-kattens reaksjoner** - La AI generere unike reaksjoner fra katten basert på handlinger (f.eks. "Katten ser ut til å like det nye leketøyet!" basert på hva spilleren gjør)
+- [ ] **AI-genererte achievements-beskrivelser** - La AI lage personlige beskrivelser av achievements når de oppnås
+- [ ] **AI-spillveiledning** - En kontekstuell AI-assistent som gir tips basert på hva spilleren holder på med akkurat nå
+- [ ] **AI-kattens historier** - La AI generere korte historier om kattens liv basert på spillerens handlinger og achievements
+
 ## 🎯 Prioriterte neste steg
 
-1. **Testing og bug-fiksing** - Test alle funksjoner grundig
-2. **Performance-optimalisering** - Optimaliser bilde-størrelser og kode
-3. **Forbedret UI** - Forbedre visuell design og animasjoner
-4. **Dokumentasjon** - Fullfør brukerveiledning og teknisk dokumentasjon
-5. **Kattekonkurranser** - Implementer ukentlige konkurranser mellom grupper
-6. **Kattehus/dekorasjon-system** - La brukere dekorere kattens miljø
+1. **AI-integrasjon med OpenRouter API** - Start med høyest prioritet:
+   - AI-drevet katt-personlighet (la katten "snakke")
+   - AI-assistent i katteskolen
+   - AI-genererte kattetips
+2. **Testing og bug-fiksing** - Test alle funksjoner grundig
+3. **Performance-optimalisering** - Optimaliser bilde-størrelser og kode
+4. **Forbedret UI** - Forbedre visuell design og animasjoner
+5. **Dokumentasjon** - Fullfør brukerveiledning og teknisk dokumentasjon
 
 ---
 

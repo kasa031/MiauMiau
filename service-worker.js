@@ -8,7 +8,9 @@ const PRECACHE_FILES = [
   './index.html',
   './styles.css',
   './script.js',
-  './manifest.json'
+  './manifest.json',
+  './Bilder/',
+  './icons/'
 ];
 
 // Install event - cache viktige filer

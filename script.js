@@ -311,6 +311,51 @@ const translations = {
         sickness_cold: 'forkjølet',
         sickness_fleas: 'loper',
         sickness_injury: 'skadet',
+        
+        // Login form placeholders and labels
+        loginTitle: 'Logg inn',
+        signupTitle: 'Opprett ny bruker',
+        usernamePlaceholder: 'Brukernavn',
+        passwordPlaceholder: 'Passord',
+        confirmPasswordPlaceholder: 'Bekreft passord',
+        usernamePlaceholderMin: 'Brukernavn (minst 3 tegn)',
+        passwordPlaceholderMin: 'Passord (minst 4 tegn)',
+        loginButton: 'Logg inn',
+        signupButton: 'Opprett bruker',
+        noAccount: 'Har du ikke en bruker?',
+        createAccount: 'Opprett ny bruker',
+        haveAccount: 'Har du allerede en bruker?',
+        loginLink: 'Logg inn',
+        welcomeTitle: '🐱 Velkommen til MiauMiau! 🐱',
+        
+        // Group placeholders
+        enterUsername: 'Skriv brukernavnet',
+        writeMessage: 'Skriv en melding...',
+        groupNamePlaceholder: 'F.eks. Kattelag2024',
+        choosePassword: 'Velg et passord',
+        writeGroupName: 'Skriv gruppenavnet',
+        writeGroupPassword: 'Skriv gruppepassordet',
+        challengeDescPlaceholder: 'F.eks. Samle 1000 poeng til sammen',
+        competitionNamePlaceholder: 'F.eks. Ukentlig poengkonkurranse',
+        
+        // Profile
+        writeAboutYourself: 'Skriv litt om deg selv...',
+        
+        // AI Chat
+        writeToCat: 'Skriv til katten...',
+        
+        // Game texts
+        activeCats: '🐱 Aktive katter:',
+        quests: '📋 Oppdrag:',
+        catTricks: '🎩 Kattetriks:',
+        sit: 'Sitt 🪑',
+        jump: 'Hopp 🦘',
+        spin: 'Snurr 🌪️',
+        dance: 'Dans 💃',
+        removeAll: '🗑️ Fjern alle',
+        
+        // Settings
+        settingsInfo: 'Velg språk for spillet. All tekst vil endres til valgt språk.',
     },
     en: {
         // Navigation
@@ -568,6 +613,51 @@ const translations = {
         sickness_cold: 'sick with a cold',
         sickness_fleas: 'has fleas',
         sickness_injury: 'injured',
+        
+        // Login form placeholders and labels
+        loginTitle: 'Log in',
+        signupTitle: 'Create new user',
+        usernamePlaceholder: 'Username',
+        passwordPlaceholder: 'Password',
+        confirmPasswordPlaceholder: 'Confirm password',
+        usernamePlaceholderMin: 'Username (min 3 chars)',
+        passwordPlaceholderMin: 'Password (min 4 chars)',
+        loginButton: 'Log in',
+        signupButton: 'Create user',
+        noAccount: 'Don\'t have an account?',
+        createAccount: 'Create new user',
+        haveAccount: 'Already have an account?',
+        loginLink: 'Log in',
+        welcomeTitle: '🐱 Welcome to MiauMiau! 🐱',
+        
+        // Group placeholders
+        enterUsername: 'Enter username',
+        writeMessage: 'Write a message...',
+        groupNamePlaceholder: 'E.g. CatTeam2024',
+        choosePassword: 'Choose a password',
+        writeGroupName: 'Write the group name',
+        writeGroupPassword: 'Write the group password',
+        challengeDescPlaceholder: 'E.g. Collect 1000 points together',
+        competitionNamePlaceholder: 'E.g. Weekly score competition',
+        
+        // Profile
+        writeAboutYourself: 'Write a bit about yourself...',
+        
+        // AI Chat
+        writeToCat: 'Write to the cat...',
+        
+        // Game texts
+        activeCats: '🐱 Active cats:',
+        quests: '📋 Quests:',
+        catTricks: '🎩 Cat tricks:',
+        sit: 'Sit 🪑',
+        jump: 'Jump 🦘',
+        spin: 'Spin 🌪️',
+        dance: 'Dance 💃',
+        removeAll: '🗑️ Remove all',
+        
+        // Settings
+        settingsInfo: 'Choose language for the game. All text will change to the selected language.',
     }
 };
 
@@ -820,6 +910,134 @@ function updateAllTexts() {
     
     const themeInfo = document.querySelector('#theme-info');
     if (themeInfo) themeInfo.textContent = t('themeInfo');
+    
+    // Update login form
+    const loginTitle = document.querySelector('#login-form h2');
+    if (loginTitle) loginTitle.textContent = t('loginTitle');
+    const signupTitle = document.querySelector('#signup-form h2');
+    if (signupTitle) signupTitle.textContent = t('signupTitle');
+    const welcomeTitle = document.querySelector('.login-modal h1');
+    if (welcomeTitle) welcomeTitle.textContent = t('welcomeTitle');
+    
+    // Update login placeholders
+    const loginUsername = document.getElementById('login-username');
+    if (loginUsername) {
+        loginUsername.placeholder = t('usernamePlaceholder');
+        loginUsername.setAttribute('aria-label', t('usernamePlaceholder'));
+        loginUsername.setAttribute('title', t('usernamePlaceholder'));
+    }
+    const loginPassword = document.getElementById('login-password');
+    if (loginPassword) {
+        loginPassword.placeholder = t('passwordPlaceholder');
+        loginPassword.setAttribute('aria-label', t('passwordPlaceholder'));
+        loginPassword.setAttribute('title', t('passwordPlaceholder'));
+    }
+    const signupUsername = document.getElementById('signup-username');
+    if (signupUsername) {
+        signupUsername.placeholder = t('usernamePlaceholderMin');
+        signupUsername.setAttribute('aria-label', t('usernamePlaceholderMin'));
+        signupUsername.setAttribute('title', t('usernamePlaceholderMin'));
+    }
+    const signupPassword = document.getElementById('signup-password');
+    if (signupPassword) {
+        signupPassword.placeholder = t('passwordPlaceholderMin');
+        signupPassword.setAttribute('aria-label', t('passwordPlaceholderMin'));
+        signupPassword.setAttribute('title', t('passwordPlaceholderMin'));
+    }
+    const signupPasswordConfirm = document.getElementById('signup-password-confirm');
+    if (signupPasswordConfirm) {
+        signupPasswordConfirm.placeholder = t('confirmPasswordPlaceholder');
+        signupPasswordConfirm.setAttribute('aria-label', t('confirmPasswordPlaceholder'));
+        signupPasswordConfirm.setAttribute('title', t('confirmPasswordPlaceholder'));
+    }
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.textContent = t('loginButton');
+        loginBtn.setAttribute('aria-label', t('loginButton'));
+    }
+    const signupBtn = document.getElementById('signup-btn');
+    if (signupBtn) {
+        signupBtn.textContent = t('signupButton');
+        signupBtn.setAttribute('aria-label', t('signupButton'));
+    }
+    // Update login/signup switch links (without innerHTML to preserve event listeners)
+    const showSignupLink = document.getElementById('show-signup-link');
+    if (showSignupLink) {
+        const parent = showSignupLink.parentElement;
+        if (parent) {
+            parent.textContent = t('noAccount') + ' ';
+            const newLink = document.createElement('a');
+            newLink.href = '#';
+            newLink.id = 'show-signup-link';
+            newLink.setAttribute('aria-label', t('createAccount'));
+            newLink.textContent = t('createAccount');
+            parent.appendChild(newLink);
+        }
+    }
+    const showLoginLink = document.getElementById('show-login-link');
+    if (showLoginLink) {
+        const parent = showLoginLink.parentElement;
+        if (parent) {
+            parent.textContent = t('haveAccount') + ' ';
+            const newLink = document.createElement('a');
+            newLink.href = '#';
+            newLink.id = 'show-login-link';
+            newLink.setAttribute('aria-label', t('loginLink'));
+            newLink.textContent = t('loginLink');
+            parent.appendChild(newLink);
+        }
+    }
+    
+    // Update group placeholders
+    const friendUsernameInput = document.getElementById('friend-username-input');
+    if (friendUsernameInput) friendUsernameInput.placeholder = t('enterUsername');
+    const friendMessageInput = document.getElementById('friend-message-input');
+    if (friendMessageInput) friendMessageInput.placeholder = t('writeMessage');
+    const newGroupName = document.getElementById('new-group-name');
+    if (newGroupName) newGroupName.placeholder = t('groupNamePlaceholder');
+    const newGroupPassword = document.getElementById('new-group-password');
+    if (newGroupPassword) newGroupPassword.placeholder = t('choosePassword');
+    const joinGroupName = document.getElementById('join-group-name');
+    if (joinGroupName) joinGroupName.placeholder = t('writeGroupName');
+    const joinGroupPassword = document.getElementById('join-group-password');
+    if (joinGroupPassword) joinGroupPassword.placeholder = t('writeGroupPassword');
+    const groupChatInput = document.getElementById('group-chat-input');
+    if (groupChatInput) groupChatInput.placeholder = t('writeMessage');
+    const newChallengeDesc = document.getElementById('new-challenge-desc');
+    if (newChallengeDesc) newChallengeDesc.placeholder = t('challengeDescPlaceholder');
+    const competitionName = document.getElementById('competition-name');
+    if (competitionName) competitionName.placeholder = t('competitionNamePlaceholder');
+    
+    // Update profile
+    const profileBio = document.getElementById('profile-bio');
+    if (profileBio) profileBio.placeholder = t('writeAboutYourself');
+    
+    // Update AI chat
+    const aiCatChatInput = document.getElementById('ai-cat-chat-input');
+    if (aiCatChatInput) aiCatChatInput.placeholder = t('writeToCat');
+    
+    // Update game texts
+    const activeCatsSection = document.querySelector('#active-cats-section h3');
+    if (activeCatsSection) activeCatsSection.textContent = t('activeCats');
+    const questsSection = document.querySelector('#quests-section h3');
+    if (questsSection) questsSection.textContent = t('quests');
+    const catTricksSection = document.querySelector('.cat-tricks-section h3');
+    if (catTricksSection) catTricksSection.textContent = t('catTricks');
+    
+    // Update trick buttons
+    const sitBtn = document.querySelector('button[onclick*="teachCatTrick(\'sit\')"]');
+    if (sitBtn) sitBtn.textContent = t('sit');
+    const jumpBtn = document.querySelector('button[onclick*="teachCatTrick(\'jump\')"]');
+    if (jumpBtn) jumpBtn.textContent = t('jump');
+    const spinBtn = document.querySelector('button[onclick*="teachCatTrick(\'spin\')"]');
+    if (spinBtn) spinBtn.textContent = t('spin');
+    const danceBtn = document.querySelector('button[onclick*="teachCatTrick(\'dance\')"]');
+    if (danceBtn) danceBtn.textContent = t('dance');
+    
+    // Re-attach event listeners after updating links (must be done after DOM updates)
+    setTimeout(() => {
+        setupLoginEventListeners();
+    }, 0);
     
     // Update buttons
     updateGameButtons();
@@ -1194,24 +1412,61 @@ function saveUsers(users) {
 }
 
 function showLogin() {
-    document.getElementById('login-form').style.display = 'block';
-    document.getElementById('signup-form').style.display = 'none';
-    document.getElementById('login-error').textContent = '';
+    try {
+        console.log('showLogin called');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const errorElement = document.getElementById('login-error');
+        
+        if (!loginForm || !signupForm || !errorElement) {
+            console.error('Login form elements not found');
+            return;
+        }
+        
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+        errorElement.textContent = '';
+        playClickSound();
+        console.log('showLogin completed');
+    } catch (error) {
+        console.error('Error in showLogin:', error);
+    }
 }
 
 function showSignup() {
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('signup-form').style.display = 'block';
-    document.getElementById('login-error').textContent = '';
+    try {
+        console.log('showSignup called');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const errorElement = document.getElementById('login-error');
+        
+        if (!loginForm || !signupForm || !errorElement) {
+            console.error('Signup form elements not found');
+            return;
+        }
+        
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        errorElement.textContent = '';
+        if (typeof playClickSound === 'function') playClickSound();
+        console.log('showSignup completed');
+    } catch (error) {
+        console.error('Error in showSignup:', error);
+    }
 }
+
+// Make available globally
+window.showSignup = showSignup;
 
 function handleLogin() {
     try {
+        console.log('handleLogin called');
         const usernameInput = document.getElementById('login-username');
         const passwordInput = document.getElementById('login-password');
         const errorElement = document.getElementById('login-error');
         
         if (!usernameInput || !passwordInput || !errorElement) {
+            console.error('Login form elements not found');
             log('error', 'Login form elements not found');
             return;
         }
@@ -1269,14 +1524,19 @@ function handleLogin() {
     }
 }
 
+// Make available globally
+window.handleLogin = handleLogin;
+
 function handleSignup() {
     try {
+        console.log('handleSignup called');
         const usernameInput = document.getElementById('signup-username');
         const passwordInput = document.getElementById('signup-password');
         const passwordConfirmInput = document.getElementById('signup-password-confirm');
         const errorElement = document.getElementById('login-error');
         
         if (!usernameInput || !passwordInput || !passwordConfirmInput || !errorElement) {
+            console.error('Signup form elements not found');
             log('error', 'Signup form elements not found');
             return;
         }
@@ -1402,13 +1662,16 @@ function handleSignup() {
     // Show cat selection for new user
     showCatSelection();
     } catch (error) {
-        log('error', 'Error during signup', error);
+        if (typeof log === 'function') log('error', 'Error during signup', error);
         const errorElement = document.getElementById('login-error');
         if (errorElement) {
             errorElement.textContent = t('error') + ': ' + (error.message || 'Signup failed');
         }
     }
 }
+
+// Make available globally
+window.handleSignup = handleSignup;
 
 // ==================== PROFILE FUNCTIONS ====================
 function updateProfileDisplay() {
@@ -1772,6 +2035,7 @@ function updateGroupDisplay() {
     
     // Update group challenge
     updateGroupChallenge();
+    updateDailyGroupChallenge();
 }
 
 function viewGroupStats() {
@@ -1894,6 +2158,14 @@ function getWeekKey() {
     const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
     const weekNumber = Math.floor(days / 7);
     return `${now.getFullYear()}_W${weekNumber}`;
+}
+
+function getDayKey() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}_${month}_${day}`;
 }
 
 // ==================== GROUP CHAT ====================
@@ -2954,6 +3226,7 @@ function addGroupChallenge() {
     
     loadExistingChallenges();
     updateGroupChallenge();
+    updateDailyGroupChallenge();
     showMessage(t('challengeAdded'));
     playSuccessSound();
 }
@@ -2972,8 +3245,188 @@ function removeGroupChallenge(index) {
         localStorage.setItem(challengesKey, JSON.stringify(challenges));
         loadExistingChallenges();
         updateGroupChallenge();
+    updateDailyGroupChallenge();
         showMessage(t('challengeRemoved'));
         playClickSound();
+    }
+}
+
+// Update daily group challenges
+function updateDailyGroupChallenge() {
+    if (!gameState.groupId) return;
+    
+    const dailyChallengeSection = document.getElementById('daily-group-challenge-section');
+    if (!dailyChallengeSection) return;
+    
+    const dayKey = getDayKey();
+    const dailyChallengesKey = `dailyGroupChallenges_${gameState.groupId}_${dayKey}`;
+    
+    // Get or create daily challenge
+    let dailyChallenge = JSON.parse(localStorage.getItem(dailyChallengesKey) || 'null');
+    
+    if (!dailyChallenge) {
+        // Create new daily challenge
+        const dailyChallengeTypes = [
+            { type: 'score', desc: 'Samle 500 poeng i dag', target: 500, icon: '🏆', reward: 30 },
+            { type: 'feed', desc: 'Mat katter 10 ganger i dag', target: 10, icon: '🍖', reward: 25 },
+            { type: 'play', desc: 'Lek med katter 8 ganger i dag', target: 8, icon: '🎾', reward: 25 },
+            { type: 'minigame', desc: 'Spill 3 minispill i dag', target: 3, icon: '🎯', reward: 40 },
+            { type: 'pet', desc: 'Kos katter 15 ganger i dag', target: 15, icon: '❤️', reward: 20 }
+        ];
+        
+        dailyChallenge = dailyChallengeTypes[Math.floor(Math.random() * dailyChallengeTypes.length)];
+        dailyChallenge.progress = 0;
+        dailyChallenge.completed = false;
+        dailyChallenge.dayKey = dayKey;
+        dailyChallenge.startProgress = {};
+        
+        // Initialize start progress for each member
+        const groups = getGroups();
+        const group = groups[gameState.groupId];
+        if (group) {
+            group.members.forEach(member => {
+                const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+                if (memberData) {
+                    const memberState = JSON.parse(memberData);
+                    dailyChallenge.startProgress[member] = getDailyChallengeStartValue(memberState, dailyChallenge.type);
+                }
+            });
+        }
+        
+        localStorage.setItem(dailyChallengesKey, JSON.stringify(dailyChallenge));
+    }
+    
+    // Calculate progress
+    const groups = getGroups();
+    const group = groups[gameState.groupId];
+    if (!group) return;
+    
+    let totalProgress = 0;
+    group.members.forEach(member => {
+        const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+        if (memberData) {
+            const memberState = JSON.parse(memberData);
+            const currentValue = getDailyChallengeValue(memberState, dailyChallenge.type);
+            const startValue = dailyChallenge.startProgress[member] || 0;
+            totalProgress += Math.max(0, currentValue - startValue);
+        }
+    });
+    
+    dailyChallenge.progress = totalProgress;
+    
+    // Check completion
+    if (dailyChallenge.progress >= dailyChallenge.target && !dailyChallenge.completed) {
+        dailyChallenge.completed = true;
+        
+        // Reward all members
+        group.members.forEach(member => {
+            const memberData = localStorage.getItem(`miaumiauGame_${member}`);
+            if (memberData) {
+                const memberState = JSON.parse(memberData);
+                memberState.coins = (memberState.coins || 0) + dailyChallenge.reward;
+                memberState.score = (memberState.score || 0) + 50;
+                if (!memberState.stats) memberState.stats = {};
+                memberState.stats.dailyChallengesCompleted = (memberState.stats.dailyChallengesCompleted || 0) + 1;
+                localStorage.setItem(`miaumiauGame_${member}`, JSON.stringify(memberState));
+            }
+        });
+        
+        // Update current user
+        if (currentUser && group.members.includes(currentUser)) {
+            gameState.coins = (gameState.coins || 0) + dailyChallenge.reward;
+            gameState.score = (gameState.score || 0) + 50;
+            if (!gameState.stats) gameState.stats = {};
+            gameState.stats.dailyChallengesCompleted = (gameState.stats.dailyChallengesCompleted || 0) + 1;
+            checkAchievements();
+            saveGame();
+        }
+        
+        showMessage(`🎉 Daglig utfordring fullført! Alle fikk ${dailyChallenge.reward} mynter!`);
+        playSuccessSound();
+    }
+    
+    // Save updated challenge
+    localStorage.setItem(dailyChallengesKey, JSON.stringify(dailyChallenge));
+    
+    // Display challenge
+    dailyChallengeSection.style.display = 'block';
+    
+    const dailyChallengeText = document.getElementById('daily-group-challenge-text');
+    const dailyProgressBar = document.getElementById('daily-group-challenge-progress-bar');
+    const dailyProgressText = document.getElementById('daily-group-challenge-progress-text');
+    const dailyChallengesList = document.getElementById('daily-challenges-list');
+    
+    if (dailyChallengesList) {
+        dailyChallengesList.innerHTML = '';
+        const progressPercent = Math.min(100, (dailyChallenge.progress / dailyChallenge.target) * 100);
+        const challengeDiv = document.createElement('div');
+        challengeDiv.className = 'challenge-item';
+        challengeDiv.innerHTML = `
+            <div class="challenge-item-header">
+                <span class="challenge-icon">${dailyChallenge.icon}</span>
+                <div class="challenge-item-info">
+                    <strong>${dailyChallenge.desc}</strong>
+                    ${dailyChallenge.completed ? '<span class="challenge-completed">✅ Fullført!</span>' : ''}
+                </div>
+            </div>
+            <div class="challenge-progress-bar-container">
+                <div class="progress-bar-mini" style="background: #e0e0e0;">
+                    <div class="progress-fill" style="width: ${progressPercent}%; background: ${dailyChallenge.completed ? '#27ae60' : '#667eea'};"></div>
+                </div>
+                <span class="challenge-progress-text">${dailyChallenge.progress}/${dailyChallenge.target}</span>
+            </div>
+        `;
+        dailyChallengesList.appendChild(challengeDiv);
+    }
+    
+    if (dailyProgressBar) {
+        const progressPercent = Math.min(100, (dailyChallenge.progress / dailyChallenge.target) * 100);
+        dailyProgressBar.style.width = progressPercent + '%';
+        dailyProgressBar.style.background = dailyChallenge.completed ? '#27ae60' : '#667eea';
+    }
+    
+    if (dailyProgressText) {
+        dailyProgressText.textContent = `${dailyChallenge.progress}/${dailyChallenge.target}`;
+    }
+    
+    if (dailyChallengeText) {
+        dailyChallengeText.textContent = dailyChallenge.completed ? 
+            `✅ Utfordringen er fullført! Alle medlemmer fikk ${dailyChallenge.reward} mynter.` :
+            `Fullfør utfordringen før dagen er over for å få ${dailyChallenge.reward} mynter!`;
+    }
+}
+
+function getDailyChallengeStartValue(gameState, type) {
+    switch (type) {
+        case 'score':
+            return gameState.score || 0;
+        case 'feed':
+            return gameState.stats?.timesFed || 0;
+        case 'play':
+            return gameState.stats?.timesPlayed || 0;
+        case 'minigame':
+            return gameState.stats?.minigameScore || 0;
+        case 'pet':
+            return gameState.stats?.timesPetted || 0;
+        default:
+            return 0;
+    }
+}
+
+function getDailyChallengeValue(gameState, type) {
+    switch (type) {
+        case 'score':
+            return gameState.score || 0;
+        case 'feed':
+            return gameState.stats?.timesFed || 0;
+        case 'play':
+            return gameState.stats?.timesPlayed || 0;
+        case 'minigame':
+            return gameState.stats?.minigameScore || 0;
+        case 'pet':
+            return gameState.stats?.timesPetted || 0;
+        default:
+            return 0;
     }
 }
 
@@ -8434,6 +8887,263 @@ async function callOpenRouterAPI(messages, model = 'openai/gpt-3.5-turbo') {
     }
 }
 
+// ==================== AI CAT PERSONALITY ====================
+let aiCatChatHistory = [];
+
+function openAICatChat() {
+    if (!OPENROUTER_API_KEY) {
+        showMessage('⚠️ AI-funksjonen krever API-nøkkel. Sjekk config.js for å sette opp OpenRouter API-nøkkel.');
+        return;
+    }
+    
+    const overlay = document.getElementById('ai-cat-chat-overlay');
+    const title = document.getElementById('ai-cat-chat-title');
+    const welcomeMessage = document.getElementById('ai-cat-welcome-message');
+    const messagesContainer = document.getElementById('ai-cat-chat-messages');
+    
+    if (!overlay) return;
+    
+    const catName = gameState.catName || 'katten';
+    if (title) title.textContent = `💬 Snakk med ${catName}`;
+    
+    // Initialize chat history if empty
+    if (aiCatChatHistory.length === 0) {
+        const welcomeText = `Hei! Jeg er ${catName}! Snakk med meg, og jeg skal svare basert på hvordan jeg har det! 😸`;
+        if (welcomeMessage) welcomeMessage.textContent = welcomeText;
+        
+        // Add welcome message to history
+        aiCatChatHistory.push({
+            role: 'assistant',
+            content: welcomeText
+        });
+    }
+    
+    overlay.style.display = 'flex';
+    playPurrSound();
+    
+    // Focus on input
+    setTimeout(() => {
+        const input = document.getElementById('ai-cat-chat-input');
+        if (input) input.focus();
+    }, 100);
+}
+
+function closeAICatChat() {
+    const overlay = document.getElementById('ai-cat-chat-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    playClickSound();
+}
+
+async function generateCatMessage(userMessage = null) {
+    if (!OPENROUTER_API_KEY) {
+        return '⚠️ AI-funksjonen krever API-nøkkel.';
+    }
+    
+    const catName = gameState.catName || 'katten';
+    const catState = {
+        name: catName,
+        happiness: gameState.happiness || 50,
+        hunger: gameState.hunger || 50,
+        energy: gameState.energy || 50,
+        health: gameState.health || 100,
+        level: gameState.level || 1,
+        sickness: gameState.sickness || null,
+        tricks: gameState.catTricks || [],
+        score: gameState.score || 0,
+        coins: gameState.coins || 0
+    };
+    
+    // Determine cat's mood
+    let mood = 'nøytral';
+    let moodDescription = '';
+    if (catState.happiness > 80 && catState.energy > 80 && !catState.sickness) {
+        mood = 'veldig glad';
+        moodDescription = 'Jeg er veldig glad og energisk!';
+    } else if (catState.happiness < 30 || catState.energy < 30) {
+        mood = 'trist eller sliten';
+        moodDescription = 'Jeg føler meg litt trist eller sliten.';
+    } else if (catState.sickness) {
+        mood = 'syk';
+        moodDescription = `Jeg er syk (${catState.sickness}) og trenger hjelp.`;
+    } else if (catState.hunger > 70) {
+        mood = 'sulten';
+        moodDescription = 'Jeg er sulten!';
+    } else {
+        mood = 'nøytral';
+        moodDescription = 'Jeg har det bra!';
+    }
+    
+    // Build system prompt
+    const systemPrompt = `Du er ${catName}, en søt og snill katt i MiauMiau-spillet. Du snakker med spilleren som om du er en ekte katt. 
+
+Kattens nåværende tilstand:
+- Lykke: ${catState.happiness}%
+- Sult: ${catState.hunger}%
+- Energi: ${catState.energy}%
+- Helse: ${catState.health}%
+- Nivå: ${catState.level}
+- Sykdom: ${catState.sickness || 'Ingen'}
+- Lærte triks: ${catState.tricks.length} (${catState.tricks.join(', ')})
+- Poeng: ${catState.score}
+- Mynter: ${catState.coins}
+- Humør: ${mood} - ${moodDescription}
+
+Instruksjoner:
+- Snakk som en søt katt (bruk "mjau", "purr", kattelyder)
+- Vær kortfattet (maks 2-3 setninger)
+- Vær morsom og vennlig
+- Referer til kattens nåværende tilstand når det er relevant
+- Hvis katten er syk eller har det dårlig, uttrykk bekymring
+- Hvis katten har det bra, vis glede
+- Bruk norsk språk
+- Ikke bruk mer enn 100 ord`;
+
+    // Build messages array
+    const messages = [
+        { role: 'system', content: systemPrompt }
+    ];
+    
+    // Add chat history (last 5 messages for context)
+    const recentHistory = aiCatChatHistory.slice(-5);
+    messages.push(...recentHistory);
+    
+    // Add user message if provided
+    if (userMessage) {
+        messages.push({ role: 'user', content: userMessage });
+    } else {
+        // Generate spontaneous message
+        messages.push({ 
+            role: 'user', 
+            content: 'Hva vil du si til meg akkurat nå? Snakk spontant basert på hvordan du har det.' 
+        });
+    }
+    
+    try {
+        const response = await callOpenRouterAPI(messages, 'openai/gpt-3.5-turbo');
+        
+        if (!response || !response.choices || !response.choices[0]) {
+            return 'Miau... Jeg klarte ikke å tenke akkurat nå. Prøv igjen! 😸';
+        }
+        
+        const aiMessage = response.choices[0].message.content.trim();
+        
+        // Add to chat history
+        if (userMessage) {
+            aiCatChatHistory.push({ role: 'user', content: userMessage });
+        }
+        aiCatChatHistory.push({ role: 'assistant', content: aiMessage });
+        
+        // Keep history limited to last 10 messages
+        if (aiCatChatHistory.length > 10) {
+            aiCatChatHistory = aiCatChatHistory.slice(-10);
+        }
+        
+        return aiMessage;
+    } catch (error) {
+        console.error('Error generating cat message:', error);
+        return 'Miau... Noe gikk galt. Prøv igjen senere! 😸';
+    }
+}
+
+async function sendAICatMessage() {
+    const input = document.getElementById('ai-cat-chat-input');
+    const sendBtn = document.getElementById('ai-cat-send-btn');
+    const loadingDiv = document.getElementById('ai-cat-loading');
+    const messagesContainer = document.getElementById('ai-cat-chat-messages');
+    
+    if (!input || !messagesContainer) return;
+    
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
+    
+    // Disable input and button
+    input.disabled = true;
+    if (sendBtn) sendBtn.disabled = true;
+    if (loadingDiv) loadingDiv.style.display = 'block';
+    
+    // Add user message to chat
+    const userMessageDiv = document.createElement('div');
+    userMessageDiv.className = 'ai-cat-message user-message';
+    userMessageDiv.innerHTML = `
+        <div class="ai-cat-text">
+            <p>${escapeHtml(userMessage)}</p>
+        </div>
+        <div class="ai-cat-avatar user-avatar">👤</div>
+    `;
+    messagesContainer.appendChild(userMessageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Clear input
+    input.value = '';
+    
+    // Generate AI response
+    try {
+        const aiResponse = await generateCatMessage(userMessage);
+        
+        // Add AI message to chat
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.className = 'ai-cat-message ai-message';
+        aiMessageDiv.innerHTML = `
+            <div class="ai-cat-avatar">🐱</div>
+            <div class="ai-cat-text">
+                <p>${escapeHtml(aiResponse)}</p>
+            </div>
+        `;
+        messagesContainer.appendChild(aiMessageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        playPurrSound();
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showMessage('Noe gikk galt ved sending av melding. Prøv igjen.');
+    } finally {
+        // Re-enable input and button
+        input.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
+        if (loadingDiv) loadingDiv.style.display = 'none';
+        input.focus();
+    }
+}
+
+async function generateAICatMessage() {
+    const autoBtn = document.getElementById('ai-cat-auto-btn');
+    const loadingDiv = document.getElementById('ai-cat-loading');
+    const messagesContainer = document.getElementById('ai-cat-chat-messages');
+    
+    if (!messagesContainer) return;
+    
+    // Disable button
+    if (autoBtn) autoBtn.disabled = true;
+    if (loadingDiv) loadingDiv.style.display = 'block';
+    
+    try {
+        const aiResponse = await generateCatMessage(); // No user message = spontaneous
+        
+        // Add AI message to chat
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.className = 'ai-cat-message ai-message';
+        aiMessageDiv.innerHTML = `
+            <div class="ai-cat-avatar">🐱</div>
+            <div class="ai-cat-text">
+                <p>${escapeHtml(aiResponse)}</p>
+            </div>
+        `;
+        messagesContainer.appendChild(aiMessageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        playPurrSound();
+    } catch (error) {
+        console.error('Error generating message:', error);
+        showMessage('Noe gikk galt ved generering av melding. Prøv igjen.');
+    } finally {
+        // Re-enable button
+        if (autoBtn) autoBtn.disabled = false;
+        if (loadingDiv) loadingDiv.style.display = 'none';
+    }
+}
+
 // ==================== CAT HEALTH SYSTEM ====================
 function checkAndUpdateHealth() {
     // Initialize health if not set
@@ -8796,8 +9506,10 @@ function completeQuest(quest) {
     }
 }
 
-// ==================== CAT QUIZ ====================
-const catQuizQuestions = [
+// ==================== CAT QUIZ (Katteskole) ====================
+// Note: Using catQuizQuestions from minigame version above
+// If you need different questions for school, rename this array
+const catQuizSchoolQuestions = [
     { question: 'Hvor mange timer om dagen sover katter vanligvis?', options: ['8-10 timer', '12-16 timer', '20-22 timer', '4-6 timer'], correct: 1, fact: 'Katter sover mye fordi de er rovdyr som trenger å spare energi!' },
     { question: 'Hva kalles en gruppe katter?', options: ['En flokk', 'En klowder', 'En gruppe', 'En familie'], correct: 1, fact: 'En gruppe katter kalles en "klowder"!' },
     { question: 'Hvor mange smaksløker har katter?', options: ['Om lag 500', 'Om lag 1000', 'Om lag 2000', 'Om lag 9000'], correct: 0, fact: 'Katter har om lag 500 smaksløker, mens mennesker har om lag 9000!' },
@@ -8829,15 +9541,15 @@ function showNextQuizQuestion() {
     const container = document.getElementById('quiz-area');
     if (!container) return;
     
-    if (currentQuizQuestion >= catQuizQuestions.length) {
-        const finalScore = Math.floor((quizScore / catQuizQuestions.length) * 100);
+    if (currentQuizQuestion >= catQuizSchoolQuestions.length) {
+        const finalScore = Math.floor((quizScore / catQuizSchoolQuestions.length) * 100);
         const coinsEarned = Math.floor(finalScore / 10);
         gameState.coins += coinsEarned;
         gameState.score += coinsEarned * 2;
         
         // Update quiz stats
         gameState.stats.quizCompleted = (gameState.stats.quizCompleted || 0) + 1;
-        if (quizScore === catQuizQuestions.length) {
+        if (quizScore === catQuizSchoolQuestions.length) {
             gameState.stats.quizPerfect = (gameState.stats.quizPerfect || 0) + 1;
         }
         checkAchievements();
@@ -8846,7 +9558,7 @@ function showNextQuizQuestion() {
         container.innerHTML = `
             <div class="quiz-result">
                 <h2>🎉 Quiz ferdig!</h2>
-                <p style="font-size: 24px; margin: 20px 0;">Du fikk ${quizScore} av ${catQuizQuestions.length} riktig!</p>
+                <p style="font-size: 24px; margin: 20px 0;">Du fikk ${quizScore} av ${catQuizSchoolQuestions.length} riktig!</p>
                 <p style="font-size: 20px; color: #667eea; font-weight: 700;">Poeng: ${finalScore}%</p>
                 <p style="font-size: 18px; margin: 15px 0;">💰 Du tjente ${coinsEarned} mynter!</p>
                 <button class="action-btn" onclick="startCatQuiz()" style="margin-top: 20px;">Spill igjen</button>
@@ -8858,12 +9570,12 @@ function showNextQuizQuestion() {
         return;
     }
     
-    const question = catQuizQuestions[currentQuizQuestion];
+    const question = catQuizSchoolQuestions[currentQuizQuestion];
     
     container.innerHTML = `
         <div class="quiz-container">
             <h2>🧠 Kattefakta Quiz</h2>
-            <div class="quiz-progress">Spørsmål ${currentQuizQuestion + 1} av ${catQuizQuestions.length}</div>
+            <div class="quiz-progress">Spørsmål ${currentQuizQuestion + 1} av ${catQuizSchoolQuestions.length}</div>
             <div class="quiz-question">
                 <h3>${question.question}</h3>
             </div>
@@ -8878,7 +9590,7 @@ function showNextQuizQuestion() {
 }
 
 function selectQuizAnswer(selectedIndex) {
-    const question = catQuizQuestions[currentQuizQuestion];
+    const question = catQuizSchoolQuestions[currentQuizQuestion];
     const feedback = document.getElementById('quiz-feedback');
     const options = document.querySelectorAll('.quiz-option-btn');
     
@@ -9045,18 +9757,18 @@ document.addEventListener('touchstart', ensureAudio, { once: true });
 // ==================== BACKGROUND MUSIC PLAYLIST ====================
 // Spilleliste med alle 12 låtene
 const playlist = [
-    { title: 'TAKEDOWN', file: '01 - TAKEDOWN (JEONGYEON, JIHYO, CHAEYOUNG).mp3' },
-    { title: "How It's Done", file: '02 - How It\'s Done.mp3' },
-    { title: 'Soda Pop', file: '03 - Soda Pop.mp3' },
-    { title: 'Golden', file: '04 - Golden.mp3' },
-    { title: 'Strategy', file: '05 - Strategy.mp3' },
-    { title: 'Takedown', file: '06 - Takedown.mp3' },
-    { title: 'Your Idol', file: '07 - Your Idol.mp3' },
-    { title: 'Free', file: '08 - Free.mp3' },
-    { title: 'What It Sounds Like', file: '09 - What It Sounds Like.mp3' },
-    { title: '사랑인가 봐 Love, Maybe', file: '10 - 사랑인가 봐 Love, Maybe.mp3' },
-    { title: '오솔길 Path', file: '11 - 오솔길 Path.mp3' },
-    { title: 'Score Suite', file: '12 - Score Suite.mp3' }
+    { title: 'TAKEDOWN', file: 'audio/01 - TAKEDOWN (JEONGYEON, JIHYO, CHAEYOUNG).mp3' },
+    { title: "How It's Done", file: 'audio/02 - How It\'s Done.mp3' },
+    { title: 'Soda Pop', file: 'audio/03 - Soda Pop.mp3' },
+    { title: 'Golden', file: 'audio/04 - Golden.mp3' },
+    { title: 'Strategy', file: 'audio/05 - Strategy.mp3' },
+    { title: 'Takedown', file: 'audio/06 - Takedown.mp3' },
+    { title: 'Your Idol', file: 'audio/07 - Your Idol.mp3' },
+    { title: 'Free', file: 'audio/08 - Free.mp3' },
+    { title: 'What It Sounds Like', file: 'audio/09 - What It Sounds Like.mp3' },
+    { title: '사랑인가 봐 Love, Maybe', file: 'audio/10 - 사랑인가 봐 Love, Maybe.mp3' },
+    { title: '오솔길 Path', file: 'audio/11 - 오솔길 Path.mp3' },
+    { title: 'Score Suite', file: 'audio/12 - Score Suite.mp3' }
 ];
 
 let backgroundMusic = null;
@@ -9858,5 +10570,170 @@ function isPWAInstalled() {
 if (!isPWAInstalled() && 'serviceWorker' in navigator) {
     // Du kan legge til en install-knapp i UI her
     console.log('[PWA] App can be installed');
+}
+
+// Functions are now globally available via window.showLogin, window.showSignup, window.handleLogin, window.handleSignup
+// These are set after function definitions above
+
+// Setup login/signup event listeners
+function setupLoginEventListeners() {
+    console.log('Setting up login event listeners...');
+    
+    // Login button - remove old listener first to avoid duplicates
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        // Clone and replace to remove all event listeners
+        const newLoginBtn = loginBtn.cloneNode(true);
+        loginBtn.parentNode.replaceChild(newLoginBtn, loginBtn);
+        newLoginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Login button clicked');
+            if (typeof handleLogin === 'function') {
+                handleLogin();
+            } else if (window.handleLogin) {
+                window.handleLogin();
+            } else {
+                console.error('handleLogin not available');
+            }
+        });
+        console.log('Login button listener attached');
+    } else {
+        console.warn('Login button not found!');
+    }
+    
+    // Signup button - remove old listener first
+    const signupBtn = document.getElementById('signup-btn');
+    if (signupBtn) {
+        const newSignupBtn = signupBtn.cloneNode(true);
+        signupBtn.parentNode.replaceChild(newSignupBtn, signupBtn);
+        newSignupBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Signup button clicked');
+            if (typeof handleSignup === 'function') {
+                handleSignup();
+            } else if (window.handleSignup) {
+                window.handleSignup();
+            } else {
+                console.error('handleSignup not available');
+            }
+        });
+        console.log('Signup button listener attached');
+    } else {
+        console.warn('Signup button not found!');
+    }
+    
+    // Show signup link - remove old listener first
+    const showSignupLink = document.getElementById('show-signup-link');
+    if (showSignupLink) {
+        const newShowSignupLink = showSignupLink.cloneNode(true);
+        showSignupLink.parentNode.replaceChild(newShowSignupLink, showSignupLink);
+        newShowSignupLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Show signup link clicked');
+            if (typeof showSignup === 'function') {
+                showSignup();
+            } else if (window.showSignup) {
+                window.showSignup();
+            } else {
+                console.error('showSignup not available');
+            }
+        });
+        console.log('Show signup link listener attached');
+    } else {
+        console.warn('Show signup link not found!');
+    }
+    
+    // Show login link - remove old listener first
+    const showLoginLink = document.getElementById('show-login-link');
+    if (showLoginLink) {
+        const newShowLoginLink = showLoginLink.cloneNode(true);
+        showLoginLink.parentNode.replaceChild(newShowLoginLink, showLoginLink);
+        newShowLoginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Show login link clicked');
+            if (typeof showLogin === 'function') {
+                showLogin();
+            } else if (window.showLogin) {
+                window.showLogin();
+            } else {
+                console.error('showLogin not available');
+            }
+        });
+        console.log('Show login link listener attached');
+    } else {
+        console.warn('Show login link not found!');
+    }
+    
+    // Enter key handlers for friend message input
+    const friendMessageInput = document.getElementById('friend-message-input');
+    if (friendMessageInput) {
+        friendMessageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (typeof sendFriendMessage === 'function') {
+                    sendFriendMessage();
+                }
+            }
+        });
+    }
+    
+    // Enter key handlers for group chat input
+    const groupChatInput = document.getElementById('group-chat-input');
+    if (groupChatInput) {
+        groupChatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (typeof sendGroupMessage === 'function') {
+                    sendGroupMessage();
+                }
+            }
+        });
+    }
+    
+    // Enter key handlers for AI cat chat input
+    const aiCatChatInput = document.getElementById('ai-cat-chat-input');
+    if (aiCatChatInput) {
+        aiCatChatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (typeof sendAICatMessage === 'function') {
+                    sendAICatMessage();
+                }
+            }
+        });
+    }
+    
+    // File input handlers
+    const profileImageUpload = document.getElementById('profile-image-upload');
+    if (profileImageUpload) {
+        profileImageUpload.addEventListener('change', function(e) {
+            if (typeof handleProfileImageUpload === 'function') {
+                handleProfileImageUpload(e);
+            }
+        });
+    }
+    
+    const importFile = document.getElementById('import-file');
+    if (importFile) {
+        importFile.addEventListener('change', function(e) {
+            if (typeof importGameData === 'function') {
+                importGameData(e);
+            }
+        });
+    }
+    
+    console.log('Login/signup event listeners setup complete');
+}
+
+// Setup when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLoginEventListeners);
+} else {
+    // DOM is already loaded
+    setupLoginEventListeners();
 }
 

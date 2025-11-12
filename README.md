@@ -26,7 +26,7 @@ MiauMiau er nå en **Progressive Web App**! Dette betyr at du kan:
 - **Mobile:** "Legg til hjem-skjerm" fra nettlesermenyen
 - **iOS Safari:** Del → Legg til hjem-skjerm
 
-Se [PWA_SETUP.md](PWA_SETUP.md) for mer informasjon.
+Se [docs/SETUP.md](docs/SETUP.md) for detaljert oppsettsinformasjon.
 
 ## 🎮 Hva er dette?
 
